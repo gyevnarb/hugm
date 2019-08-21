@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27703.2035
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MagyarGerrymandering", "MagyarGerrymandering\MagyarGerrymandering.csproj", "{F8AEAE08-B723-4623-AAE2-8B16C20EEEEB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "hugm", "hugm\hugm.csproj", "{F8AEAE08-B723-4623-AAE2-8B16C20EEEEB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

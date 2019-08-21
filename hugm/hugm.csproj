@@ -6,8 +6,8 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{F8AEAE08-B723-4623-AAE2-8B16C20EEEEB}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>MagyarGerrymandering</RootNamespace>
-    <AssemblyName>MagyarGerrymandering</AssemblyName>
+    <RootNamespace>hugm</RootNamespace>
+    <AssemblyName>hugm</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
