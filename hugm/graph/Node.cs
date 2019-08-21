@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace hugm.graph
 {
-    class Node
+    public class Node
     {
         public int ID { get; private set; }
         public List<Node> Adjacents { get; set; }
@@ -19,7 +19,7 @@ namespace hugm.graph
         }
     }
 
-    class ConnectedComponent
+    public class ConnectedComponent
     {
         public List<Node> CP { get; set; }
 

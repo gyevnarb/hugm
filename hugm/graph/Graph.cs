@@ -9,7 +9,7 @@ namespace hugm.graph
     /// <summary>
     /// Arbitrary graph with adjacency list representation
     /// </summary>
-    class Graph
+    public class Graph
     {
         /// <summary>
         /// Vertices (nodes) of the graph
