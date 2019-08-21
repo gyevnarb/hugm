@@ -40,6 +40,18 @@ namespace hugm.graph
         }
 
         /// <summary>
+        /// Removes a vertex (node) from the graph
+        /// </summary>
+        public void RemoveNode(Node node)
+        {
+            V.Remove(node);
+            foreach (var n in V)
+            {
+                n.Adjacents.Remove(node);
+            }
+        }
+
+        /// <summary>
         /// Add an edge between existing vertices (nodes) if one does not exist already.
         /// </summary>
         /// <param name="n1">First vertex</param>
@@ -65,6 +77,15 @@ namespace hugm.graph
             Node m1 = FindByID(n1);
             Node m2 = FindByID(n2);
             AddEdge(m1, m2);
+        }
+
+        /// <summary>
+        /// Removes an edge (connection) from the graph
+        /// </summary>
+        public void RemoveEdge(Edge e)
+        {
+            e.N1.Adjacents.Remove(e.N2);
+            e.N2.Adjacents.Remove(e.N1);
         }
 
         /// <summary>

@@ -7,6 +7,13 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
-        <Canvas x:Name="canvas" Mouse.MouseDown="Canvas_MouseDown"></Canvas>        
+        <Canvas x:Name="canvas" Mouse.MouseDown="Canvas_MouseDown">
+            <Canvas.RenderTransform>
+                <TransformGroup>
+                    <ScaleTransform x:Name="canvasScale"></ScaleTransform>
+                    <TranslateTransform x:Name="canvasTranslate"></TranslateTransform>
+                </TransformGroup>
+            </Canvas.RenderTransform>
+        </Canvas>        
     </Grid>
 </Window>

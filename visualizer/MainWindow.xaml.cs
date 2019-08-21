@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
 
@@ -11,7 +12,7 @@ namespace visualizer
     public partial class MainWindow : Window
     {
         private Graph myGraph;
-        private List<object> associatedElems;
+        private List<object> associatedElems = new List<object>();
 
         public Graph MyGraph
         {
@@ -23,7 +24,7 @@ namespace visualizer
             }
         }
 
-        private double VotingAreaRadius = 20;
+        private double VotingAreaRadius = 10;
         private UIElement SelectedElement = null;
         private Border SelectedBorder;
 
@@ -37,18 +38,37 @@ namespace visualizer
 
             InitKeyHandlers();
             BuildGraph();
-          //  ShowGraph();
+            ShowGraph();
+        }
+
+        private void BuildGraph()
+        {
+            myGraph = new Graph();
+
+            MyGraph.AddNode();
+            MyGraph.AddNode();
+            MyGraph.AddNode();
+
+            MyGraph.AddEdge(0, 1);
+            MyGraph.AddEdge(1, 2);
+
+            MyGraph.V[0].X = 100; MyGraph.V[0].Y = 100;
+            MyGraph.V[1].X = 200; MyGraph.V[1].Y = 200;
+            MyGraph.V[2].X = 170; MyGraph.V[2].Y = 120;
         }
 
         private void ShowGraph()
         {
             canvas.Children.Clear();
-            foreach (var v in MyGraph.V)
+            associatedElems.Clear();
+            for (int i = 0; i < MyGraph.V.Count; ++i)
             {
+                var v = MyGraph.V[i];
                 DrawVotingArea(v);
-                foreach (var v2 in MyGraph.V)
-                {
-                    if (MyGraph.Adjacent(v.ID, v2.ID))
+                for (int j = i + 1; j < MyGraph.V.Count; ++j)
+                { 
+                    var v2 = MyGraph.V[j];
+                    if (MyGraph.Adjacent(v, v2))
                         DrawNeighbourhood(new Edge(v, v2));
                 }
             }
@@ -58,13 +78,13 @@ namespace visualizer
 
         private void DrawVotingArea(Node v)
         {
-
+            canvas.Children.Add(CreateVotingArea(v.X, v.Y));
             associatedElems.Add(v);
         }
 
         private void DrawNeighbourhood(Edge e)
         {
-
+            canvas.Children.Add(CreateNeighbourhood(e.N1.X, e.N1.Y, e.N2.X, e.N2.Y));
             associatedElems.Add(e);
         }
 
@@ -72,12 +92,40 @@ namespace visualizer
         {
             KeyUp += (s, e) =>
             {
-                if (e.Key == System.Windows.Input.Key.Delete)
+                if (e.Key == Key.Delete)
                 {
                     RemoveElement(SelectedElement);
                     SelectedElement = null;
                     UpdateSelection();
                 }
+
+            };
+
+            KeyDown += (s, e) =>
+            {
+                if (e.Key == Key.W)
+                {
+                    canvasTranslate.Y += 2;
+                }
+                else if (e.Key == Key.A)
+                {
+                    canvasTranslate.X += 2;
+                }
+                else if (e.Key == Key.S)
+                {
+                    canvasTranslate.Y -= 2;
+                }
+                else if (e.Key == Key.D)
+                {
+                    canvasTranslate.X -= 2;
+                }
+            };
+
+
+            MouseWheel += (s, e) =>
+            {
+                canvasScale.ScaleX += e.Delta / 1000f;
+                canvasScale.ScaleY += e.Delta / 1000f;
             };
         }
 
@@ -87,24 +135,15 @@ namespace visualizer
             var ae = associatedElems[index];
             if (ae is Node)
             {
-                // remove node
+                MyGraph.RemoveNode(ae as Node);
             }
             else if (ae is Edge)
             {
-                // remove edge
+                MyGraph.RemoveEdge(ae as Edge);
             }
             associatedElems.RemoveAt(index);
             canvas.Children.RemoveAt(index);
-        }
-
-        private void BuildGraph()
-        {
-            canvas.Children.Add(CreateVotingArea(200, 30));
-            canvas.Children.Add(CreateVotingArea(60, 60));
-            canvas.Children.Add(CreateNeighbourhood(60, 60, 30, 30));
-
-            SelectedBorder.Visibility = Visibility.Collapsed;
-            canvas.Children.Add(SelectedBorder);
+            ShowGraph();
         }
 
         private UIElement CreateVotingArea(Vector position)
@@ -117,8 +156,8 @@ namespace visualizer
             var sign = new Ellipse();
             sign.Width = VotingAreaRadius * 2;
             sign.Height = VotingAreaRadius * 2;
-            Canvas.SetTop(sign, Y - VotingAreaRadius * 2);
-            Canvas.SetLeft(sign, X - VotingAreaRadius * 2);
+            Canvas.SetTop(sign, Y - VotingAreaRadius);
+            Canvas.SetLeft(sign, X - VotingAreaRadius);
 
             sign.Fill = Brushes.DarkOrange;
 
@@ -139,7 +178,7 @@ namespace visualizer
             nh.Y2 = Y2;
             nh.Visibility = Visibility.Visible;
             nh.Stroke = Brushes.Aquamarine;
-            nh.StrokeThickness = 10;
+            nh.StrokeThickness = 5;
 
             return nh;
         }
@@ -163,7 +202,12 @@ namespace visualizer
             }
             else if (SelectedElement is Line)
             {
-
+                var l = SelectedElement as Line;
+                Canvas.SetTop(SelectedBorder, Math.Min(l.Y1, l.Y2));
+                Canvas.SetLeft(SelectedBorder, Math.Min(l.X1, l.X2));
+                SelectedBorder.Width = Math.Abs(l.X1 - l.X2);
+                SelectedBorder.Height = Math.Abs(l.Y1 - l.Y2);
+                SelectedBorder.Visibility = Visibility.Visible;
             } 
             else if (SelectedElement is Ellipse)
             {

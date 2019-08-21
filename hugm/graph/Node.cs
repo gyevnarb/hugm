@@ -11,6 +11,7 @@ namespace hugm.graph
         public int ID { get; private set; }
         public List<Node> Adjacents { get; set; }
         public bool Marked { get; set; }
+        public double X, Y;
 
         public Node(int id)
         {
