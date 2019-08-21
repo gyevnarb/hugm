@@ -5,6 +5,8 @@ VisualStudioVersion = 15.0.27703.2035
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "hugm", "hugm\hugm.csproj", "{F8AEAE08-B723-4623-AAE2-8B16C20EEEEB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "createmap", "createmap\createmap.csproj", "{4E621948-510D-4399-808C-6000A706410E}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "visualizer", "visualizer\visualizer.csproj", "{99F7C9E0-89FD-4F99-BF9A-1B9EE3DA3F97}"
 EndProject
 Global
@@ -17,6 +19,10 @@ Global
 		{F8AEAE08-B723-4623-AAE2-8B16C20EEEEB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F8AEAE08-B723-4623-AAE2-8B16C20EEEEB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F8AEAE08-B723-4623-AAE2-8B16C20EEEEB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4E621948-510D-4399-808C-6000A706410E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4E621948-510D-4399-808C-6000A706410E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4E621948-510D-4399-808C-6000A706410E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4E621948-510D-4399-808C-6000A706410E}.Release|Any CPU.Build.0 = Release|Any CPU
 		{99F7C9E0-89FD-4F99-BF9A-1B9EE3DA3F97}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{99F7C9E0-89FD-4F99-BF9A-1B9EE3DA3F97}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{99F7C9E0-89FD-4F99-BF9A-1B9EE3DA3F97}.Release|Any CPU.ActiveCfg = Release|Any CPU
