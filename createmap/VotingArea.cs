@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 
 namespace createmap
 {
     class VotingArea
     {
+        public int ID { get; set; }
         public string District { get; set; }
         public int AreaNo { get; set; }
         private string Street { get; set; }
@@ -17,26 +13,23 @@ namespace createmap
 
         public VotingArea(string[] input)
         {
-            District = Regex.Match(input[1], "[MDCLXVI]+").Captures[0].Value;
-            AreaNo = int.Parse(input[2]);
-            Street = FormatStreetName(input[3]).Trim();
-
             if (input.Length > 5)
             {
-                LatitudeLongitude = new LatLong(double.Parse(input[4]), double.Parse(input[5]), Street);
+                ID = int.Parse(input[0]);
+                District = Regex.Match(input[2], "[MDCLXVI]+").Captures[0].Value;
+                AreaNo = int.Parse(input[3]);
+                Street = FormatStreetName(input[4]).Trim();
+                LatitudeLongitude = new LatLong(double.Parse(input[5]), double.Parse(input[6]), Street);
                 FormattedAddress = Street;
             }
             else
             {
+                ID = -1;
+                District = Regex.Match(input[1], "[MDCLXVI]+").Captures[0].Value;
+                AreaNo = int.Parse(input[2]);
+                Street = FormatStreetName(input[3]).Trim();
                 LatitudeLongitude = new LatLong();           
             }            
-        }
-
-        public VotingArea(string dist, int no, string adr)
-        {
-            District = dist;
-            AreaNo = no;
-            Street = adr;
         }
 
         public string RawAddress()
@@ -51,7 +44,7 @@ namespace createmap
 
         public string ToCsvString()
         {
-            return string.Format($"BUDAPEST;Budapest {District}. ker.;{AreaNo};{FormattedAddress};{LatitudeLongitude.Latitude};{LatitudeLongitude.Longitude}");
+            return string.Format($"{ID};BUDAPEST;Budapest {District}. ker.;{AreaNo};{FormattedAddress};{LatitudeLongitude.Latitude};{LatitudeLongitude.Longitude}");
         }
 
         private string FormatStreetName(string adr)

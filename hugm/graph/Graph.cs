@@ -40,6 +40,15 @@ namespace hugm.graph
         }
 
         /// <summary>
+        /// Add a new vertex (node) to the graph
+        /// </summary>
+        /// <param name="n">Node to add</param>
+        public void AddNode(Node n)
+        {
+            V.Add(n);
+        }
+
+        /// <summary>
         /// Removes a vertex (node) from the graph
         /// </summary>
         public void RemoveNode(Node node)

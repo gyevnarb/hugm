@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
-using System.Threading;
 using System.Text;
 using Newtonsoft.Json.Linq;
 
@@ -107,6 +106,7 @@ namespace createmap
         {
             for (int i = 0; i < areas.Count; i++)
             {
+                areas[i].ID = i;
                 areas[i].FormattedAddress = lls[i].FormattedAddress;
                 areas[i].LatitudeLongitude = lls[i];
             }
@@ -118,7 +118,7 @@ namespace createmap
             
             using (StreamWriter sw = new StreamWriter(latlongsSavePath, false, Encoding.UTF8))
             {
-                sw.WriteLine("Főváros / megye;Település;Szavazókör;Szavazókör címe;Szélességi fok; Hosszúsági fok");
+                sw.WriteLine("ID;Főváros / megye;Település;Szavazókör;Szavazókör címe;Szélességi fok; Hosszúsági fok");
                 foreach (VotingArea area in areas)
                 {
                     sw.WriteLine(area.ToCsvString());
