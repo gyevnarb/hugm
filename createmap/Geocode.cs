@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
+using System.Threading;
 using System.Text;
 using Newtonsoft.Json.Linq;
 
@@ -13,8 +14,8 @@ namespace createmap
     {
         private static readonly HttpClient client = new HttpClient();
         private static readonly string apikey = "AIzaSyAP0RPakM5pf8grngjIAoDuaUWd5kjvXaY";
-        private static readonly string geocodeSavePath = @"../../geocode.txt";
-        private static readonly string latlongsSavePath = @"../../korok_new.csv";
+        private static readonly string geocodeSavePath = @"../../data/geocode.txt";
+        private static readonly string latlongsSavePath = @"../../data/korok_new.csv";
 
         /// <summary>
         /// Fetch all voting area data
@@ -117,7 +118,7 @@ namespace createmap
             
             using (StreamWriter sw = new StreamWriter(latlongsSavePath, false, Encoding.UTF8))
             {
-                sw.WriteLine("Település;Szavazókör;Szavazókör címe;Szélességi fok; Hosszúsági fok");
+                sw.WriteLine("Főváros / megye;Település;Szavazókör;Szavazókör címe;Szélességi fok; Hosszúsági fok");
                 foreach (VotingArea area in areas)
                 {
                     sw.WriteLine(area.ToCsvString());

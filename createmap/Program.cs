@@ -12,7 +12,7 @@ namespace createmap
         public static void Main(string[] args)
         {
             Geocode coder = new Geocode();
-            List<VotingArea> areas = coder.Run("../../korok_test.csv", true).GetAwaiter().GetResult();            
+            List<VotingArea> areas = coder.Run("../../data/korok_new.csv", false).GetAwaiter().GetResult();            
             Console.ReadKey();
         }
     }
