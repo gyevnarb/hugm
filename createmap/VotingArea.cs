@@ -11,28 +11,41 @@ namespace createmap
     {
         public string District { get; set; }
         public int AreaNo { get; set; }
-        public string Address { get; set; }
+        public string Street { get; set; }
+        public string FormattedAddress { get; set; }
+        public LatLong LatitudeLongitude { get; set; }
 
         public VotingArea(string[] input)
         {
             District = Regex.Match(input[1], "[MDCLXVI]+").Captures[0].Value;
             AreaNo = int.Parse(input[2]);
-            Address = GetAddress(input[3]);
+            Street = FormatStreetName(input[3]).Trim();
+            LatitudeLongitude = new LatLong();
         }
 
         public VotingArea(string dist, int no, string adr)
         {
             District = dist;
             AreaNo = no;
-            Address = adr;
+            Street = adr;
+        }
+
+        public string RawAddress()
+        {
+            return string.Format($"{Street}, Budapest {District}. kerület");
         }
 
         public override string ToString()
         {
-            return string.Format($"{Address}, Budapest {District}. kerület");
+            return FormattedAddress;
         }
 
-        private string GetAddress(string adr)
+        public string ToCsvString()
+        {
+            return string.Format($"Budapest {District}. ker.;{AreaNo};{FormattedAddress};{LatitudeLongitude.Latitude};{LatitudeLongitude.Longitude}");
+        }
+
+        private string FormatStreetName(string adr)
         {
             if (adr.IndexOf('(') >= 0)
             {

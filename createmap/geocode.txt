@@ -1,0 +1,192 @@
+{
+   "results" : [
+      {
+         "address_components" : [
+            {
+               "long_name" : "38",
+               "short_name" : "38",
+               "types" : [ "street_number" ]
+            },
+            {
+               "long_name" : "Úri utca",
+               "short_name" : "Úri u.",
+               "types" : [ "route" ]
+            },
+            {
+               "long_name" : "I. kerület",
+               "short_name" : "I. kerület",
+               "types" : [ "political", "sublocality", "sublocality_level_1" ]
+            },
+            {
+               "long_name" : "Budapest",
+               "short_name" : "Budapest",
+               "types" : [ "locality", "political" ]
+            },
+            {
+               "long_name" : "Hungary",
+               "short_name" : "HU",
+               "types" : [ "country", "political" ]
+            },
+            {
+               "long_name" : "1014",
+               "short_name" : "1014",
+               "types" : [ "postal_code" ]
+            }
+         ],
+         "formatted_address" : "Budapest, Úri u. 38, 1014 Hungary",
+         "geometry" : {
+            "location" : {
+               "lat" : 47.5012948,
+               "lng" : 19.0318817
+            },
+            "location_type" : "ROOFTOP",
+            "viewport" : {
+               "northeast" : {
+                  "lat" : 47.50264378029149,
+                  "lng" : 19.0332306802915
+               },
+               "southwest" : {
+                  "lat" : 47.49994581970849,
+                  "lng" : 19.0305327197085
+               }
+            }
+         },
+         "place_id" : "ChIJicOTFyLcQUcRoRTew31B-AY",
+         "plus_code" : {
+            "compound_code" : "G22J+GQ Budapest, Hungary",
+            "global_code" : "8FVXG22J+GQ"
+         },
+         "types" : [ "street_address" ]
+      }
+   ],
+   "status" : "OK"
+}
+
+{
+   "results" : [
+      {
+         "address_components" : [
+            {
+               "long_name" : "9",
+               "short_name" : "9",
+               "types" : [ "street_number" ]
+            },
+            {
+               "long_name" : "Tárnok utca",
+               "short_name" : "Tárnok u.",
+               "types" : [ "route" ]
+            },
+            {
+               "long_name" : "I. kerület",
+               "short_name" : "I. kerület",
+               "types" : [ "political", "sublocality", "sublocality_level_1" ]
+            },
+            {
+               "long_name" : "Budapest",
+               "short_name" : "Budapest",
+               "types" : [ "locality", "political" ]
+            },
+            {
+               "long_name" : "Hungary",
+               "short_name" : "HU",
+               "types" : [ "country", "political" ]
+            },
+            {
+               "long_name" : "1014",
+               "short_name" : "1014",
+               "types" : [ "postal_code" ]
+            }
+         ],
+         "formatted_address" : "Budapest, Tárnok u. 9, 1014 Hungary",
+         "geometry" : {
+            "location" : {
+               "lat" : 47.5007419,
+               "lng" : 19.0344572
+            },
+            "location_type" : "ROOFTOP",
+            "viewport" : {
+               "northeast" : {
+                  "lat" : 47.5020908802915,
+                  "lng" : 19.0358061802915
+               },
+               "southwest" : {
+                  "lat" : 47.4993929197085,
+                  "lng" : 19.0331082197085
+               }
+            }
+         },
+         "place_id" : "ChIJwQmo9CLcQUcRjzD43v41TA4",
+         "plus_code" : {
+            "compound_code" : "G22M+7Q Budapest, Hungary",
+            "global_code" : "8FVXG22M+7Q"
+         },
+         "types" : [ "street_address" ]
+      }
+   ],
+   "status" : "OK"
+}
+
+{
+   "results" : [
+      {
+         "address_components" : [
+            {
+               "long_name" : "6",
+               "short_name" : "6",
+               "types" : [ "street_number" ]
+            },
+            {
+               "long_name" : "Bem rakpart",
+               "short_name" : "Bem rkp.",
+               "types" : [ "route" ]
+            },
+            {
+               "long_name" : "I. kerület",
+               "short_name" : "I. kerület",
+               "types" : [ "political", "sublocality", "sublocality_level_1" ]
+            },
+            {
+               "long_name" : "Budapest",
+               "short_name" : "Budapest",
+               "types" : [ "locality", "political" ]
+            },
+            {
+               "long_name" : "Hungary",
+               "short_name" : "HU",
+               "types" : [ "country", "political" ]
+            },
+            {
+               "long_name" : "1011",
+               "short_name" : "1011",
+               "types" : [ "postal_code" ]
+            }
+         ],
+         "formatted_address" : "Budapest, Bem rkp. 6, 1011 Hungary",
+         "geometry" : {
+            "location" : {
+               "lat" : 47.500565,
+               "lng" : 19.040041
+            },
+            "location_type" : "ROOFTOP",
+            "viewport" : {
+               "northeast" : {
+                  "lat" : 47.5019139802915,
+                  "lng" : 19.0413899802915
+               },
+               "southwest" : {
+                  "lat" : 47.49921601970851,
+                  "lng" : 19.0386920197085
+               }
+            }
+         },
+         "place_id" : "ChIJVRSyZT3cQUcRQffX3X-F0ro",
+         "plus_code" : {
+            "compound_code" : "G22R+62 Budapest, Hungary",
+            "global_code" : "8FVXG22R+62"
+         },
+         "types" : [ "street_address" ]
+      }
+   ],
+   "status" : "OK"
+}
+

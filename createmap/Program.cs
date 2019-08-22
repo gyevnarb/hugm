@@ -2,24 +2,18 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
 
 namespace createmap
 {
     class Program
     {
-        static void Main(string[] args)
+        public static void Main(string[] args)
         {
-            var areas = LoadCsv(@"../../korok.csv");
+            Geocode coder = new Geocode();
+            List<VotingArea> areas = coder.Run("../../korok_test.csv", true).GetAwaiter().GetResult();            
             Console.ReadKey();
-        }
-
-        static List<VotingArea> LoadCsv(string path)
-        {
-            List<string[]> lines = File.ReadAllLines(path).Skip(1).Select(x => x.Split(';')).ToList();
-            List<VotingArea> areas = lines.Select(x => new VotingArea(x)).ToList();
-            return areas;
         }
     }
 }
