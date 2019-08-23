@@ -2,15 +2,45 @@
 
 namespace createmap
 {
+    /// <summary>
+    /// Abstract representation of a voting area
+    /// </summary>
     public class VotingArea
     {
+        /// <summary>
+        /// Unique ID of the area
+        /// </summary>
         public int ID { get; set; }
+
+        /// <summary>
+        /// The real world district number in Budapest
+        /// </summary>
         public string District { get; set; }
+
+        /// <summary>
+        /// The voting area number in the district
+        /// </summary>
         public int AreaNo { get; set; }
+
+        /// <summary>
+        /// Unformatted street address
+        /// </summary>
         private string Street { get; set; }
+
+        /// <summary>
+        /// Fully formatted location address
+        /// </summary>
         public string FormattedAddress { get; set; }
+
+        /// <summary>
+        /// Coordinate of the voting area
+        /// </summary>
         public LatLong LatitudeLongitude { get; set; }
 
+        /// <summary>
+        /// Initialise voting area from CSV
+        /// </summary>
+        /// <param name="input">A line of CSV input</param>
         public VotingArea(string[] input)
         {
             if (input.Length > 5)
@@ -32,16 +62,28 @@ namespace createmap
             }            
         }
 
+        /// <summary>
+        /// Construct semi-formatted address from CSV data
+        /// </summary>
+        /// <returns>Semi-formatted address suitable for lookup</returns>
         public string RawAddress()
         {
             return string.Format($"{Street}, Budapest {District}. kerület");
         }
 
+        /// <summary>
+        /// Convert area to string
+        /// </summary>
+        /// <returns>Formatted address of area</returns>
         public override string ToString()
         {
             return FormattedAddress;
         }
 
+        /// <summary>
+        /// Convert area to CSV line
+        /// </summary>
+        /// <returns>CSV-formatted representation of the area</returns>
         public string ToCsvString()
         {
             return string.Format($"{ID};BUDAPEST;Budapest {District}. ker.;{AreaNo};{FormattedAddress};{LatitudeLongitude.Latitude};{LatitudeLongitude.Longitude}");

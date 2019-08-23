@@ -5,6 +5,9 @@ using hugm.graph;
 
 namespace createmap
 {
+    /// <summary>
+    /// Specialised subclass to group voting areas
+    /// </summary>
     public class AreaNode : Node
     {
         /// <summary>
@@ -12,12 +15,26 @@ namespace createmap
         /// </summary>
         public List<VotingArea> Areas { get; private set; }
 
-        public AreaNode(int id) : base(id) { }
+        /// <summary>
+        /// Empty voting areas with ID
+        /// </summary>
+        /// <param name="id">ID to assign</param>
+        public AreaNode(int id) : base(id) => Areas = new List<VotingArea>();
+
+        /// <summary>
+        /// Initialise voting areas
+        /// </summary>
+        /// <param name="id">ID of node</param>
+        /// <param name="areas">Areas the node is grouping</param>
         public AreaNode(int id, List<VotingArea> areas) : base(id) => Areas = areas;
 
+        /// <summary>
+        /// Human-readable string of node
+        /// </summary>
+        /// <returns>ID and Formatted Address of node</returns>
         public override string ToString()
         {
-            return string.Format($"ID = {ID}; FormatteAddress = {Areas.First().FormattedAddress}");
+            return string.Format($"ID = {ID}; FormattedAddress = {Areas.First().FormattedAddress}");
         }
     }
 }

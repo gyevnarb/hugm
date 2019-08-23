@@ -5,11 +5,26 @@ using hugm.graph;
 
 namespace createmap
 {
+    /// <summary>
+    /// Aggregate class for creating a graph based on voting areas
+    /// </summary>
     public class PopulateGraph
     {
+        /// <summary>
+        /// All voting areas present
+        /// </summary>
         public List<VotingArea> Areas { get; private set; }
+
+        /// <summary>
+        /// Stores the graph. Has to be built first.
+        /// </summary>
         public Graph G { get; private set; }
         
+        /// <summary>
+        /// Convenience method to build a voting areas graph
+        /// </summary>
+        /// <param name="path">Path of voting areas csv file</param>
+        /// <returns>Graph representation of the voting areas</returns>
         public static Graph BuildGraph(string path)
         {
             Geocode coder = new Geocode();
@@ -20,12 +35,19 @@ namespace createmap
             return pop.G;
         }
 
+        /// <summary>
+        /// Assign the voting areas and initialise empty graph
+        /// </summary>
+        /// <param name="areas">List of all voting areas</param>
         public PopulateGraph(List<VotingArea> areas)
         {
             Areas = areas;
             G = new Graph();
         }
         
+        /// <summary>
+        /// Add all nodes to the graph based on all voting areas
+        /// </summary>
         public void PopulateNodes()
         {
             foreach (VotingArea area in Areas)
@@ -35,6 +57,10 @@ namespace createmap
             }
         }
 
+        /// <summary>
+        /// Add edges between nodes withing a given distance
+        /// </summary>
+        /// <param name="threshold">The limiting distance</param>
         public void PopulateEdges(double threshold)
         {
             List<AreaNode> grouped = GroupSameAreas();
@@ -69,6 +95,12 @@ namespace createmap
             }
         }
         
+        /// <summary>
+        /// Calculate distance between two coordinates using the Haversine-formula
+        /// </summary>
+        /// <param name="l1">First coordinate</param>
+        /// <param name="l2">Second coordinate</param>
+        /// <returns>Distance between the two coordinates in metres</returns>
         public double Distance(LatLong l1, LatLong l2)
         {
             double R = 6371.0e3;
@@ -85,6 +117,11 @@ namespace createmap
             return R * c;
         }
 
+        /// <summary>
+        /// Degrees to radians
+        /// </summary>
+        /// <param name="d">Degrees</param>
+        /// <returns>Radians</returns>
         public double ToRadians(double d)
         {
             return d * Math.PI / 180.0;
