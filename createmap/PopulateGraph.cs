@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using hugm.graph;
 
 namespace createmap
@@ -22,28 +20,45 @@ namespace createmap
         {
             foreach (VotingArea area in Areas)
             {
-                AreaNode n = new AreaNode(area.ID, area);
+                AreaNode n = new AreaNode(area.ID, new List<VotingArea> { area });
                 G.AddNode(n);
             }
         }
 
-        public void PopulateEdges(double tresh)
+        public void PopulateEdges(double threshold)
         {
-            foreach (AreaNode n in G.V)
+            List<AreaNode> grouped = GroupSameAreas();
+            foreach (AreaNode group in grouped)
             {
-                AddEdgeWithinDistance(n, tresh); //TODO: Manage same places but different districts
+                AddIntraGroupEdges(group);
+                AddEdgeWithinDistance(group, threshold);
             }
         }
 
-        private void AddEdgeWithinDistance(AreaNode org, double d)
+        private List<AreaNode> GroupSameAreas()
+        {
+            List<AreaNode> grouped = Areas.GroupBy(x => x.FormattedAddress).Select(x => new AreaNode(x.First().ID, x.ToList())).ToList();
+            return grouped;
+        }
+
+        private void AddIntraGroupEdges(AreaNode group)
+        {
+            List<VotingArea> areas = group.Areas;
+            for (int i = 0; i < areas.Count - 1; i++)
+                for (int j = i + 1; j < areas.Count; j++)
+                    G.AddEdge(areas[i].ID, areas[j].ID);
+        }
+        
+        private void AddEdgeWithinDistance(AreaNode origin, double d)
         {
             foreach (VotingArea area in Areas)
             {
-                if (Distance(org.Area.LatitudeLongitude, area.LatitudeLongitude) < d)
-                    G.AddEdge(org.ID, area.ID);
+                double dist = Distance(origin.Areas[0].LatitudeLongitude, area.LatitudeLongitude);
+                if (dist < d && dist > 0)
+                    G.AddEdge(origin.ID, area.ID);
             }
         }
-
+        
         public double Distance(LatLong l1, LatLong l2)
         {
             double R = 6371.0e3;
@@ -68,9 +83,17 @@ namespace createmap
 
     class AreaNode : Node
     {
-        public VotingArea Area { get; private set; }
+        /// <summary>
+        /// Group voting areas with same voting location
+        /// </summary>
+        public List<VotingArea> Areas { get; private set; }
 
         public AreaNode(int id) : base(id) { }
-        public AreaNode(int id, VotingArea area) : base(id) => Area = area;
+        public AreaNode(int id, List<VotingArea> areas) : base(id) => Areas = areas;
+
+        public override string ToString()
+        {
+            return string.Format($"ID = {ID}; FormatteAddress = {Areas.First().FormattedAddress}");
+        }
     }
 }

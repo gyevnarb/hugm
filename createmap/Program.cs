@@ -12,7 +12,7 @@ namespace createmap
             List<VotingArea> areas = coder.Run("../../data/korok_new.csv", false).GetAwaiter().GetResult();
             PopulateGraph pop = new PopulateGraph(areas);
             pop.PopulateNodes();
-            pop.PopulateEdges(1.0e3);
+            pop.PopulateEdges(500.0);
             Graph g = pop.G;
             Console.ReadKey();
         }
