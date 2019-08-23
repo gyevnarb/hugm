@@ -86,6 +86,7 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+    <None Include="korok_new.csv" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -95,6 +96,10 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\createmap\createmap.csproj">
+      <Project>{4e621948-510d-4399-808c-6000a706410e}</Project>
+      <Name>createmap</Name>
+    </ProjectReference>
     <ProjectReference Include="..\hugm\hugm.csproj">
       <Project>{f8aeae08-b723-4623-aae2-8b16c20eeeeb}</Project>
       <Name>hugm</Name>

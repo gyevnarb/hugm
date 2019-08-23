@@ -2,7 +2,7 @@
 
 namespace createmap
 {
-    class VotingArea
+    public class VotingArea
     {
         public int ID { get; set; }
         public string District { get; set; }

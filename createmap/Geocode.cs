@@ -9,7 +9,7 @@ using Newtonsoft.Json.Linq;
 
 namespace createmap
 {
-    class Geocode
+    public class Geocode
     {
         private static readonly HttpClient client = new HttpClient();
         private static readonly string apikey = "AIzaSyAP0RPakM5pf8grngjIAoDuaUWd5kjvXaY";
@@ -139,27 +139,6 @@ namespace createmap
         {
             string[] sep = address.Split(' ');
             return string.Join("+", sep);
-        }
-    }
-
-    class LatLong
-    {
-        public double Latitude { get; set; }
-        public double Longitude { get; set; }
-        public string FormattedAddress { get; set; }
-
-        public LatLong()
-        {
-            Latitude = 0.0;
-            Longitude = 0.0;
-            FormattedAddress = "";
-        }
-
-        public LatLong(double lat, double lng, string adr)
-        {
-            Latitude = lat;
-            Longitude = lng;
-            FormattedAddress = adr;
         }
     }
 }

@@ -5,10 +5,20 @@ using hugm.graph;
 
 namespace createmap
 {
-    class PopulateGraph
+    public class PopulateGraph
     {
         public List<VotingArea> Areas { get; private set; }
         public Graph G { get; private set; }
+        
+        public static Graph BuildGraph(string path)
+        {
+            Geocode coder = new Geocode();
+            List<VotingArea> areas = coder.Run(path, false).GetAwaiter().GetResult();
+            PopulateGraph pop = new PopulateGraph(areas);
+            pop.PopulateNodes();
+            pop.PopulateEdges(500.0);
+            return pop.G;
+        }
 
         public PopulateGraph(List<VotingArea> areas)
         {
@@ -78,22 +88,6 @@ namespace createmap
         public double ToRadians(double d)
         {
             return d * Math.PI / 180.0;
-        }
-    }
-
-    class AreaNode : Node
-    {
-        /// <summary>
-        /// Group voting areas with same voting location
-        /// </summary>
-        public List<VotingArea> Areas { get; private set; }
-
-        public AreaNode(int id) : base(id) { }
-        public AreaNode(int id, List<VotingArea> areas) : base(id) => Areas = areas;
-
-        public override string ToString()
-        {
-            return string.Format($"ID = {ID}; FormatteAddress = {Areas.First().FormattedAddress}");
         }
     }
 }
