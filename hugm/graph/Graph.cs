@@ -134,38 +134,47 @@ namespace hugm.graph
         }
 
         /// <summary>
+        /// Run BFS from given node
+        /// </summary>
+        /// <param name="n">Starting node</param>
+        /// <returns>All nodes reachable from n</returns>
+        public List<Node> BFSFrom(Node n) //TODO: Test BFSFrom
+        {
+            Queue<Node> schedule = new Queue<Node>();
+            List<Node> reachable = new List<Node>();
+            schedule.Enqueue(n);
+            reachable.Add(n);
+            n.Marked = true;
+            while (schedule.Count > 0)
+            {
+                Node m = schedule.Dequeue();
+                foreach (Node p in m.Adjacents)
+                {
+                    if (!p.Marked)
+                    {
+                        p.Marked = true;
+                        schedule.Enqueue(p);
+                        reachable.Add(p);
+                    }
+                }
+            }
+            return reachable;
+        }
+
+        /// <summary>
         /// Gets all connected components of the graph. Uses BFS.
         /// </summary>
         /// <returns>List of all connected components in the graph</returns>
         public List<ConnectedComponent> GetConnectedComponents()
-        {
-            Queue<Node> schedule = new Queue<Node>();
+        {           
             List<ConnectedComponent> ret = new List<ConnectedComponent>();
-
             foreach (Node n in V)
             {
                 if (!n.Marked)
                 {
-                    n.Marked = true;
-                    schedule.Enqueue(n);
-                    ConnectedComponent newCp = new ConnectedComponent();
-                    newCp.CP.Add(n);
-                    while (schedule.Count > 0)
-                    {
-                        Node m = schedule.Dequeue();
-                        foreach (Node p in m.Adjacents)
-                        {
-                            if (!p.Marked)
-                            {
-                                p.Marked = true;
-                                schedule.Enqueue(p);
-                                newCp.CP.Add(p);
-                            }
-                        }
-                    }
-                    ret.Add(newCp);
-                }
-                    
+                    List<Node> reached = BFSFrom(n);
+                    ret.Add(new ConnectedComponent(reached));
+                }                  
             }
 
             V.ForEach(x => x.Marked = false);

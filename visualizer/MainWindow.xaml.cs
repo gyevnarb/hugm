@@ -1,4 +1,5 @@
 ﻿using hugm.graph;
+using hugm.map;
 using createmap;
 using System;
 using System.Collections.Generic;
@@ -47,7 +48,7 @@ namespace visualizer
 
         private void BuildGraph()
         {
-            myGraph = PopulateGraph.BuildGraph(@"../../korok_new.csv", false);
+            myGraph = PopulateGraph.BuildGraph(@"../../korok_new.csv", false) as AreaGraph;
             //myGraph = new Graph();
             //
             //MyGraph.AddNode();

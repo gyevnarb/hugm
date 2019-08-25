@@ -19,7 +19,7 @@ namespace createmap
         /// <summary>
         /// Graph of voting areas. Must be built first
         /// </summary>
-        public Graph G { get; private set; }
+        public AreaGraph G { get; private set; }
         
         /// <summary>
         /// Convenience method to build the voting area graph
@@ -29,7 +29,7 @@ namespace createmap
         /// <param name="thresh">Neighbouring nodes edge distance limit</param>
         /// <param name="limit">Number of elements to subset from Areas</param>
         /// <returns>Fully build graph of all voting areas</returns>
-        public static Graph BuildGraph(string path, bool geocode, double thresh = -1.0, int limit = -1)
+        public static AreaGraph BuildGraph(string path, bool geocode, double thresh = -1.0, int limit = -1)
         {
             Geocode coder = new Geocode();
             List<VotingArea> areas = coder.Run(path, geocode, limit).GetAwaiter().GetResult();
@@ -49,7 +49,7 @@ namespace createmap
         public PopulateGraph(List<VotingArea> areas)
         {
             Areas = areas;
-            G = new Graph();
+            G = new AreaGraph();
         }
 
         /// <summary>
@@ -164,11 +164,17 @@ namespace createmap
             foreach (AreaNode n in G.V)
             {
                 double dist = Distance(origin.LatitudeLongitude, n.LatitudeLongitude);
-                if (dist < d && dist > 0 && !n.NodeWithinDistance(d, Distance))
+                if (dist < d && dist > 0 && !G.NodeWithinDistance(n, d, Distance))
                     G.AddEdge(origin.ID, n.ID);
             }
         }
         
+        /// <summary>
+        /// Calculate distance between two coordinates using the Haversine formula
+        /// </summary>
+        /// <param name="l1">First coordinate</param>
+        /// <param name="l2">Second coordinate</param>
+        /// <returns>Distance in metres between the two coordinates</returns>
         public double Distance(Coord l1, Coord l2)
         {
             double R = 6371.0e3;
@@ -185,6 +191,11 @@ namespace createmap
             return R * c;
         }
 
+        /// <summary>
+        /// Convert degrees to radians
+        /// </summary>
+        /// <param name="d">Degrees</param>
+        /// <returns>Radians</returns>
         public double ToRadians(double d)
         {
             return d * Math.PI / 180.0;

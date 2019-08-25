@@ -10,21 +10,19 @@ namespace hugm.graph
     public class Node
     {
         public int ID { get; private set; }
+
         public List<Node> Adjacents { get; set; }
+
         public bool Marked { get; set; }
-        public double X, Y;
+
+        public double X { get; set; }
+
+        public double Y { get; set; }
 
         public Node(int id)
         {
             ID = id;
             Adjacents = new List<Node>();
         }
-    }
-
-    public class ConnectedComponent
-    {
-        public List<Node> CP { get; set; }
-
-        public ConnectedComponent() => CP = new List<Node>();
     }
 }

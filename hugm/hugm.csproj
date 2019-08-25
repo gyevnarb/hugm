@@ -42,6 +42,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="graph\ConnectedComponent.cs" />
+    <Compile Include="map\AreaGraph.cs" />
     <Compile Include="map\AreaNode.cs" />
     <Compile Include="map\Coord.cs" />
     <Compile Include="graph\Edge.cs" />
