@@ -1,20 +1,30 @@
-﻿using hugm.graph;
+﻿using System;
+using hugm.graph;
 
 namespace visualizer
 {
     public class UndoAction
     {
         private Graph graph;
-        private enum Type { NodeRemove, ConnectionRemove }
+        private enum Type { NodeRemove, ConnectionRemove, ConnectionAdd }
         private Type type;
         private Node removedNode;
         private Edge removedEdge;
+        private Node addedEdgeBegin, addedEdgeEnd;
 
         public UndoAction(Graph g, Node node)
         {
             graph = g;
             removedNode = node;
             type = Type.NodeRemove;
+        }
+
+        public UndoAction(Graph g, Node node, Node node2)
+        {
+            graph = g;
+            addedEdgeBegin = node;
+            addedEdgeEnd = node2;
+            type = Type.ConnectionAdd;
         }
 
         public UndoAction(Graph g, Edge edge)
@@ -30,7 +40,13 @@ namespace visualizer
             {
                 case Type.NodeRemove: UndoNodeRemove(); break;
                 case Type.ConnectionRemove: UndoConnectionRemove(); break;
+                case Type.ConnectionAdd: UndoConnectionAdd(); break;
             }
+        }
+
+        private void UndoConnectionAdd()
+        {
+            graph.RemoveEdge(new Edge(addedEdgeBegin, addedEdgeEnd));
         }
 
         private void UndoConnectionRemove()
