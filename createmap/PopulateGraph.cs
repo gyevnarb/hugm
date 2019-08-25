@@ -13,11 +13,26 @@ namespace createmap
         public static Graph BuildGraph(string path)
         {
             Geocode coder = new Geocode();
-            List<VotingArea> areas = coder.Run(path, false).GetAwaiter().GetResult();
+            List<VotingArea> areas = coder.Run(path, true).GetAwaiter().GetResult();
             PopulateGraph pop = new PopulateGraph(areas);
             pop.PopulateNodes();
+            pop.CalculateXY();
             pop.PopulateEdges(500.0);
             return pop.G;
+        }
+
+        public void CalculateXY()
+        {
+            var origo = G.V[0] as AreaNode;
+            double oLongitude = (800.0 / 360.0)*( 180.0 + origo.Areas[0].LatitudeLongitude.Longitude);
+            double oLatitude = (450.0 / 180.0) * (90.0 - origo.Areas[0].LatitudeLongitude.Latitude);
+
+            foreach(var v in G.V)
+            {
+                var an = v as AreaNode;
+                an.X = (800.0 / 360.0) * ( 180.0 + an.Areas[0].LatitudeLongitude.Longitude) - oLongitude;
+                an.Y = (450.0 / 180.0) * (90.0 - an.Areas[0].LatitudeLongitude.Latitude) - oLatitude;
+            }
         }
 
         public PopulateGraph(List<VotingArea> areas)

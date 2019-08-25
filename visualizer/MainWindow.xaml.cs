@@ -1,5 +1,4 @@
 ﻿using hugm.graph;
-using createmap;
 using System;
 using System.Collections.Generic;
 using System.Windows;
@@ -14,6 +13,7 @@ namespace visualizer
     {
         private Graph myGraph;
         private List<object> associatedElems = new List<object>();
+        private List<UndoAction> undoActions = new List<UndoAction>();
 
         public Graph MyGraph
         {
@@ -44,19 +44,19 @@ namespace visualizer
 
         private void BuildGraph()
         {
-            myGraph = PopulateGraph.BuildGraph(@"../../korok_new.csv");
-            //myGraph = new Graph();
+          //  myGraph = PopulateGraph.BuildGraph(@"../../korok_new.csv");
+            myGraph = new Graph();
 
-            //MyGraph.AddNode();
-            //MyGraph.AddNode();
-            //MyGraph.AddNode();
+            MyGraph.AddNode();
+            MyGraph.AddNode();
+            MyGraph.AddNode();
 
-            //MyGraph.AddEdge(0, 1);
-            //MyGraph.AddEdge(1, 2);
+            MyGraph.AddEdge(0, 1);
+            MyGraph.AddEdge(1, 2);
 
-            //MyGraph.V[0].X = 100; MyGraph.V[0].Y = 100;
-            //MyGraph.V[1].X = 200; MyGraph.V[1].Y = 200;
-            //MyGraph.V[2].X = 170; MyGraph.V[2].Y = 120;
+            MyGraph.V[0].X = 100; MyGraph.V[0].Y = 100;
+            MyGraph.V[1].X = 200; MyGraph.V[1].Y = 200;
+            MyGraph.V[2].X = 170; MyGraph.V[2].Y = 120;
         }
 
         private void ShowGraph()
@@ -105,22 +105,34 @@ namespace visualizer
 
             KeyDown += (s, e) =>
             {
+                int speed = 5;
+
                 if (e.Key == Key.W)
                 {
-                    canvasTranslate.Y += 2;
+                    canvasTranslate.Y += speed;
                 }
-                else if (e.Key == Key.A)
+                if (e.Key == Key.A)
                 {
-                    canvasTranslate.X += 2;
+                    canvasTranslate.X += speed;
                 }
-                else if (e.Key == Key.S)
+                if (e.Key == Key.S)
                 {
-                    canvasTranslate.Y -= 2;
+                    canvasTranslate.Y -= speed;
                 }
-                else if (e.Key == Key.D)
+                if (e.Key == Key.D)
                 {
-                    canvasTranslate.X -= 2;
+                    canvasTranslate.X -= speed;
                 }
+                if (e.Key == Key.U)
+                {
+                    if (undoActions.Count != 0)
+                    {
+                        undoActions[undoActions.Count - 1].Undo();
+                        undoActions.RemoveAt(undoActions.Count - 1);
+                        ShowGraph();
+                    }
+                }
+
             };
 
 
@@ -138,10 +150,12 @@ namespace visualizer
             if (ae is Node)
             {
                 MyGraph.RemoveNode(ae as Node);
+                undoActions.Add(new UndoAction(myGraph, ae as Node));
             }
             else if (ae is Edge)
             {
                 MyGraph.RemoveEdge(ae as Edge);
+                undoActions.Add(new UndoAction(myGraph, ae as Edge));
             }
             associatedElems.RemoveAt(index);
             canvas.Children.RemoveAt(index);
