@@ -42,11 +42,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="map\AreaNode.cs" />
+    <Compile Include="map\Coord.cs" />
     <Compile Include="graph\Edge.cs" />
     <Compile Include="graph\Graph.cs" />
     <Compile Include="graph\Node.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="map\VotingArea.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

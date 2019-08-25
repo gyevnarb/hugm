@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using hugm.graph;
+using hugm.map;
 
 namespace createmap
 {
@@ -10,14 +11,16 @@ namespace createmap
         public List<VotingArea> Areas { get; private set; }
         public Graph G { get; private set; }
         
-        public static Graph BuildGraph(string path, bool geocode, int limit = -1)
+        public static Graph BuildGraph(string path, bool geocode, double thresh = -1.0, int limit = -1)
         {
             Geocode coder = new Geocode();
             List<VotingArea> areas = coder.Run(path, geocode, limit).GetAwaiter().GetResult();
+
             PopulateGraph pop = new PopulateGraph(areas);
             pop.PopulateNodes();
-            pop.PopulateEdges(500.0);
+            pop.PopulateEdges(thresh);
             pop.CalculateXY();
+
             return pop.G;
         }
 
@@ -30,14 +33,14 @@ namespace createmap
         public void CalculateXY()
         {
             var origo = G.V[0] as AreaNode;
-            double oLongitude = (800.0 / 360.0)*( 180.0 + origo.Areas[0].LatitudeLongitude.Lng);
-            double oLatitude = (450.0 / 180.0) * (90.0 - origo.Areas[0].LatitudeLongitude.Lat);
+            double oLongitude = (800.0 / 360.0)*( 180.0 + origo.LatitudeLongitude.Lng);
+            double oLatitude = (450.0 / 180.0) * (90.0 - origo.LatitudeLongitude.Lat);
 
             foreach(var v in G.V)
             {
                 var an = v as AreaNode;
-                an.X = (800.0 / 360.0) * ( 180.0 + an.Areas[0].LatitudeLongitude.Lng) - oLongitude;
-                an.Y = (450.0 / 180.0) * (90.0 - an.Areas[0].LatitudeLongitude.Lat) - oLatitude;
+                an.X = (800.0 / 360.0) * ( 180.0 + an.LatitudeLongitude.Lng) - oLongitude;
+                an.Y = (450.0 / 180.0) * (90.0 - an.LatitudeLongitude.Lat) - oLatitude;
                 an.X *= 20000;
                 an.Y *= 20000;
             }
@@ -55,11 +58,40 @@ namespace createmap
         public void PopulateEdges(double threshold)
         {
             List<AreaNode> grouped = GroupSameAreas();
+            Coord centre = Areas[0].LatitudeLongitude;
             foreach (AreaNode group in grouped)
             {
+                int areaNo = group.ID;
+                double thr = CalculateThreshold(threshold, centre, group);
                 AddIntraGroupEdges(group);
-                AddEdgeWithinDistance(group, threshold);
+                AddEdgeWithinDistance(group, thr);
             }
+        }
+
+        private double CalculateThreshold(double threshold, Coord centre, AreaNode node)
+        {
+            if (threshold < 0)
+            {
+                Coord nodeCentre = node.Areas.First().LatitudeLongitude;
+                switch (Distance(nodeCentre, centre))
+                {
+                    case double d when 0 <= d && d <= 500:
+                        return 300.0;
+                    case double d when 500 <= d && d < 1500:
+                        return 500.0;
+                    case double d when 1500 <= d && d < 3000:
+                        return 700.0;
+                    case double d when 3000 <= d && d < 6000:
+                        return 900.0;
+                    case double d when 6000 <= d && d < 12000:
+                        return 1200.0;
+                    case double d when 12000 <= d && d < 18000:
+                        return 2000.0;
+                    default:
+                        return 2500.0;
+                }
+            }
+            return threshold;
         }
 
         private List<AreaNode> GroupSameAreas()
@@ -83,8 +115,7 @@ namespace createmap
                 double xOffset = offset * Math.Cos(i * angle);
                 double yOffset = offset * Math.Sin(i * angle);
                 Coord coordOffset = new Coord(xOffset, yOffset);
-                areas[i].LatitudeLongitude.Add(coordOffset);
-                ;
+                areas[i].LatitudeLongitude += coordOffset;
             }
         }
 
@@ -98,11 +129,11 @@ namespace createmap
         
         private void AddEdgeWithinDistance(AreaNode origin, double d)
         {
-            foreach (VotingArea area in Areas)
+            foreach (AreaNode n in G.V)
             {
-                double dist = Distance(origin.Areas[0].LatitudeLongitude, area.LatitudeLongitude);
-                if (dist < d && dist > 0)
-                    G.AddEdge(origin.ID, area.ID);
+                double dist = Distance(origin.LatitudeLongitude, n.LatitudeLongitude);
+                if (dist < d && dist > 0 && !n.NodeWithinDistance(d, Distance))
+                    G.AddEdge(origin.ID, n.ID);
             }
         }
         

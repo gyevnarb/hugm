@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using hugm.graph;
 
-namespace createmap
+namespace hugm.map
 {
     /// <summary>
     /// Specialised subclass to group voting areas
@@ -14,6 +14,11 @@ namespace createmap
         /// Group voting areas with same voting location
         /// </summary>
         public List<VotingArea> Areas { get; private set; }
+
+        /// <summary>
+        /// Get coordinates of first areas in Areas
+        /// </summary>
+        public Coord LatitudeLongitude { get { return Areas[0].LatitudeLongitude; } }
 
         /// <summary>
         /// Empty voting areas with ID
@@ -35,6 +40,17 @@ namespace createmap
         public override string ToString()
         {
             return string.Format($"ID = {ID}; FormattedAddress = {Areas.First().FormattedAddress}");
+        }
+
+        public bool NodeWithinDistance(double dist, Func<Coord, Coord, double> distanceFunc)
+        {
+            foreach (var n in Adjacents)
+            {
+                AreaNode an = n as AreaNode;
+                double d = distanceFunc(Areas[0].LatitudeLongitude, an.Areas[0].LatitudeLongitude);
+                return 0 < d && d < dist;
+            }
+            return false;
         }
     }
 }

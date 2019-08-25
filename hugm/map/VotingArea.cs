@@ -1,6 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 
-namespace createmap
+namespace hugm.map
 {
     /// <summary>
     /// Abstract representation of a voting area
