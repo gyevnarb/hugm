@@ -97,6 +97,9 @@ namespace createmap
                 double thr = CalculateThreshold(threshold, centre, group);
                 AddIntraGroupEdges(group);
                 AddEdgeWithinDistance(group, thr);
+
+                if (group.Adjacents.Count == 0 && G.NumberOfNodesInDistance(group, 1000.0, Distance) < 10)
+                    AddEdgeWithinDistance(group, 2000.0);
             }
         }
 
@@ -105,6 +108,10 @@ namespace createmap
             if (threshold < 0)
             {
                 Coord nodeCentre = node.Areas.First().LatitudeLongitude;
+
+                if (G.NumberOfNodesInDistance(node, 500.0, Distance) > 20)
+                    return 300.0;
+
                 switch (Distance(nodeCentre, centre))
                 {
                     case double d when 0 <= d && d <= 500:

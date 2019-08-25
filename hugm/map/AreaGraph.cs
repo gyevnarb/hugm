@@ -35,21 +35,13 @@ namespace hugm.map
         /// <returns></returns>
         public int NumberOfNodesInDistance(AreaNode start, double dist, Func<Coord, Coord, double> distanceFunc)
         {
-            Queue<AreaNode> schedule = new Queue<AreaNode>();
             int n = 0;
-            schedule.Enqueue(start);
-            start.Marked = true;
-            while (schedule.Count > 0)
+            foreach (AreaNode an in V)
             {
-                Node m = schedule.Dequeue();
-                foreach (AreaNode p in m.Adjacents)
+                double d = distanceFunc(start.LatitudeLongitude, an.LatitudeLongitude);
+                if ( 0 < d && d < dist)
                 {
-                    if (!p.Marked && distanceFunc(start.LatitudeLongitude, p.LatitudeLongitude) < dist)
-                    {
-                        p.Marked = true;
-                        schedule.Enqueue(p);
-                        n++;
-                    }
+                    n++;               
                 }
             }
             return n;
