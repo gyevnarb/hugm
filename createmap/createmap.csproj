@@ -47,7 +47,7 @@
   <ItemGroup>
     <Compile Include="AreaNode.cs" />
     <Compile Include="Geocode.cs" />
-    <Compile Include="LatLong.cs" />
+    <Compile Include="Coord.cs" />
     <Compile Include="PopulateGraph.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

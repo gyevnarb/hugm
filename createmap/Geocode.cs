@@ -21,13 +21,20 @@ namespace createmap
         /// </summary>
         /// <param name="csvPath">CSV file storing voting area data</param>
         /// <param name="geocoding">True if you want to append latitudinal and longitudinal info to the data</param>
+        /// <param name="limit">Number of max areas to load</param>
         /// <returns>List of voting areas</returns>
-        public async Task<List<VotingArea>> Run(string csvPath, bool geocoding)
+        public async Task<List<VotingArea>> Run(string csvPath, bool geocoding, int limit = -1)
         {
             try
             {
                 Console.Write($"Loading csv at {csvPath}. ");
                 List<VotingArea> areas = LoadCsv(csvPath);
+                if (limit > -1)
+                {
+                    areas.Reverse();
+                    areas = areas.Skip(areas.Count - limit).ToList();
+                    areas.Reverse();
+                }
                 Console.WriteLine("Done");
 
                 if (geocoding)

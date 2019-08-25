@@ -10,14 +10,14 @@ namespace createmap
         public List<VotingArea> Areas { get; private set; }
         public Graph G { get; private set; }
         
-        public static Graph BuildGraph(string path)
+        public static Graph BuildGraph(string path, bool geocode, int limit = -1)
         {
             Geocode coder = new Geocode();
-            List<VotingArea> areas = coder.Run(path, false).GetAwaiter().GetResult();
+            List<VotingArea> areas = coder.Run(path, geocode, limit).GetAwaiter().GetResult();
             PopulateGraph pop = new PopulateGraph(areas);
             pop.PopulateNodes();
-            pop.CalculateXY();
             pop.PopulateEdges(500.0);
+            pop.CalculateXY();
             return pop.G;
         }
 
@@ -38,8 +38,8 @@ namespace createmap
                 var an = v as AreaNode;
                 an.X = (800.0 / 360.0) * ( 180.0 + an.Areas[0].LatitudeLongitude.Lng) - oLongitude;
                 an.Y = (450.0 / 180.0) * (90.0 - an.Areas[0].LatitudeLongitude.Lat) - oLatitude;
-                an.X *= 10000;
-                an.Y *= 10000;
+                an.X *= 20000;
+                an.Y *= 20000;
             }
         }
         
@@ -64,8 +64,28 @@ namespace createmap
 
         private List<AreaNode> GroupSameAreas()
         {
-            List<AreaNode> grouped = Areas.GroupBy(x => x.FormattedAddress).Select(x => new AreaNode(x.First().ID, x.ToList())).ToList();
-            return grouped;
+            List<AreaNode> groups = Areas.GroupBy(x => x.FormattedAddress).Select(x => new AreaNode(x.First().ID, x.ToList())).ToList();
+            foreach (AreaNode group in groups)
+            {
+                OffsetVotingAreas(group.Areas);
+            }
+            return groups;
+        }
+
+        private void OffsetVotingAreas(List<VotingArea> areas)
+        {
+            double offset = 10.0 * 0.0002777778; //0°0'1" in degrees. One second is around 25m
+            int areaCount = areas.Count();
+            Coord centre = areas.First().LatitudeLongitude;
+            for (int i = 1; i < areaCount; i++) // Skip first, which is the centre
+            {
+                double angle = 2.0 * Math.PI / areaCount;
+                double xOffset = offset * Math.Cos(i * angle);
+                double yOffset = offset * Math.Sin(i * angle);
+                Coord coordOffset = new Coord(xOffset, yOffset);
+                areas[i].LatitudeLongitude.Add(coordOffset);
+                ;
+            }
         }
 
         private void AddIntraGroupEdges(AreaNode group)

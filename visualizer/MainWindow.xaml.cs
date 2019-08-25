@@ -45,7 +45,7 @@ namespace visualizer
 
         private void BuildGraph()
         {
-            myGraph = PopulateGraph.BuildGraph(@"../../korok_new.csv");
+            myGraph = PopulateGraph.BuildGraph(@"../../korok_new.csv", false);
             //myGraph = new Graph();
 
             //MyGraph.AddNode();

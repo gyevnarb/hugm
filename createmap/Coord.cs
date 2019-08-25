@@ -19,11 +19,19 @@ namespace createmap
             FormattedAddress = "";
         }
 
+        public Coord(double lat, double lng) : this(lat, lng, "") { }
+
         public Coord(double lat, double lng, string adr)
         {
             Lat = lat;
             Lng = lng;
             FormattedAddress = adr;
+        }
+
+        public void Add(Coord c)
+        {
+            Lat += c.Lat;
+            Lng += c.Lng;
         }
     }
 }
