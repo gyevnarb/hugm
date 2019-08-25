@@ -37,11 +37,11 @@ namespace createmap
                     Console.WriteLine("Done");
 
                     Console.Write("Extracting latlong info from responses. ");
-                    List<LatLong> latlongs = GetLatLongs(geocodes);
+                    List<Coord> latlongs = GetCoords(geocodes);
                     Console.WriteLine("Done");
 
                     Console.Write($"Saving data to {latlongsSavePath}. ");
-                    List<VotingArea> expanded = SaveLatLongs(latlongs, areas);
+                    List<VotingArea> expanded = SaveCoords(latlongs, areas);
                     SaveToCsv(expanded);
                     Console.WriteLine("Done");
 
@@ -84,9 +84,9 @@ namespace createmap
             return geocodes;
         }
 
-        private List<LatLong> GetLatLongs(List<string> geocodes)
+        private List<Coord> GetCoords(List<string> geocodes)
         {
-            List<LatLong> latlongs = new List<LatLong>();
+            List<Coord> coords = new List<Coord>();
             foreach (string geocode in geocodes)
             {
                 JObject parse = JObject.Parse(geocode);
@@ -95,14 +95,14 @@ namespace createmap
                 double lat = results["geometry"]["location"]["lat"].ToObject<double>();
                 double lng = results["geometry"]["location"]["lng"].ToObject<double>();
 
-                LatLong ll = new LatLong(lat, lng, adr);
-                latlongs.Add(ll);
+                Coord ll = new Coord(lat, lng, adr);
+                coords.Add(ll);
             }
-            return latlongs;
+            return coords;
         }
 
 
-        private List<VotingArea> SaveLatLongs(List<LatLong> lls, List<VotingArea> areas)
+        private List<VotingArea> SaveCoords(List<Coord> lls, List<VotingArea> areas)
         {
             for (int i = 0; i < areas.Count; i++)
             {

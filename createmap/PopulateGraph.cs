@@ -13,7 +13,7 @@ namespace createmap
         public static Graph BuildGraph(string path)
         {
             Geocode coder = new Geocode();
-            List<VotingArea> areas = coder.Run(path, true).GetAwaiter().GetResult();
+            List<VotingArea> areas = coder.Run(path, false).GetAwaiter().GetResult();
             PopulateGraph pop = new PopulateGraph(areas);
             pop.PopulateNodes();
             pop.CalculateXY();
@@ -21,24 +21,26 @@ namespace createmap
             return pop.G;
         }
 
-        public void CalculateXY()
-        {
-            var origo = G.V[0] as AreaNode;
-            double oLongitude = (800.0 / 360.0)*( 180.0 + origo.Areas[0].LatitudeLongitude.Longitude);
-            double oLatitude = (450.0 / 180.0) * (90.0 - origo.Areas[0].LatitudeLongitude.Latitude);
-
-            foreach(var v in G.V)
-            {
-                var an = v as AreaNode;
-                an.X = (800.0 / 360.0) * ( 180.0 + an.Areas[0].LatitudeLongitude.Longitude) - oLongitude;
-                an.Y = (450.0 / 180.0) * (90.0 - an.Areas[0].LatitudeLongitude.Latitude) - oLatitude;
-            }
-        }
-
         public PopulateGraph(List<VotingArea> areas)
         {
             Areas = areas;
             G = new Graph();
+        }
+
+        public void CalculateXY()
+        {
+            var origo = G.V[0] as AreaNode;
+            double oLongitude = (800.0 / 360.0)*( 180.0 + origo.Areas[0].LatitudeLongitude.Lng);
+            double oLatitude = (450.0 / 180.0) * (90.0 - origo.Areas[0].LatitudeLongitude.Lat);
+
+            foreach(var v in G.V)
+            {
+                var an = v as AreaNode;
+                an.X = (800.0 / 360.0) * ( 180.0 + an.Areas[0].LatitudeLongitude.Lng) - oLongitude;
+                an.Y = (450.0 / 180.0) * (90.0 - an.Areas[0].LatitudeLongitude.Lat) - oLatitude;
+                an.X *= 10000;
+                an.Y *= 10000;
+            }
         }
         
         public void PopulateNodes()
@@ -84,13 +86,13 @@ namespace createmap
             }
         }
         
-        public double Distance(LatLong l1, LatLong l2)
+        public double Distance(Coord l1, Coord l2)
         {
             double R = 6371.0e3;
-            double phi1 = ToRadians(l1.Latitude);
-            double phi2 = ToRadians(l2.Latitude);
-            double dphi = ToRadians(l2.Latitude - l1.Latitude);
-            double dlng = ToRadians(l2.Longitude - l1.Longitude);
+            double phi1 = ToRadians(l1.Lat);
+            double phi2 = ToRadians(l2.Lat);
+            double dphi = ToRadians(l2.Lat - l1.Lat);
+            double dlng = ToRadians(l2.Lng - l1.Lng);
 
             double a = Math.Sin(dphi / 2.0) * Math.Sin(dphi / 2.0) +
                 Math.Cos(phi1) * Math.Cos(phi2) *

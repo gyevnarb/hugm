@@ -35,7 +35,7 @@ namespace createmap
         /// <summary>
         /// Coordinate of the voting area
         /// </summary>
-        public LatLong LatitudeLongitude { get; set; }
+        public Coord LatitudeLongitude { get; set; }
 
         /// <summary>
         /// Initialise voting area from CSV
@@ -49,7 +49,7 @@ namespace createmap
                 District = Regex.Match(input[2], "[MDCLXVI]+").Captures[0].Value;
                 AreaNo = int.Parse(input[3]);
                 Street = FormatStreetName(input[4]).Trim();
-                LatitudeLongitude = new LatLong(double.Parse(input[5]), double.Parse(input[6]), Street);
+                LatitudeLongitude = new Coord(double.Parse(input[5]), double.Parse(input[6]), Street);
                 FormattedAddress = Street;
             }
             else
@@ -58,7 +58,7 @@ namespace createmap
                 District = Regex.Match(input[1], "[MDCLXVI]+").Captures[0].Value;
                 AreaNo = int.Parse(input[2]);
                 Street = FormatStreetName(input[3]).Trim();
-                LatitudeLongitude = new LatLong();           
+                LatitudeLongitude = new Coord();           
             }            
         }
 
@@ -86,7 +86,7 @@ namespace createmap
         /// <returns>CSV-formatted representation of the area</returns>
         public string ToCsvString()
         {
-            return string.Format($"{ID};BUDAPEST;Budapest {District}. ker.;{AreaNo};{FormattedAddress};{LatitudeLongitude.Latitude};{LatitudeLongitude.Longitude}");
+            return string.Format($"{ID};BUDAPEST;Budapest {District}. ker.;{AreaNo};{FormattedAddress};{LatitudeLongitude.Lat};{LatitudeLongitude.Lng}");
         }
 
         private string FormatStreetName(string adr)

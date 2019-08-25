@@ -1,4 +1,5 @@
 ﻿using hugm.graph;
+using createmap;
 using System;
 using System.Collections.Generic;
 using System.Windows;
@@ -44,19 +45,19 @@ namespace visualizer
 
         private void BuildGraph()
         {
-          //  myGraph = PopulateGraph.BuildGraph(@"../../korok_new.csv");
-            myGraph = new Graph();
+            myGraph = PopulateGraph.BuildGraph(@"../../korok_new.csv");
+            //myGraph = new Graph();
 
-            MyGraph.AddNode();
-            MyGraph.AddNode();
-            MyGraph.AddNode();
+            //MyGraph.AddNode();
+            //MyGraph.AddNode();
+            //MyGraph.AddNode();
 
-            MyGraph.AddEdge(0, 1);
-            MyGraph.AddEdge(1, 2);
+            //MyGraph.AddEdge(0, 1);
+            //MyGraph.AddEdge(1, 2);
 
-            MyGraph.V[0].X = 100; MyGraph.V[0].Y = 100;
-            MyGraph.V[1].X = 200; MyGraph.V[1].Y = 200;
-            MyGraph.V[2].X = 170; MyGraph.V[2].Y = 120;
+            //MyGraph.V[0].X = 100; MyGraph.V[0].Y = 100;
+            //MyGraph.V[1].X = 200; MyGraph.V[1].Y = 200;
+            //MyGraph.V[2].X = 170; MyGraph.V[2].Y = 120;
         }
 
         private void ShowGraph()

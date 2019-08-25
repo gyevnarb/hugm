@@ -6,23 +6,23 @@ using System.Threading.Tasks;
 
 namespace createmap
 {
-    public class LatLong
+    public class Coord
     {
-        public double Latitude { get; set; }
-        public double Longitude { get; set; }
+        public double Lat { get; set; }
+        public double Lng { get; set; }
         public string FormattedAddress { get; set; }
 
-        public LatLong()
+        public Coord()
         {
-            Latitude = 0.0;
-            Longitude = 0.0;
+            Lat = 0.0;
+            Lng = 0.0;
             FormattedAddress = "";
         }
 
-        public LatLong(double lat, double lng, string adr)
+        public Coord(double lat, double lng, string adr)
         {
-            Latitude = lat;
-            Longitude = lng;
+            Lat = lat;
+            Lng = lng;
             FormattedAddress = adr;
         }
     }
