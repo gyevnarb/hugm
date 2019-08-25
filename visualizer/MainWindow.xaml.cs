@@ -29,6 +29,8 @@ namespace visualizer
         private double VotingAreaRadius = 10;
         private UIElement SelectedElement = null;
         private Border SelectedBorder;
+        private Ellipse ConnectingElement1 = null;
+        private Ellipse ConnectingElement2 = null;
 
         public MainWindow()
         {
@@ -47,14 +49,14 @@ namespace visualizer
         {
             myGraph = PopulateGraph.BuildGraph(@"../../korok_new.csv", false);
             //myGraph = new Graph();
-
+            //
             //MyGraph.AddNode();
             //MyGraph.AddNode();
             //MyGraph.AddNode();
-
+            //
             //MyGraph.AddEdge(0, 1);
             //MyGraph.AddEdge(1, 2);
-
+            //
             //MyGraph.V[0].X = 100; MyGraph.V[0].Y = 100;
             //MyGraph.V[1].X = 200; MyGraph.V[1].Y = 200;
             //MyGraph.V[2].X = 170; MyGraph.V[2].Y = 120;
@@ -139,8 +141,8 @@ namespace visualizer
 
             MouseWheel += (s, e) =>
             {
-                canvasScale.ScaleX += e.Delta / 1000f;
-                canvasScale.ScaleY += e.Delta / 1000f;
+                canvasScale.ScaleX += (double)e.Delta / 10000;
+                canvasScale.ScaleY += (double)e.Delta / 10000;
             };
         }
 
@@ -158,8 +160,23 @@ namespace visualizer
                 MyGraph.RemoveEdge(ae as Edge);
                 undoActions.Add(new UndoAction(myGraph, ae as Edge));
             }
-            associatedElems.RemoveAt(index);
-            canvas.Children.RemoveAt(index);
+            ShowGraph();
+        }
+
+        private void CreateConnection(Ellipse e1, Ellipse e2)
+        {
+            if (e1 == e2) return;
+
+            int index1 = canvas.Children.IndexOf(e1);
+            int index2 = canvas.Children.IndexOf(e2);
+            var ae1 = associatedElems[index1];
+            var ae2 = associatedElems[index2];
+
+            if (!MyGraph.Adjacent(ae1 as Node, ae2 as Node))
+            {
+                MyGraph.AddEdge(ae1 as Node, ae2 as Node);
+                undoActions.Add(new UndoAction(myGraph, ae1 as Node, ae2 as Node));
+            }
             ShowGraph();
         }
 
@@ -175,7 +192,7 @@ namespace visualizer
             sign.Height = VotingAreaRadius * 2;
             Canvas.SetTop(sign, Y - VotingAreaRadius);
             Canvas.SetLeft(sign, X - VotingAreaRadius);
-
+            Canvas.SetZIndex(sign, 2);
             sign.Fill = Brushes.DarkOrange;
 
             return sign;
@@ -195,7 +212,8 @@ namespace visualizer
             nh.Y2 = Y2;
             nh.Visibility = Visibility.Visible;
             nh.Stroke = Brushes.Aquamarine;
-            nh.StrokeThickness = 5;
+            nh.StrokeThickness = 2;
+            Canvas.SetZIndex(nh, 1);
 
             return nh;
         }
@@ -205,9 +223,37 @@ namespace visualizer
             var canvas = sender as Canvas;
             if (canvas == null) return;
             HitTestResult hitTestResult = VisualTreeHelper.HitTest(canvas, e.GetPosition(canvas));
-            SelectedElement = hitTestResult.VisualHit as UIElement;
-            if (SelectedElement == SelectedBorder) return;
-            UpdateSelection();
+            
+            if (e.LeftButton == MouseButtonState.Pressed)
+            {
+                SelectedElement = hitTestResult.VisualHit as UIElement;
+                if (SelectedElement == SelectedBorder) return;
+                UpdateSelection();
+            }
+            else if (e.RightButton == MouseButtonState.Pressed)
+            {
+                if (hitTestResult.VisualHit is Ellipse)
+                {
+                    if (ConnectingElement1 == null)
+                    {
+                        ConnectingElement1 = hitTestResult.VisualHit as Ellipse;
+                        ConnectingElement1.Fill = Brushes.Blue;
+                    } 
+                    else if (ConnectingElement1 == hitTestResult.VisualHit as Ellipse)
+                    {
+                        ConnectingElement1.Fill = Brushes.DarkOrange;
+                        ConnectingElement1 = null;
+                    }
+                    else if (ConnectingElement2 == null)
+                    {
+                        ConnectingElement1.Fill = Brushes.DarkOrange;
+                        ConnectingElement2 = hitTestResult.VisualHit as Ellipse;
+                        CreateConnection(ConnectingElement1, ConnectingElement2);
+                        ConnectingElement1 = ConnectingElement2 = null;
+                    }
+                }
+            }
+            
         }
 
         private void UpdateSelection()
