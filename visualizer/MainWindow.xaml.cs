@@ -47,14 +47,14 @@ namespace visualizer
         {
             myGraph = PopulateGraph.BuildGraph(@"../../korok_new.csv", false);
             //myGraph = new Graph();
-
+            //
             //MyGraph.AddNode();
             //MyGraph.AddNode();
             //MyGraph.AddNode();
-
+            //
             //MyGraph.AddEdge(0, 1);
             //MyGraph.AddEdge(1, 2);
-
+            //
             //MyGraph.V[0].X = 100; MyGraph.V[0].Y = 100;
             //MyGraph.V[1].X = 200; MyGraph.V[1].Y = 200;
             //MyGraph.V[2].X = 170; MyGraph.V[2].Y = 120;
@@ -139,8 +139,8 @@ namespace visualizer
 
             MouseWheel += (s, e) =>
             {
-                canvasScale.ScaleX += e.Delta / 1000f;
-                canvasScale.ScaleY += e.Delta / 1000f;
+                canvasScale.ScaleX += (double)e.Delta / 10000;
+                canvasScale.ScaleY += (double)e.Delta / 10000;
             };
         }
 
@@ -195,7 +195,7 @@ namespace visualizer
             nh.Y2 = Y2;
             nh.Visibility = Visibility.Visible;
             nh.Stroke = Brushes.Aquamarine;
-            nh.StrokeThickness = 5;
+            nh.StrokeThickness = 2;
 
             return nh;
         }
