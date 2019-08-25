@@ -42,6 +42,12 @@ namespace hugm.map
             return string.Format($"ID = {ID}; FormattedAddress = {Areas.First().FormattedAddress}");
         }
 
+        /// <summary>
+        /// Calculate if there are any adjacents node with a given distance
+        /// </summary>
+        /// <param name="dist">Max distance of nodes</param>
+        /// <param name="distanceFunc">Distance function to use</param>
+        /// <returns>True iff there is at least one node closer than dist</returns>
         public bool NodeWithinDistance(double dist, Func<Coord, Coord, double> distanceFunc)
         {
             foreach (var n in Adjacents)

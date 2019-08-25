@@ -6,11 +6,29 @@ using hugm.map;
 
 namespace createmap
 {
+    /// <summary>
+    /// Create graph from voting data
+    /// </summary>
     public class PopulateGraph
     {
+        /// <summary>
+        /// Stores all voting area information
+        /// </summary>
         public List<VotingArea> Areas { get; private set; }
+
+        /// <summary>
+        /// Graph of voting areas. Must be built first
+        /// </summary>
         public Graph G { get; private set; }
         
+        /// <summary>
+        /// Convenience method to build the voting area graph
+        /// </summary>
+        /// <param name="path">Path to voting area data</param>
+        /// <param name="geocode">True if geocoding has to be done</param>
+        /// <param name="thresh">Neighbouring nodes edge distance limit</param>
+        /// <param name="limit">Number of elements to subset from Areas</param>
+        /// <returns>Fully build graph of all voting areas</returns>
         public static Graph BuildGraph(string path, bool geocode, double thresh = -1.0, int limit = -1)
         {
             Geocode coder = new Geocode();
@@ -24,12 +42,19 @@ namespace createmap
             return pop.G;
         }
 
+        /// <summary>
+        /// Create empty Graph and intialise Areas
+        /// </summary>
+        /// <param name="areas">Value with to initialse Areas</param>
         public PopulateGraph(List<VotingArea> areas)
         {
             Areas = areas;
             G = new Graph();
         }
 
+        /// <summary>
+        /// Calculate X-Y coordinates of nodes for display
+        /// </summary>
         public void CalculateXY()
         {
             var origo = G.V[0] as AreaNode;
@@ -46,6 +71,9 @@ namespace createmap
             }
         }
         
+        /// <summary>
+        /// Add all nodes to graph based on Areas
+        /// </summary>
         public void PopulateNodes()
         {
             foreach (VotingArea area in Areas)
@@ -55,6 +83,10 @@ namespace createmap
             }
         }
 
+        /// <summary>
+        /// Add edges based on G.V. Add edges between groups first, then add edges based on threshold.
+        /// </summary>
+        /// <param name="threshold">Max distance between nodes that have edges. Set to -1 for automatic thresholding</param>
         public void PopulateEdges(double threshold)
         {
             List<AreaNode> grouped = GroupSameAreas();
