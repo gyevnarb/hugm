@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Globalization;
+using System.Text.RegularExpressions;
 
 namespace hugm.map
 {
@@ -7,6 +8,11 @@ namespace hugm.map
     /// </summary>
     public class VotingArea
     {
+        /// <summary>
+        /// Culture info for parsing numbers
+        /// </summary>
+        private static CultureInfo culture = new CultureInfo("hu"); 
+
         /// <summary>
         /// Unique ID of the area
         /// </summary>
@@ -49,7 +55,7 @@ namespace hugm.map
                 District = Regex.Match(input[2], "[MDCLXVI]+").Captures[0].Value;
                 AreaNo = int.Parse(input[3]);
                 Street = FormatStreetName(input[4]).Trim();
-                LatitudeLongitude = new Coord(double.Parse(input[5]), double.Parse(input[6]), Street);
+                LatitudeLongitude = new Coord(double.Parse(input[5], culture), double.Parse(input[6], culture), Street);
                 FormattedAddress = Street;
             }
             else
