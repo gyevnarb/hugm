@@ -66,8 +66,8 @@ namespace createmap
                 var an = v as AreaNode;
                 an.X = (800.0 / 360.0) * ( 180.0 + an.LatitudeLongitude.Lng) - oLongitude;
                 an.Y = (450.0 / 180.0) * (90.0 - an.LatitudeLongitude.Lat) - oLatitude;
-                an.X *= 20000;
-                an.Y *= 20000;
+                an.X *= 10000;
+                an.Y *= 10000;
             }
         }
         
@@ -114,9 +114,7 @@ namespace createmap
 
                 switch (Distance(nodeCentre, centre))
                 {
-                    case double d when 0 <= d && d <= 500:
-                        return 300.0;
-                    case double d when 500 <= d && d < 1500:
+                    case double d when 0 <= d && d <= 1500:
                         return 500.0;
                     case double d when 1500 <= d && d < 3000:
                         return 700.0;
