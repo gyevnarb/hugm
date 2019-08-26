@@ -17,5 +17,16 @@ namespace hugm.graph
             N1 = n1;
             N2 = n2;
         }
+
+        // override object.Equals
+        public override bool Equals(object obj)
+        {
+            if (obj == null || GetType() != obj.GetType())
+            {
+                return false;
+            }
+
+            return (N1 == (obj as Edge).N1 && N2 == (obj as Edge).N2) || (N2 == (obj as Edge).N1 && N1 == (obj as Edge).N2);
+        }
     }
 }
