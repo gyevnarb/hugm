@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Globalization;
 using System.Text.RegularExpressions;
+using System.Text;
 
 namespace hugm.map
 {
@@ -112,7 +113,11 @@ namespace hugm.map
         /// <returns>Formatted address of area</returns>
         public override string ToString()
         {
-            return FormattedAddress;
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine($"AreaID: {AreaID} ");
+            sb.AppendLine($"Electoal District: {ElectoralDistrict} ");
+            sb.AppendLine($"Address: {FormattedAddress}");
+            return sb.ToString();
         }
 
         /// <summary>

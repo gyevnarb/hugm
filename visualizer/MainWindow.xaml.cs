@@ -54,20 +54,8 @@ namespace visualizer
 
         private void BuildGraph()
         {
-            myGraph = PopulateGraph.BuildGraph(@"../../data/korok.csv", false) as AreaGraph;
-            //myGraph = new Graph();
-            //
-            //MyGraph.AddNode();
-            //MyGraph.AddNode();
-            //MyGraph.AddNode();
-            //
-            //MyGraph.AddEdge(0, 1);
-            //MyGraph.AddEdge(1, 2);
-            //
-            //MyGraph.V[0].X = 100; MyGraph.V[0].Y = 100;
-            //MyGraph.V[1].X = 200; MyGraph.V[1].Y = 200;
-            //MyGraph.V[2].X = 170; MyGraph.V[2].Y = 120;
-            //ShowGraph();
+            myGraph = PopulateGraph.BuildGraph(@"../../data/korok.csv", false, 500.0) as AreaGraph;
+            ShowGraph();
         }
 
         private void ShowGraph()

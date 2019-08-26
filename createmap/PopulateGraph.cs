@@ -99,13 +99,15 @@ namespace createmap
                 AddEdgeWithinDistance(group, thr);
 
                 if (group.Adjacents.Count == 0 && G.NumberOfNodesInDistance(group, 1000.0, Distance) < 10)
+                    AddEdgeWithinDistance(group, 1000.0);
+                else if (group.Adjacents.Count == 0 && G.NumberOfNodesInDistance(group, 2000.0, Distance) < 5)
                     AddEdgeWithinDistance(group, 2000.0);
             }
         }
 
         private double CalculateThreshold(double threshold, Coord centre, AreaNode node)
         {
-            if (threshold < 0)
+            if (threshold < 0) //This is bullshit lol
             {
                 Coord nodeCentre = node.Areas.First().LatitudeLongitude;
 
