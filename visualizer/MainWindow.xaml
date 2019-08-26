@@ -7,13 +7,21 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
-        <Canvas x:Name="canvas" Mouse.MouseDown="Canvas_MouseDown">
-            <Canvas.RenderTransform>
-                <TransformGroup>
-                    <ScaleTransform x:Name="canvasScale"></ScaleTransform>
-                    <TranslateTransform x:Name="canvasTranslate"></TranslateTransform>
-                </TransformGroup>
-            </Canvas.RenderTransform>
-        </Canvas>        
+        <StackPanel Margin="10">
+            <StackPanel Orientation="Horizontal">
+                <TextBox x:Name="txbox" Grid.Row="0" Width="417"></TextBox>
+                <Button Click="Button_Click" RenderTransformOrigin="-1.141,0.286">Save</Button>
+                <Button Click="Button_Click_1" RenderTransformOrigin="8.213,0.62" Width="79">Load</Button>
+            </StackPanel>
+
+            <Canvas x:Name="canvas" Mouse.MouseDown="Canvas_MouseDown">
+                <Canvas.RenderTransform>
+                    <TransformGroup>
+                        <ScaleTransform x:Name="canvasScale"></ScaleTransform>
+                        <TranslateTransform x:Name="canvasTranslate"></TranslateTransform>
+                    </TransformGroup>
+                </Canvas.RenderTransform>
+            </Canvas>
+        </StackPanel> 
     </Grid>
 </Window>

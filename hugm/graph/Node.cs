@@ -7,6 +7,7 @@ using hugm.map;
 
 namespace hugm.graph
 {
+    [Serializable]
     public class Node
     {
         public int ID { get; private set; }

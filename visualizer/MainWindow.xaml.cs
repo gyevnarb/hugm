@@ -22,8 +22,15 @@ namespace visualizer
             private get { return myGraph; }
             set
             {
-                myGraph = value;
-                ShowGraph();
+                if (value != null)
+                {
+                    myGraph = value;
+                    ShowGraph();
+                }
+                else
+                {
+                    Console.WriteLine("Null graph!");
+                }
             }
         }
 
@@ -136,7 +143,6 @@ namespace visualizer
                         ShowGraph();
                     }
                 }
-
             };
 
 
@@ -280,6 +286,16 @@ namespace visualizer
                 SelectedBorder.Width = SelectedBorder.Height = VotingAreaRadius * 2;
                 SelectedBorder.Visibility = Visibility.Visible;
             }
+        }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            myGraph.Save(txbox.Text);
+        }
+
+        private void Button_Click_1(object sender, RoutedEventArgs e)
+        {
+            MyGraph = Graph.Load(txbox.Text);
         }
     }
 }

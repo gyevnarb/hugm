@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using System;
+using System.Globalization;
 using System.Text.RegularExpressions;
 
 namespace hugm.map
@@ -6,6 +7,7 @@ namespace hugm.map
     /// <summary>
     /// Abstract representation of a voting area
     /// </summary>
+    [Serializable]
     public class VotingArea
     {
         /// <summary>

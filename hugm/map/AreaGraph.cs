@@ -7,6 +7,7 @@ using hugm.graph;
 
 namespace hugm.map
 {
+    [Serializable]
     public class AreaGraph : Graph
     {
         /// <summary>

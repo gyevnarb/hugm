@@ -8,6 +8,7 @@ namespace hugm.map
     /// <summary>
     /// Specialised subclass to group voting areas
     /// </summary>
+    [Serializable]
     public class AreaNode : Node
     {
         /// <summary>

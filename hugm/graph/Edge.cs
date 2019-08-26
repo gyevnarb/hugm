@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace hugm.graph
 {
+    [Serializable]
     public class Edge
     {
         public Node N1 { get; private set; }
