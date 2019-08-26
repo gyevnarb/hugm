@@ -47,5 +47,7 @@ namespace hugm.map
             }
             return n;
         }
+
+        public List<VotingArea> Areas;
     }
 }

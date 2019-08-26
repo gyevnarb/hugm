@@ -8,6 +8,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
+using System.Text.RegularExpressions;
 
 namespace visualizer
 {
@@ -23,6 +24,7 @@ namespace visualizer
                 if (value != null)
                 {
                     myGraph = value;
+                    undoActions.Clear();
                     ShowGraph();
                 }
                 else
@@ -64,13 +66,7 @@ namespace visualizer
             SelectedBorder.BorderBrush = selectionBorderBaseColor;
 
             InitKeyHandlers();
-            BuildGraph();
-        }
-
-        private void BuildGraph()
-        {
-            myGraph = PopulateGraph.BuildGraph(@"../../data/korok.csv", false, 500.0) as AreaGraph;
-            ShowGraph();
+            MyGraph = PopulateGraph.BuildGraph(@"../../data/korok.csv", false, 500.0) as AreaGraph;
         }
 
         private void ShowGraph()
@@ -319,7 +315,27 @@ namespace visualizer
             if (graph != null)
             {
                 MyGraph = graph;
-                undoActions.Clear();
+            }
+        }
+
+        private void NumberValidationTextBox(object sender, TextCompositionEventArgs e)
+        {
+            Regex regex = new Regex("[^0-9]+");
+            e.Handled = regex.IsMatch(e.Text);
+        }
+
+        private void Button_Click_2(object sender, RoutedEventArgs e)
+        {
+            if (int.TryParse(NumberTextBox.Text, out int thresh))
+            {
+                List<VotingArea> areas = (myGraph as AreaGraph).Areas;
+
+                PopulateGraph pop = new PopulateGraph(areas);
+                pop.PopulateNodes();
+                pop.PopulateEdges(thresh);
+                pop.CalculateXY();
+                pop.G.Areas = areas;
+                MyGraph = pop.G;
             }
         }
     }
