@@ -295,7 +295,12 @@ namespace visualizer
 
         private void Button_Click_1(object sender, RoutedEventArgs e)
         {
-            MyGraph = Graph.Load(txbox.Text);
+            var graph = Graph.Load(txbox.Text);
+            if (graph != null)
+            {
+                MyGraph = graph;
+                undoActions.Clear();
+            }
         }
     }
 }
