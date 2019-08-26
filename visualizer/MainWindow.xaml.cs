@@ -50,7 +50,6 @@ namespace visualizer
 
             InitKeyHandlers();
             BuildGraph();
-            ShowGraph();
         }
 
         private void BuildGraph()
@@ -68,6 +67,7 @@ namespace visualizer
             //MyGraph.V[0].X = 100; MyGraph.V[0].Y = 100;
             //MyGraph.V[1].X = 200; MyGraph.V[1].Y = 200;
             //MyGraph.V[2].X = 170; MyGraph.V[2].Y = 120;
+            //ShowGraph();
         }
 
         private void ShowGraph()
@@ -78,6 +78,7 @@ namespace visualizer
             {
                 var v = MyGraph.V[i];
                 DrawVotingArea(v);
+
                 for (int j = i + 1; j < MyGraph.V.Count; ++j)
                 { 
                     var v2 = MyGraph.V[j];
@@ -87,6 +88,7 @@ namespace visualizer
             }
             SelectedBorder.Visibility = Visibility.Collapsed;
             canvas.Children.Add(SelectedBorder);
+            associatedElems.Add(new object()); // placeholder
         }
 
         private void DrawVotingArea(Node v)
@@ -107,11 +109,13 @@ namespace visualizer
             {
                 if (e.Key == Key.Delete)
                 {
-                    RemoveElement(SelectedElement);
-                    SelectedElement = null;
-                    UpdateSelection();
+                    if (SelectedElement != null)
+                    {
+                        RemoveElement(SelectedElement);
+                        SelectedElement = null;
+                        UpdateSelection();
+                    }
                 }
-
             };
 
             KeyDown += (s, e) =>
@@ -145,7 +149,6 @@ namespace visualizer
                 }
             };
 
-
             MouseWheel += (s, e) =>
             {
                 canvasScale.ScaleX += (double)e.Delta / 10000;
@@ -161,13 +164,15 @@ namespace visualizer
             {
                 MyGraph.RemoveNode(ae as Node);
                 undoActions.Add(new UndoAction(myGraph, ae as Node));
+                ShowGraph();
             }
             else if (ae is Edge)
             {
                 MyGraph.RemoveEdge(ae as Edge);
                 undoActions.Add(new UndoAction(myGraph, ae as Edge));
+                canvas.Children.RemoveAt(index);
+                associatedElems.RemoveAt(index);
             }
-            ShowGraph();
         }
 
         private void CreateConnection(Ellipse e1, Ellipse e2)
@@ -183,8 +188,8 @@ namespace visualizer
             {
                 MyGraph.AddEdge(ae1 as Node, ae2 as Node);
                 undoActions.Add(new UndoAction(myGraph, ae1 as Node, ae2 as Node));
+                DrawNeighbourhood(new Edge(ae1 as Node, ae2 as Node));
             }
-            ShowGraph();
         }
 
         private UIElement CreateVotingArea(Vector position)
