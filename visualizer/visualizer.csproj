@@ -88,6 +88,8 @@
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <None Include="data\korok.csv" />
+    <None Include="data\korok_base.csv" />
+    <None Include="data\korok_master.csv" />
     <None Include="data\korok_new.csv" />
     <None Include="data\korok_test.csv" />
     <None Include="Properties\Settings.settings">

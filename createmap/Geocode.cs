@@ -114,7 +114,7 @@ namespace createmap
         {
             for (int i = 0; i < areas.Count; i++)
             {
-                areas[i].ID = i;
+                areas[i].AreaID = i;
                 areas[i].FormattedAddress = lls[i].FormattedAddress;
                 areas[i].LatitudeLongitude = lls[i];
             }

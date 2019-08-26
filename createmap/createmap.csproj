@@ -53,18 +53,20 @@
   <ItemGroup>
     <None Include="App.config" />
     <None Include="data\korok.csv" />
+    <None Include="data\korok_base.csv" />
+    <None Include="data\korok_master.csv" />
     <None Include="data\korok_new.csv" />
     <None Include="data\korok_test.csv" />
     <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="data\geocode.txt" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\hugm\hugm.csproj">
       <Project>{f8aeae08-b723-4623-aae2-8b16c20eeeeb}</Project>
       <Name>hugm</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="data\geocode.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

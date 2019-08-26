@@ -49,6 +49,7 @@
     <Compile Include="graph\Edge.cs" />
     <Compile Include="graph\Graph.cs" />
     <Compile Include="graph\Node.cs" />
+    <Compile Include="map\VoteResult.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="map\VotingArea.cs" />

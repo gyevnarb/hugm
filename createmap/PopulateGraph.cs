@@ -78,7 +78,7 @@ namespace createmap
         {
             foreach (VotingArea area in Areas)
             {
-                AreaNode n = new AreaNode(area.ID, new List<VotingArea> { area });
+                AreaNode n = new AreaNode(area.AreaID, new List<VotingArea> { area });
                 G.AddNode(n);
             }
         }
@@ -133,7 +133,7 @@ namespace createmap
 
         private List<AreaNode> GroupSameAreas()
         {
-            List<AreaNode> groups = Areas.GroupBy(x => x.FormattedAddress).Select(x => new AreaNode(x.First().ID, x.ToList())).ToList();
+            List<AreaNode> groups = Areas.GroupBy(x => x.FormattedAddress).Select(x => new AreaNode(x.First().AreaID, x.ToList())).ToList();
             foreach (AreaNode group in groups)
             {
                 OffsetVotingAreas(group.Areas);
@@ -161,7 +161,7 @@ namespace createmap
             List<VotingArea> areas = group.Areas;
             for (int i = 0; i < areas.Count - 1; i++)
                 for (int j = i + 1; j < areas.Count; j++)
-                    G.AddEdge(areas[i].ID, areas[j].ID);
+                    G.AddEdge(areas[i].AreaID, areas[j].AreaID);
         }
         
         private void AddEdgeWithinDistance(AreaNode origin, double d)
