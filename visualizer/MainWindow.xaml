@@ -9,7 +9,7 @@
     <Grid>
         <StackPanel Margin="10">
             <StackPanel Orientation="Horizontal">
-                <TextBox x:Name="txbox" Grid.Row="0" Width="417"></TextBox>
+                <TextBox x:Name="txbox" Grid.Row="0" Width="417" Text="../../data/graph.bin"></TextBox>
                 <Button Click="Button_Click" RenderTransformOrigin="-1.141,0.286">Save</Button>
                 <Button Click="Button_Click_1" RenderTransformOrigin="8.213,0.62" Width="79">Load</Button>
             </StackPanel>

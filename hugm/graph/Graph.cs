@@ -206,6 +206,11 @@ namespace hugm.graph
             return true;
         }
 
+        /// <summary>
+        /// Load graph from disk
+        /// </summary>
+        /// <param name="path">Save path</param>
+        /// <returns>True if the save was succesful, false otherwise></returns>
         public static Graph Load(string path)
         {
             try

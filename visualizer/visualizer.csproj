@@ -87,7 +87,9 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <None Include="korok_new.csv" />
+    <None Include="data\korok.csv" />
+    <None Include="data\korok_new.csv" />
+    <None Include="data\korok_test.csv" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -105,6 +107,9 @@
       <Project>{f8aeae08-b723-4623-aae2-8b16c20eeeeb}</Project>
       <Name>hugm</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="data\geocode.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
