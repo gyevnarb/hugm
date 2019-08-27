@@ -15,9 +15,57 @@
                 <TextBox Name="NumberTextBox" PreviewTextInput="NumberValidationTextBox" Width="76">500</TextBox>
                 <Button Click="Button_Click_2">Rebuild</Button>
             </StackPanel>
-            <StackPanel DockPanel.Dock="Right" Orientation="Vertical">
-                <Label>Label</Label>
-            </StackPanel>
+            <ScrollViewer DockPanel.Dock="Right">
+                <StackPanel Orientation="Vertical">
+                    <ComboBox x:Name="comboo" SelectionChanged="ComboBox_SelectionChanged"></ComboBox>
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                        <Label>Fidesz-KDNP:</Label>
+                        <Label x:Name="fideszKdnp" ></Label>
+                    </StackPanel>
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                        <Label>Osszefogas:</Label>
+                        <Label x:Name="osszefogas"></Label>
+                    </StackPanel>
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                        <Label>Jobbik:</Label>
+                        <Label x:Name="jobbik"></Label>
+                    </StackPanel>
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                        <Label>LMP:</Label>
+                        <Label x:Name="lmp"></Label>
+                    </StackPanel>
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                        <Label>Megjelent:</Label>
+                        <Label x:Name="megjelent"></Label>
+                    </StackPanel>
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                        <Label>Osszes:</Label>
+                        <Label x:Name="osszes"></Label>
+                    </StackPanel>
+                    <Separator></Separator>
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                        <Label>Electoral District:</Label>
+                        <Label x:Name="electDistrict"></Label>
+                    </StackPanel>
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                        <Label>City District:</Label>
+                        <Label x:Name="cityDistrict"></Label>
+                    </StackPanel>
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                        <Label>Area Number:</Label>
+                        <Label x:Name="areaNumber"></Label>
+                    </StackPanel>
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                        <Label>Address:</Label>
+                        <Label x:Name="adress"></Label>
+                    </StackPanel>
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                        <Label>Atjelentkezes:</Label>
+                        <CheckBox x:Name="atjelentkezes" VerticalAlignment="Center" IsEnabled="False"></CheckBox>
+                    </StackPanel>
+                </StackPanel>
+            </ScrollViewer>
+
             <Canvas Height="{Binding Path=ActualHeight, ElementName=container}" Background="Green" DockPanel.Dock="Bottom" ClipToBounds="True"  x:Name="canv">
                 <Canvas Height="{Binding Path=ActualHeight, ElementName=canv}" x:Name="canvas" Mouse.MouseDown="Canvas_MouseDown">
                     <Canvas.RenderTransform>

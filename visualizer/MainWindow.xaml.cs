@@ -37,6 +37,7 @@ namespace visualizer
         private List<object> associatedElems = new List<object>();
         private List<UndoAction> undoActions = new List<UndoAction>();
         private UIElement SelectedElement = null;
+        private AreaNode SelectedNode = null;
         private Border SelectedBorder;
         private Ellipse ConnectingElement1 = null;
         private Ellipse ConnectingElement2 = null;
@@ -303,6 +304,33 @@ namespace visualizer
                 Canvas.SetLeft(SelectedBorder, Canvas.GetLeft(SelectedElement) - SelectionBorderMargin);
                 SelectedBorder.Width = SelectedBorder.Height = VotingAreaRadius * 2 + SelectionBorderMargin * 2;
                 SelectedBorder.Visibility = Visibility.Visible;
+
+                SelectedNode = associatedElems[canvas.Children.IndexOf(SelectedElement)] as AreaNode;
+                comboo.Items.Clear();
+                foreach (var s in SelectedNode.Areas)
+                {
+                    comboo.Items.Add(s.AreaID.ToString());
+                }
+                comboo.SelectedIndex = 0;
+                UpdateSelectedNode(0);
+            }
+        }
+
+        private void UpdateSelectedNode(int i)
+        {
+            if (i >= 0)
+            {
+                electDistrict.Content = SelectedNode.Areas[i].ElectoralDistrict.ToString();
+                cityDistrict.Content = SelectedNode.Areas[i].CityDistrict;
+                areaNumber.Content = SelectedNode.Areas[i].AreaNo.ToString();
+                adress.Content = SelectedNode.Areas[i].FormattedAddress;
+                atjelentkezes.IsChecked = SelectedNode.Areas[i].Atjelentkezes;
+                fideszKdnp.Content = SelectedNode.Areas[i].Results.FideszKDNP.ToString();
+                osszefogas.Content = SelectedNode.Areas[i].Results.Osszefogas.ToString();
+                jobbik.Content = SelectedNode.Areas[i].Results.Jobbik.ToString();
+                lmp.Content = SelectedNode.Areas[i].Results.LMP.ToString();
+                megjelent.Content = SelectedNode.Areas[i].Results.Megjelent.ToString();
+                osszes.Content = SelectedNode.Areas[i].Results.Osszes.ToString();
             }
         }
 
@@ -333,6 +361,11 @@ namespace visualizer
                 myGraph = PopulateGraph.BuildGraph(CsvPath, false, thresh);
                 ShowGraph();
             }
+        }
+
+        private void ComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            UpdateSelectedNode(comboo.SelectedIndex);
         }
     }
 }
