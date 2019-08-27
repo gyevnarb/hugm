@@ -38,7 +38,6 @@ namespace createmap
             pop.PopulateNodes();
             pop.PopulateEdges(thresh);
             pop.CalculateXY();
-            pop.G.Areas = areas;
 
             return pop.G;
         }

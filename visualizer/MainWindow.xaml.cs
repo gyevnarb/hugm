@@ -56,7 +56,9 @@ namespace visualizer
         private double NeighbourhoodLineThickness = 2;
         private double CameraMoveSpeed = 5;
         private double ZoomScale = 10000;
-        
+
+        private string CsvPath = @"../../data/korok.csv";
+
         public MainWindow()
         {
             InitializeComponent();
@@ -66,7 +68,7 @@ namespace visualizer
             SelectedBorder.BorderBrush = selectionBorderBaseColor;
 
             InitKeyHandlers();
-            MyGraph = PopulateGraph.BuildGraph(@"../../data/korok.csv", false, 500.0) as AreaGraph;
+            MyGraph = PopulateGraph.BuildGraph(CsvPath, false, 500.0) as AreaGraph;
         }
 
         private void ShowGraph()
@@ -328,14 +330,8 @@ namespace visualizer
         {
             if (int.TryParse(NumberTextBox.Text, out int thresh))
             {
-                List<VotingArea> areas = (myGraph as AreaGraph).Areas;
-
-                PopulateGraph pop = new PopulateGraph(areas);
-                pop.PopulateNodes();
-                pop.PopulateEdges(thresh);
-                pop.CalculateXY();
-                pop.G.Areas = areas;
-                MyGraph = pop.G;
+                myGraph = PopulateGraph.BuildGraph(CsvPath, false, thresh);
+                ShowGraph();
             }
         }
     }

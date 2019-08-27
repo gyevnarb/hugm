@@ -40,14 +40,9 @@ namespace hugm.map
             foreach (AreaNode an in V)
             {
                 double d = distanceFunc(start.LatitudeLongitude, an.LatitudeLongitude);
-                if ( 0 < d && d < dist)
-                {
-                    n++;               
-                }
+                if ( 0 < d && d < dist) n++;               
             }
             return n;
         }
-
-        public List<VotingArea> Areas;
     }
 }
