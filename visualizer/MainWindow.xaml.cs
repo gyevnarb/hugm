@@ -265,7 +265,7 @@ namespace visualizer
             }
             else if (e.MiddleButton == MouseButtonState.Pressed)
             {
-                if (ConnectingElement1 != null)
+                if (ConnectingElement1 != null && hitTestResult.VisualHit is Ellipse)
                 {
                     ConnectingElement2 = hitTestResult.VisualHit as Ellipse;
                     var n1 = associatedElems[canvas.Children.IndexOf(ConnectingElement1)] as Node;
@@ -358,8 +358,7 @@ namespace visualizer
         {
             if (int.TryParse(NumberTextBox.Text, out int thresh))
             {
-                myGraph = PopulateGraph.BuildGraph(CsvPath, false, thresh);
-                ShowGraph();
+                MyGraph = PopulateGraph.BuildGraph(CsvPath, false, thresh);
             }
         }
 
