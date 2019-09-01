@@ -69,7 +69,7 @@ namespace visualizer
             SelectedBorder.BorderBrush = selectionBorderBaseColor;
 
             InitKeyHandlers();
-            MyGraph = PopulateGraph.BuildGraph(CsvPath, false, 500.0) as AreaGraph;
+            MyGraph = PopulateGraph.BuildGraph(CsvPath, false, 500.0);
         }
 
         private void ShowGraph()
@@ -336,15 +336,16 @@ namespace visualizer
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            myGraph.Save(txbox.Text);
+            AreaUtils.Save(txbox.Text, myGraph);
         }
 
         private void Button_Click_1(object sender, RoutedEventArgs e)
         {
-            var graph = Graph.Load(txbox.Text);
+            var graph = AreaUtils.Load(txbox.Text);
             if (graph != null)
             {
                 MyGraph = graph;
+                ShowGraph();
             }
         }
 

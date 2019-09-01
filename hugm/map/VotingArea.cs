@@ -8,7 +8,7 @@ namespace hugm.map
     /// <summary>
     /// Abstract representation of a voting area
     /// </summary>
-    [Serializable]
+    [Serializable()]
     public class VotingArea
     {
         /// <summary>

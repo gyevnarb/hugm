@@ -19,7 +19,7 @@ namespace createmap
         /// <summary>
         /// Graph of voting areas. Must be built first
         /// </summary>
-        public AreaGraph G { get; private set; }
+        public Graph G { get; private set; }
         
         /// <summary>
         /// Convenience method to build the voting area graph
@@ -29,7 +29,7 @@ namespace createmap
         /// <param name="thresh">Neighbouring nodes edge distance limit</param>
         /// <param name="limit">Number of elements to subset from Areas</param>
         /// <returns>Fully build graph of all voting areas</returns>
-        public static AreaGraph BuildGraph(string path, bool geocode, double thresh = -1.0, int limit = -1)
+        public static Graph BuildGraph(string path, bool geocode, double thresh = -1.0, int limit = -1)
         {
             Geocode coder = new Geocode();
             List<VotingArea> areas = coder.Run(path, geocode, limit).GetAwaiter().GetResult();
@@ -49,7 +49,7 @@ namespace createmap
         public PopulateGraph(List<VotingArea> areas)
         {
             Areas = areas;
-            G = new AreaGraph();
+            G = new Graph();
         }
 
         /// <summary>
@@ -94,44 +94,46 @@ namespace createmap
             foreach (AreaNode group in grouped)
             {
                 int areaNo = group.ID;
-                double thr = CalculateThreshold(threshold, centre, group);
+                double thr = threshold;
                 AddIntraGroupEdges(group);
                 AddEdgeWithinDistance(group, thr);
 
+                /*
                 if (group.Adjacents.Count == 0 && G.NumberOfNodesInDistance(group, 1000.0, Distance) < 10)
                     AddEdgeWithinDistance(group, 1000.0);
                 else if (group.Adjacents.Count == 0 && G.NumberOfNodesInDistance(group, 2000.0, Distance) < 5)
                     AddEdgeWithinDistance(group, 2000.0);
+                */
             }
         }
 
-        private double CalculateThreshold(double threshold, Coord centre, AreaNode node)
-        {
-            if (threshold < 0) //This is bullshit lol
-            {
-                Coord nodeCentre = node.Areas.First().LatitudeLongitude;
+        //private double CalculateThreshold(double threshold, Coord centre, AreaNode node)
+        //{
+        //    if (threshold < 0) //This is bullshit lol
+        //    {
+        //        Coord nodeCentre = node.Areas.First().LatitudeLongitude;
 
-                if (G.NumberOfNodesInDistance(node, 500.0, Distance) > 20)
-                    return 300.0;
+        //        if (G.NumberOfNodesInDistance(node, 500.0, Distance) > 20)
+        //            return 300.0;
 
-                switch (Distance(nodeCentre, centre))
-                {
-                    case double d when 0 <= d && d <= 1500:
-                        return 500.0;
-                    case double d when 1500 <= d && d < 3000:
-                        return 700.0;
-                    case double d when 3000 <= d && d < 6000:
-                        return 900.0;
-                    case double d when 6000 <= d && d < 12000:
-                        return 1200.0;
-                    case double d when 12000 <= d && d < 18000:
-                        return 2000.0;
-                    default:
-                        return 2500.0;
-                }
-            }
-            return threshold;
-        }
+        //        switch (Distance(nodeCentre, centre))
+        //        {
+        //            case double d when 0 <= d && d <= 1500:
+        //                return 500.0;
+        //            case double d when 1500 <= d && d < 3000:
+        //                return 700.0;
+        //            case double d when 3000 <= d && d < 6000:
+        //                return 900.0;
+        //            case double d when 6000 <= d && d < 12000:
+        //                return 1200.0;
+        //            case double d when 12000 <= d && d < 18000:
+        //                return 2000.0;
+        //            default:
+        //                return 2500.0;
+        //        }
+        //    }
+        //    return threshold;
+        //}
 
         private List<AreaNode> GroupSameAreas()
         {
@@ -171,7 +173,7 @@ namespace createmap
             foreach (AreaNode n in G.V)
             {
                 double dist = Distance(origin.LatitudeLongitude, n.LatitudeLongitude);
-                if (dist < d && dist > 0 && !G.NodeWithinDistance(n, d, Distance))
+                if (dist < d && dist > 0) //&& !G.NodeWithinDistance(n, d, Distance))
                     G.AddEdge(origin.ID, n.ID);
             }
         }

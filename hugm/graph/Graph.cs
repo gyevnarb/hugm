@@ -1,15 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Runtime.Serialization;
-using System.Runtime.Serialization.Formatters.Binary;
 
 namespace hugm.graph
 {
     /// <summary>
     /// Arbitrary graph with adjacency list representation
     /// </summary>
-    [Serializable]
+    [Serializable()]
     public class Graph
     {
         /// <summary>
@@ -180,54 +177,6 @@ namespace hugm.graph
 
             V.ForEach(x => x.Marked = false);
             return ret;
-        }
-
-        /// <summary>
-        /// Saves the graph to disk
-        /// </summary>
-        /// <param name="path">Save path</param>
-        /// <returns>True if the save was succesful, false otherwise</returns>
-        public bool Save(string path)
-        {
-            try
-            {
-                IFormatter formatter = new BinaryFormatter();
-                using (Stream stream = new FileStream(path, FileMode.Create, FileAccess.Write))
-                {
-                    formatter.Serialize(stream, this);
-                    Console.WriteLine($"File saved to {path}");
-                }
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.Message);
-                return false;
-            }
-            return true;
-        }
-
-        /// <summary>
-        /// Load graph from disk
-        /// </summary>
-        /// <param name="path">Save path</param>
-        /// <returns>True if the save was succesful, false otherwise></returns>
-        public static Graph Load(string path)
-        {
-            try
-            {
-                IFormatter formatter = new BinaryFormatter();
-                using (Stream stream = new FileStream(path, FileMode.Open, FileAccess.Read))
-                {
-                    var ret = formatter.Deserialize(stream) as Graph;
-                    Console.WriteLine($"File loaded {path}");
-                    return ret;
-                }
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.Message);
-                return null;
-            }
-        }
+        }        
     }
 }

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace hugm.map
 {
+    [Serializable()]
     public class VoteResult
     {
         public int FideszKDNP { get; set; }
