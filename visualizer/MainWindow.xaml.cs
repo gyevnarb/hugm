@@ -41,6 +41,8 @@ namespace visualizer
         private Border SelectedBorder;
         private Ellipse ConnectingElement1 = null;
         private Ellipse ConnectingElement2 = null;
+        private List<string> availableDistricts = new List<string>();
+        private List<string> availableElectorials = new List<string>();
 
         #region Colors
 
@@ -91,6 +93,34 @@ namespace visualizer
             SelectedBorder.Visibility = Visibility.Collapsed;
             canvas.Children.Add(SelectedBorder);
             associatedElems.Add(new object()); // placeholder
+
+            filterDistrict.Items.Clear();
+            filterElectorialIze.Items.Clear();
+            filterDistrict.Items.Add("All");
+            filterElectorialIze.Items.Add("All");
+            availableDistricts.Add("All");
+            availableElectorials.Add("All");
+            foreach (var e in associatedElems)
+            {
+                if (!(e is AreaNode)) continue;
+                foreach (var ee in (e as AreaNode).Areas)
+                {
+                    if (!filterDistrict.Items.Contains(ee.CityDistrict.ToString()))
+                    {
+                        filterDistrict.Items.Add(ee.CityDistrict.ToString());
+                        availableDistricts.Add(ee.CityDistrict.ToString());
+                    }
+                        
+                    if (!filterElectorialIze.Items.Contains(ee.ElectoralDistrict.ToString()))
+                    {
+                        filterElectorialIze.Items.Add(ee.ElectoralDistrict.ToString());
+                        availableElectorials.Add(ee.ElectoralDistrict.ToString());
+                    }
+                        
+                }
+            }
+            filterDistrict.SelectedIndex = 0;
+            filterElectorialIze.SelectedIndex = 0;
         }
 
         private void DrawVotingArea(Node v)
@@ -366,6 +396,148 @@ namespace visualizer
         private void ComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             UpdateSelectedNode(comboo.SelectedIndex);
+        }
+
+        private void FilterDistrict_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            updateFiltering();
+        }
+
+        private void FilterElectorialIze_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            updateFiltering();
+        }
+
+        private void updateFiltering()
+        {
+           // var myavailabledistricts = new List<string>();
+           // var myavailableelectorials = new List<string>();
+
+           // myavailabledistricts.Add("All");
+           // myavailableelectorials.Add("All");
+
+            if (filterElectorialIze.SelectedIndex == 0 && filterDistrict.SelectedIndex == 0)
+            {
+                foreach (var c in canvas.Children) if (c is Shape) (c as Shape).Visibility = Visibility.Visible;
+           //     filterDistrict.ItemsSource = availableDistricts;
+            //    filterElectorialIze.ItemsSource = availableElectorials;
+                return;
+            }
+
+            for (int i = 0; i < canvas.Children.Count; ++i)
+            {
+                bool toHide = true;
+                if (associatedElems[i] is AreaNode)
+                {
+                    if (filterDistrict.SelectedIndex != 0)
+                    {
+                        foreach (var e in (associatedElems[i] as AreaNode).Areas)
+                        {
+                            if ((string)filterDistrict.SelectedItem == e.CityDistrict)
+                            {
+                             //   mya.Add(e.ElectoralDistrict.ToString());
+                                toHide = false;
+                                break;
+                            }
+                        }
+                    }
+                    else toHide = false;
+
+                    if (filterElectorialIze.SelectedIndex != 0 && !toHide)
+                    {
+                        foreach (var e in (associatedElems[i] as AreaNode).Areas)
+                        {
+                            bool b = false;
+                            if ((string)filterElectorialIze.SelectedItem == e.ElectoralDistrict.ToString())
+                            {
+                             //   mya.Add(e.CityDistrict.ToString());
+                                b = true;
+                                break;
+                            }
+                            if (!b) toHide = true;
+                        }
+                    }
+                }
+
+                if (associatedElems[i] is Edge)
+                {
+                    var ee = associatedElems[i] as Edge;
+                    if (filterDistrict.SelectedIndex != 0)
+                    {
+                        bool isFiltered1 = false;
+                        bool isFiltered2 = false;
+                        foreach (var e in (ee.N1 as AreaNode).Areas)
+                        {
+                            if ((string)filterDistrict.SelectedItem == e.CityDistrict)
+                            {
+                                isFiltered1 = true;
+                                break;
+                            }
+                        }
+                        foreach (var e in (ee.N2 as AreaNode).Areas)
+                        {
+                            if ((string)filterDistrict.SelectedItem == e.CityDistrict)
+                            {
+                                isFiltered2 = true;
+                                break;
+                            }
+                        }
+                        if (isFiltered1 && isFiltered2)
+                        {
+                            toHide = false;
+                        }
+                    }
+                    else toHide = false;
+  
+                    if (filterElectorialIze.SelectedIndex != 0 && !toHide)
+                    {
+                        bool isFiltered1 = false;
+                        bool isFiltered2 = false;
+                        foreach (var e in (ee.N1 as AreaNode).Areas)
+                        {
+                            if ((string)filterElectorialIze.SelectedItem == e.ElectoralDistrict.ToString())
+                            {
+                                isFiltered1 = true;
+                                break;
+                            }
+                        }
+                        foreach (var e in (ee.N2 as AreaNode).Areas)
+                        {
+                            if ((string)filterElectorialIze.SelectedItem == e.ElectoralDistrict.ToString())
+                            {
+                                isFiltered2 = true;
+                                break;
+                            }
+                        }
+                        if (!isFiltered1 || !isFiltered2)
+                        {
+                            toHide = true;
+                        }
+                    }
+                }
+                if (canvas.Children[i] is Shape)
+                {
+                    if (toHide) (canvas.Children[i] as Shape).Visibility = Visibility.Hidden;
+                    else (canvas.Children[i] as Shape).Visibility = Visibility.Visible;
+
+                    if (!toHide)
+                    {
+
+                    }
+                }
+            }
+
+      /*      if (filterElectorialIze.SelectedIndex != 0)
+            {
+                filterDistrict.Items.Clear();
+                filterDistrict.ItemsSource = myavailabledistricts;
+            }
+
+            if (filterDistrict.SelectedIndex != 0)
+            {
+                filterElectorialIze.Items.Clear();
+                filterElectorialIze.ItemsSource = myavailableelectorials;
+            }*/
         }
     }
 }
