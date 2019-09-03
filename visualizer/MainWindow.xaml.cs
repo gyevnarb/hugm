@@ -71,7 +71,7 @@ namespace visualizer
             SelectedBorder.BorderBrush = selectionBorderBaseColor;
 
             InitKeyHandlers();
-            MyGraph = PopulateGraph.BuildGraph(CsvPath, false, 500.0);
+            //MyGraph = PopulateGraph.BuildGraph(CsvPath, false, 500.0);
         }
 
         private void ShowGraph()
