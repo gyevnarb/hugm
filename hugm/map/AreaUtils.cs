@@ -90,5 +90,24 @@ namespace hugm.map
                 return null;
             }
         }
+
+        public static Graph MergeDistrictFromGraph(Graph source, Graph destination, string district)
+        {
+            if (source.V.Count != destination.V.Count)
+                return null;
+
+            foreach (Edge e in destination.E)
+            {
+                if ((e.N1 as AreaNode).Areas[0].CityDistrict == district && (e.N2 as AreaNode).Areas[0].CityDistrict == district)
+                    destination.RemoveEdge(e);
+            }
+            foreach (Edge e in source.E)
+            {
+                if ((e.N1 as AreaNode).Areas[0].CityDistrict == district && (e.N2 as AreaNode).Areas[0].CityDistrict == district)
+                    destination.AddEdge(e.N1.ID, e.N2.ID);
+            }
+
+            return destination;
+        }
     }
 }

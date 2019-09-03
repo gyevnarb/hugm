@@ -1,4 +1,6 @@
 using System;
+using hugm.graph;
+using hugm.map;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,7 +12,17 @@ namespace hugm
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+            Console.Write("Source graph path: ");
+            string source = Console.ReadLine();
+            Console.Write("Destination graph path: ");
+            string destination = Console.ReadLine();
+            Console.Write("District in roman numerals: ");
+            string district = Console.ReadLine();
+            Graph s = AreaUtils.Load(source);
+            Graph d = AreaUtils.Load(destination);
+            Graph m = AreaUtils.MergeDistrictFromGraph(s, d, district);
+            AreaUtils.Save("merge.bin", m);
+            Console.WriteLine("Merged successfully");
             Console.ReadKey();
         }
     }

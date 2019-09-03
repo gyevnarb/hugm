@@ -59,6 +59,20 @@ namespace hugm.graph
         }
 
         /// <summary>
+        /// Add an edge to the graph
+        /// </summary>
+        /// <param name="e">Edge to add</param>
+        public void AddEdge(Edge e)
+        {
+            if (V.Contains(e.N1) && V.Contains(e.N2) && !Adjacent(e.N1, e.N2))
+            {
+                e.N1.Adjacents.Add(e.N2);
+                e.N2.Adjacents.Add(e.N1);
+                E.Add(e);
+            }
+        }
+
+        /// <summary>
         /// Add an edge between existing vertices (nodes) if one does not exist already.
         /// </summary>
         /// <param name="n1">First vertex</param>
@@ -93,6 +107,17 @@ namespace hugm.graph
         {
             e.N1.Adjacents.Remove(e.N2);
             e.N2.Adjacents.Remove(e.N1);
+        }
+
+        /// <summary>
+        /// Remove all edges connected to a given node
+        /// </summary>
+        /// <param name="n">Node to remove edges from</param>
+        public void RemoveEdge(Node n)
+        {
+            foreach (Edge e in E)
+                if (e.N1 == n || e.N2 == n)
+                    E.Remove(e);
         }
 
         /// <summary>

@@ -18,7 +18,6 @@ namespace hugm.graph
             N2 = n2;
         }
 
-        // override object.Equals
         public override bool Equals(object obj)
         {
             if (obj == null || GetType() != obj.GetType())
