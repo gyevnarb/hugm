@@ -21,9 +21,9 @@ namespace hugm
             Graph s = AreaUtils.Load(source);
             Graph d = AreaUtils.Load(destination);
             Graph m = AreaUtils.MergeDistrictFromGraph(s, d, district);
-            AreaUtils.Save("merge.bin", m);
+            if (m != null) AreaUtils.Save("merge.bin", m);
             Console.WriteLine("Merged successfully");
-            Console.ReadKey();
+            Console.ReadLine();
         }
     }
 }
