@@ -9,11 +9,12 @@
     <Grid>
         <DockPanel Margin="10" VerticalAlignment="Top" LastChildFill="True" x:Name="container">
             <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
-                <TextBox x:Name="txbox" Grid.Row="0" Width="281" Text="../../data/graph.bin"></TextBox>
+                <TextBox x:Name="txbox" Grid.Row="0" Width="281" Text="../../data/graph.bin"></TextBox>                
                 <Button Click="Button_Click" RenderTransformOrigin="-1.141,0.286" Width="41">Save</Button>
                 <Button Click="Button_Click_1" RenderTransformOrigin="8.213,0.62" Width="40">Load</Button>
                 <TextBox Name="NumberTextBox" PreviewTextInput="NumberValidationTextBox" Width="41">500</TextBox>
                 <Button Click="Button_Click_2">Rebuild</Button>
+                <Button Click="Button_Click_Do" Width="41">DO</Button>
                 <Label>Filter</Label>
                 <Label>District</Label>
                 <ComboBox SelectionChanged="FilterDistrict_SelectionChanged" x:Name="filterDistrict" Width="84"></ComboBox>

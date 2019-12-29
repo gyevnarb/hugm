@@ -9,6 +9,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
 using System.Text.RegularExpressions;
+using System.Linq;
 
 namespace visualizer
 {
@@ -391,6 +392,36 @@ namespace visualizer
             {
                 MyGraph = PopulateGraph.BuildGraph(CsvPath, false, thresh);
             }
+        }
+
+        private void Button_Click_Do(object sender, RoutedEventArgs e)
+        {
+            Dictionary<int, VoteResult> results = new Dictionary<int, VoteResult>();
+            VoteResult glob = new VoteResult();
+
+            foreach (var n in MyGraph.V)
+            {
+                foreach (var a in (n as AreaNode).Areas)
+                {
+                    if (!results.ContainsKey(a.ElectoralDistrict)) results.Add(a.ElectoralDistrict, a.Results);
+                    else results[a.ElectoralDistrict].Add(a.Results);
+                    glob.Add(a.Results);
+                }
+            }
+
+            string sss = "";
+
+            foreach (var se in results)
+            {
+                sss += se.Key.ToString() + ": " + se.Value.Gyoztes + '\n';
+            }
+
+            float sum = glob.FideszKDNP + glob.LMP + glob.Jobbik + glob.Osszefogas;
+
+            sss += "\n";
+            sss += $"FideszKDNP: {(float)glob.FideszKDNP / sum}, Osszefogas: {(float)glob.Osszefogas / sum}, Jobbik: {(float)glob.Jobbik / sum}, LMP: {(float)glob.LMP / sum}\n";
+
+            MessageBox.Show(sss);
         }
 
         private void ComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
