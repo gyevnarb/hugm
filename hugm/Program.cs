@@ -13,8 +13,8 @@ namespace hugm
     {
         static void Main(string[] args)
         {
-            Graph g = AreaUtils.Load("map.bin");
             /*
+            Graph g = AreaUtils.Load("map.bin");
             foreach (var group in g.V.GroupBy(n => (n as AreaNode).Areas[0].ElectoralDistrict))
             {
                 Graph m = new Graph(group.ToList());
@@ -67,6 +67,17 @@ namespace hugm
                 foreach (AreaNode node in m.V)
                     sw.WriteLine(node.Areas[0].ElectoralDistrict);
             Console.WriteLine($"Electoral districts written to {output + @"initcds.csv"}");
+
+            using (StreamWriter sw = new StreamWriter(output + @"votes.csv"))
+            {
+                sw.WriteLine("FideszKDNP,Osszefogas,Jobbik,LMP");
+                foreach(AreaNode node in m.V)
+                {
+                    VoteResult r = node.Areas[0].Results;
+                    sw.WriteLine($"{r.FideszKDNP},{r.Osszefogas},{r.Jobbik},{r.LMP}");
+                }
+            }
+            Console.WriteLine($"Electoral districts results written to {output + @"votes.csv"}");
         }
     }
 }
