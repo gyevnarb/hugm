@@ -28,6 +28,12 @@ namespace hugm.graph
             E = new List<Edge>();
         }
 
+        public Graph(List<Node> v)
+        {
+            V = v;
+            E = new List<Edge>();
+        }
+
         /// <summary>
         /// Add a new vertex (node) to the graph
         /// </summary>
@@ -161,7 +167,7 @@ namespace hugm.graph
         /// </summary>
         /// <param name="n">Starting node</param>
         /// <returns>All nodes reachable from n</returns>
-        public List<Node> BFSFrom(Node n) //TODO: Test BFSFrom
+        public List<Node> BFSFrom(Node n, bool closure) //TODO: Test BFSFrom
         {
             Queue<Node> schedule = new Queue<Node>();
             List<Node> reachable = new List<Node>();
@@ -175,6 +181,9 @@ namespace hugm.graph
                 {
                     if (!p.Marked)
                     {
+                        if (closure && !V.Contains(p))
+                            continue;
+
                         p.Marked = true;
                         schedule.Enqueue(p);
                         reachable.Add(p);
@@ -187,15 +196,16 @@ namespace hugm.graph
         /// <summary>
         /// Gets all connected components of the graph. Uses BFS.
         /// </summary>
+        /// <param name="closure">True if only the adjacent nodes must also be in V</param>
         /// <returns>List of all connected components in the graph</returns>
-        public List<ConnectedComponent> GetConnectedComponents()
+        public List<ConnectedComponent> GetConnectedComponents(bool closure=false)
         {           
             List<ConnectedComponent> ret = new List<ConnectedComponent>();
             foreach (Node n in V)
             {
                 if (!n.Marked)
                 {
-                    List<Node> reached = BFSFrom(n);
+                    List<Node> reached = BFSFrom(n, closure);
                     ret.Add(new ConnectedComponent(reached));
                 }                  
             }
