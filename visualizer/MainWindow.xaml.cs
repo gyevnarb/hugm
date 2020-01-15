@@ -52,6 +52,38 @@ namespace visualizer
         private Brush lineBaseColor = Brushes.Black;
         private Brush selectionBorderBaseColor = Brushes.White;
 
+        private Brush[] nodeBrushes =
+        {
+            Brushes.Wheat,
+            Brushes.Violet,
+            Brushes.DarkOrange,
+            Brushes.Black,
+            Brushes.Brown,
+            Brushes.AliceBlue,
+            Brushes.AntiqueWhite,
+            Brushes.DeepPink,
+            Brushes.Firebrick,
+            Brushes.Gainsboro,
+            Brushes.Fuchsia,
+            Brushes.Gold,
+            Brushes.Silver,
+            Brushes.Sienna,
+            Brushes.SeaGreen,
+            Brushes.Tomato,
+            Brushes.Tan,
+            Brushes.SteelBlue,
+            Brushes.MidnightBlue
+        };
+
+        Brush getColor(int i) { return nodeBrushes[i]; }
+
+        Brush setDefaultColor(Ellipse e)
+        {
+            int index1 = canvas.Children.IndexOf(e);
+            var ae1 = associatedElems[index1] as AreaNode;
+            return getColor(ae1.Areas[0].ElectoralDistrict);
+        }
+
         #endregion        
 
         private double VotingAreaRadius = 10;
@@ -126,7 +158,7 @@ namespace visualizer
 
         private void DrawVotingArea(Node v)
         {
-            canvas.Children.Add(CreateVotingArea(v.X, v.Y));
+            canvas.Children.Add(CreateVotingArea(v.X, v.Y, (v as AreaNode).Areas[0].ElectoralDistrict));
             associatedElems.Add(v);
         }
 
@@ -223,12 +255,12 @@ namespace visualizer
             }
         }
 
-        private UIElement CreateVotingArea(Vector position)
+        private UIElement CreateVotingArea(Vector position, int electoraldistrict)
         {
-            return CreateVotingArea(position.X, position.Y);
+            return CreateVotingArea(position.X, position.Y, electoraldistrict);
         }
         
-        private UIElement CreateVotingArea(double X, double Y)
+        private UIElement CreateVotingArea(double X, double Y, int electoraldistrict)
         {
             var sign = new Ellipse();
             sign.Width = VotingAreaRadius * 2;
@@ -236,7 +268,7 @@ namespace visualizer
             Canvas.SetTop(sign, Y - VotingAreaRadius);
             Canvas.SetLeft(sign, X - VotingAreaRadius);
             Canvas.SetZIndex(sign, 2);
-            sign.Fill = nodeBaseColor;
+            sign.Fill = getColor(electoraldistrict);
             return sign;
         }
 
@@ -282,12 +314,12 @@ namespace visualizer
                     } 
                     else if (ConnectingElement1 == hitTestResult.VisualHit as Ellipse)
                     {
-                        ConnectingElement1.Fill = nodeBaseColor;
+                        ConnectingElement1.Fill = setDefaultColor(ConnectingElement1);
                         ConnectingElement1 = null;
                     }
                     else if (ConnectingElement2 == null)
                     {
-                        ConnectingElement1.Fill = nodeBaseColor;
+                        ConnectingElement1.Fill = setDefaultColor(ConnectingElement1); ;
                         ConnectingElement2 = hitTestResult.VisualHit as Ellipse;
                         CreateConnection(ConnectingElement1, ConnectingElement2);
                         ConnectingElement1 = ConnectingElement2 = null;
@@ -305,7 +337,7 @@ namespace visualizer
                     if (index >= 0)
                     {
                         RemoveElement(canvas.Children[index]);
-                        ConnectingElement1.Fill = nodeBaseColor;
+                        ConnectingElement1.Fill = setDefaultColor(ConnectingElement1); ;
                         ConnectingElement1 = null;
                     }
                     ConnectingElement2 = null;
