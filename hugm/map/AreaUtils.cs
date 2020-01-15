@@ -80,6 +80,7 @@ namespace hugm.map
                 using (Stream stream = new FileStream(path, FileMode.Open, FileAccess.Read))
                 {
                     var ret = formatter.Deserialize(stream) as Graph;
+                    CalculateMinMax(ret);
                     Console.WriteLine($"File loaded {path}");
                     return ret;
                 }
@@ -108,6 +109,19 @@ namespace hugm.map
             }
 
             return destination;
+        }
+
+        private static void CalculateMinMax(Graph g)
+        {
+            g.top = g.right = Double.MinValue;
+            g.bottom = g.left = Double.MaxValue;
+            foreach (var v in g.V)
+            {
+                g.top = Math.Max(g.top, v.Y);
+                g.bottom = Math.Min(g.bottom, v.Y);
+                g.left = Math.Min(g.left, v.X);
+                g.right = Math.Max(g.right, v.X);
+            }
         }
     }
 }

@@ -35,6 +35,16 @@ namespace hugm.map
         /// <param name="areas">Areas the node is grouping</param>
         public AreaNode(int id, List<VotingArea> areas) : base(id) => Areas = areas;
 
+        public virtual bool Equals(AreaNode n)
+        {
+            return ID == n.ID;
+        }
+
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
+
 
         /// <summary>
         /// Human-readable string of node

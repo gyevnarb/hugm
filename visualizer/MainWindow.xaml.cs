@@ -156,6 +156,110 @@ namespace visualizer
             filterElectorialIze.SelectedIndex = 0;
         }
 
+        class ElectoralDistrict
+        {
+            public List<AreaNode> nodes;
+            public HashSet<AreaNode> availableNodes;
+            public bool closed;
+        }
+
+        private void GenerateRandomElectoralDsitrictSystem()
+        {
+            // 1. 18 Random node kivalasztasa, minden keruletbol egyet
+            // 2. Novesztes egyelore nepesseg korlat betartasa nelkul
+
+            /*       
+             *       double minDistance = 500;
+                    List<Point> points = new List<Point>();
+                    var rng = new Random(3552420);
+                    while (points.Count < 18)
+                    {
+                        double x = MyGraph.left + rng.NextDouble() * MyGraph.right;
+                        double y = MyGraph.bottom + rng.NextDouble() * MyGraph.top;
+                        var p = new Point(x, y);
+                        bool valid = true;
+                        foreach(var v in points)
+                        {
+                            if ((v - p).Length < minDistance)
+                            {
+                                valid = false;
+                                break;
+                            }
+                        }
+
+                        if (valid)
+                        {
+                            points.Add(p);
+                        }
+                    }
+
+                    foreach (var p in points)
+                    {
+                        canvas.Children.Add(CreateVotingArea(new Vector(p.X, p.Y), 18));
+                    }
+                }
+
+            */
+
+            var rng = new Random();
+            foreach (var v in MyGraph.V) v.Marked = false;
+            List<AreaNode> points = new List<AreaNode>();
+            for (int i = 1; i <= 18; ++i)
+            {
+                var ns = MyGraph.V.Where(x =>
+                {
+                    return (x as AreaNode).Areas[0].ElectoralDistrict == i;
+                }).ToList();
+                var p = ns[rng.Next(ns.Count)];
+                points.Add(p as AreaNode);
+            }
+
+            var ujlista = new List<ElectoralDistrict>();
+            var perAreaH = new List<int>();
+            int sumh = 0;
+            foreach (var p in points)
+            {
+                p.Marked = true;
+                ujlista.Add(new ElectoralDistrict
+                {
+                    nodes = new List<AreaNode> { p },
+                    availableNodes = new HashSet<AreaNode>(p.Adjacents.Select(x => x as AreaNode)),
+                    closed = false
+                });
+                int sum = 0;
+                foreach (var a in p.Areas) sum += a.Results.Osszes;
+                perAreaH.Add(sum);
+                sumh += sum;
+            }
+
+            int z = 0;
+            while (z < MyGraph.V.Count - 18)
+            {
+                for (int i = 0; i < 18; ++i)
+                {
+                    var adnonamrked0 = ujlista[i].availableNodes.Where(x => !x.Marked).ToList();
+                    if (adnonamrked0.Count == 0)
+                        continue;
+                    int j = rng.Next(adnonamrked0.Count);
+                    var chosenNode = adnonamrked0[j];
+
+                    chosenNode.Marked = true;
+                    ujlista[i].availableNodes.UnionWith(chosenNode.Adjacents.Select(x => x as AreaNode));
+                    ujlista[i].availableNodes.Remove(chosenNode);
+                    ujlista[i].nodes.Add(chosenNode);
+                    z++;
+                }
+            }
+
+            for (int i = 0; i < ujlista.Count; ++i)
+            {
+                foreach (var v in ujlista[i].nodes)
+                    foreach (var a in v.Areas)
+                        a.ElectoralDistrict = i + 1;
+            }
+            ShowGraph();
+        }
+        
         private void DrawVotingArea(Node v)
         {
             canvas.Children.Add(CreateVotingArea(v.X, v.Y, (v as AreaNode).Areas[0].ElectoralDistrict));
@@ -430,30 +534,52 @@ namespace visualizer
         {
             Dictionary<int, VoteResult> results = new Dictionary<int, VoteResult>();
             VoteResult glob = new VoteResult();
+            float bpsum = 0;
 
             foreach (var n in MyGraph.V)
             {
                 foreach (var a in (n as AreaNode).Areas)
                 {
-                    if (!results.ContainsKey(a.ElectoralDistrict)) results.Add(a.ElectoralDistrict, a.Results);
+                    if (!results.ContainsKey(a.ElectoralDistrict)) results.Add(a.ElectoralDistrict, a.Results.Clone());
                     else results[a.ElectoralDistrict].Add(a.Results);
                     glob.Add(a.Results);
+                    bpsum += a.Results.Osszes;
                 }
             }
 
-            string sss = "";
+            // float atlag = bpsum / 18f;
+            float atlag = 76818; // 2011
 
+
+            string sss = "";
+            bool valid15 = true;
+            bool valid20 = true;
             foreach (var se in results)
             {
                 sss += se.Key.ToString() + ": " + se.Value.Gyoztes + '\n';
+                if (se.Value.Osszes > atlag * 1.15 || se.Value.Osszes < atlag * 0.85) valid15 = false;
+                if (se.Value.Osszes > atlag * 1.2 || se.Value.Osszes < atlag * 0.8) valid20 = false;
             }
 
+            float fideszkdnp = results.Count(x => x.Value.Gyoztes == "FideszKDNP");
+            float osszefogas = results.Count(x => x.Value.Gyoztes == "Osszefogas");
+            float jobbik = results.Count(x => x.Value.Gyoztes == "Jobbik");
+            float lmp = results.Count(x => x.Value.Gyoztes == "LMP");
+            float sumsum = fideszkdnp + osszefogas + jobbik + lmp;
+                       
             float sum = glob.FideszKDNP + glob.LMP + glob.Jobbik + glob.Osszefogas;
-
-            sss += "\n";
+            sss += "\n Tenyleges:\n";
+            sss += $"FideszKDNP: {fideszkdnp / sumsum}, Osszefogas: {osszefogas / sumsum}, Jobbik: {jobbik / sumsum}, LMP: {lmp / sumsum}\n";
+            sss += "Kellett volna:\n";
             sss += $"FideszKDNP: {(float)glob.FideszKDNP / sum}, Osszefogas: {(float)glob.Osszefogas / sum}, Jobbik: {(float)glob.Jobbik / sum}, LMP: {(float)glob.LMP / sum}\n";
+            sss += $"Valid 15: {valid15}, Valid 20: {valid20}";
 
             MessageBox.Show(sss);
+        }
+
+        private void Button_Click_Do2(object sender, RoutedEventArgs e)
+        {
+            GenerateRandomElectoralDsitrictSystem();
         }
 
         private void ComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)

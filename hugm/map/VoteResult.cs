@@ -58,5 +58,18 @@ namespace hugm.map
             Megjelent = megj;
             Osszes = osszes;
         }
+
+        public VoteResult Clone()
+        {
+            return new VoteResult
+            {
+                FideszKDNP = this.FideszKDNP,
+                Osszefogas = this.Osszefogas,
+                Jobbik = this.Jobbik,
+                LMP = this.LMP,
+                Megjelent = this.Megjelent,
+                Osszes = this.Osszes,
+            };
+        }
     }
 }

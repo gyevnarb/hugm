@@ -14,6 +14,8 @@ namespace hugm.graph
         /// </summary>
         public List<Node> V { get; private set; }
 
+        public double left, right, top, bottom;
+
         /// <summary>
         /// Edges of the graph
         /// </summary>
