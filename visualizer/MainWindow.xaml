@@ -9,18 +9,20 @@
     <Grid>
         <DockPanel Margin="10" VerticalAlignment="Top" LastChildFill="True" x:Name="container">
             <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
-                <TextBox x:Name="txbox" Grid.Row="0" Width="281" Text="../../data/map.bin"></TextBox>                
+                <TextBox x:Name="txbox" Grid.Row="0" Width="104" Text="../../data/map.bin"></TextBox>
                 <Button Click="Button_Click" RenderTransformOrigin="-1.141,0.286" Width="41">Save</Button>
                 <Button Click="Button_Click_1" RenderTransformOrigin="8.213,0.62" Width="40">Load</Button>
-                <TextBox Name="NumberTextBox" PreviewTextInput="NumberValidationTextBox" Width="41">500</TextBox>
-                <Button Click="Button_Click_2">Rebuild</Button>
-                <Button Click="Button_Click_Do" Width="20">A</Button>
-                <Button Click="Button_Click_Do2" Width="20">B</Button>
+                <Button Click="Button_Click_Do" Width="33">Stats</Button>
+                <Button Click="Button_Click_Do2" Width="32">RNG</Button>
                 <Label>Filter</Label>
                 <Label>District</Label>
                 <ComboBox SelectionChanged="FilterDistrict_SelectionChanged" x:Name="filterDistrict" Width="84"></ComboBox>
                 <Label>Electorial</Label>
                 <ComboBox SelectionChanged="FilterElectorialIze_SelectionChanged" x:Name="filterElectorialIze" Width="82"></ComboBox>
+                <Button Click="Button_Click_2" Content="Rebuild" Visibility="Collapsed"/>
+                <TextBox x:Name="NumberTextBox" PreviewTextInput="NumberValidationTextBox" Width="41" Text="500" Visibility="Collapsed"/>
+                <Button x:Name="scrnBtn" Content="Prscrn" Click="ScrnBtn_Click"/>
+                <TextBox x:Name="scrnTxb" Width="94" Text="img.png"/>
             </StackPanel>
             <ScrollViewer DockPanel.Dock="Right">
                 <StackPanel Orientation="Vertical">
@@ -74,7 +76,7 @@
             </ScrollViewer>
 
             <Canvas Height="{Binding Path=ActualHeight, ElementName=container}" Background="Green" DockPanel.Dock="Bottom" ClipToBounds="True"  x:Name="canv">
-                <Canvas Height="{Binding Path=ActualHeight, ElementName=canv}" x:Name="canvas" Mouse.MouseDown="Canvas_MouseDown">
+                <Canvas Height="{Binding Path=ActualHeight, ElementName=canv}" x:Name="canvas" Background="Green" Mouse.MouseDown="Canvas_MouseDown">
                     <Canvas.RenderTransform>
                         <TransformGroup>
                             <ScaleTransform x:Name="canvasScale"></ScaleTransform>
