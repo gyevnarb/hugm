@@ -184,12 +184,12 @@ namespace hugm.graph
                 Node m = schedule.Dequeue();
                 foreach (Node p in m.Adjacents)
                 {
-                    if (!V[p.ID].Marked)
+                    if (!p.Marked)
                     {
                         if (closure && !V.Contains(p))
                             continue;
 
-                        V[p.ID].Marked = true;
+                        p.Marked = true;
                         schedule.Enqueue(p);
                         reachable.Add(p);
                     }

@@ -16,13 +16,6 @@ namespace hugm
             CultureInfo.CurrentCulture = new CultureInfo("en-US");
 
             Graph g = AreaUtils.Load("map.bin");
-            var ret = g.GetConnectedComponents(false);
-            var group = ret[0].CP.GroupBy(x => x.ID).Select(x => new { Key = x.Key, Count = x.Count() }).OrderByDescending(x => x.Count);
-            foreach (var gf in group)
-            {
-                if (gf.Count > 1)
-                    Console.WriteLine($"{gf.Key}: {gf.Count}");
-            }
             //DisplayElectoralConnectedComponents(g);
             //MapToData(g);
             //WriteNewPartitionGraph(g);
