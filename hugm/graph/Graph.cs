@@ -1,4 +1,5 @@
-﻿using System;
+﻿using hugm.map;
+using System;
 using System.Collections.Generic;
 
 namespace hugm.graph
@@ -171,6 +172,8 @@ namespace hugm.graph
         /// <returns>All nodes reachable from n</returns>
         public List<Node> BFSFrom(Node n, bool closure) //TODO: Test BFSFrom
         {
+            foreach (var v in V) v.Marked = false;
+
             Queue<Node> schedule = new Queue<Node>();
             List<Node> reachable = new List<Node>();
             n.Marked = true;
@@ -193,6 +196,46 @@ namespace hugm.graph
                 }
             }
             return reachable;
+        }
+
+        public bool IsCuttingNode(AreaNode n)
+        {
+            List<AreaNode> adjacents = new List<AreaNode>();
+            
+            foreach (AreaNode v in n.Adjacents)
+            {
+                if (v.ElectorialDistrict == n.ElectorialDistrict)
+                {
+                    adjacents.Add(v);
+                }
+            }
+            if (adjacents.Count == 0) return true;
+
+            foreach (var v in V) v.Marked = false;
+            n.Marked = true;
+
+            Queue<AreaNode> schedule = new Queue<AreaNode>();
+            schedule.Enqueue(adjacents[adjacents.Count - 1]);
+            adjacents.RemoveAt(adjacents.Count - 1);
+
+            schedule.Peek().Marked = true;
+            while (schedule.Count > 0 && adjacents.Count > 0)
+            {
+                AreaNode m = schedule.Dequeue();
+                foreach (AreaNode p in m.Adjacents)
+                {
+                    if (!p.Marked && p.ElectorialDistrict == n.ElectorialDistrict)
+                    {
+                        p.Marked = true;
+                        schedule.Enqueue(p);
+                        adjacents.Remove(p);
+                        if (adjacents.Count == 0) break;
+                    }
+                }
+            }
+
+            if (adjacents.Count != 0) return true;
+            else return false;
         }
 
         /// <summary>

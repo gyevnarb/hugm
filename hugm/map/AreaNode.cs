@@ -35,6 +35,28 @@ namespace hugm.map
         /// <param name="areas">Areas the node is grouping</param>
         public AreaNode(int id, List<VotingArea> areas) : base(id) => Areas = areas;
 
+        public int Pop
+        {
+            get
+            {
+                int sum = 0;
+                foreach (var a in Areas) sum += a.Results.Osszes;
+                return sum;
+            }
+        }
+
+        public int ElectorialDistrict
+        {
+            get
+            {
+                return Areas[0].ElectoralDistrict;
+            }
+            set
+            {
+                foreach (var a in Areas) a.ElectoralDistrict = value;
+            }
+        }
+
         public virtual bool Equals(AreaNode n)
         {
             return ID == n.ID;
