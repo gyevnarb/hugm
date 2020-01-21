@@ -25,5 +25,19 @@ namespace hugm.graph
             ID = id;
             Adjacents = new List<Node>();
         }
+
+        public override bool Equals(object obj)
+        {
+            if (!(obj is Node))
+                return false;
+
+            Node n = obj as Node;
+            return ID == n.ID;
+        }
+
+        public override int GetHashCode()
+        {
+            return ID * (ID * (ID + 3) + 7) % 281719;
+        }
     }
 }

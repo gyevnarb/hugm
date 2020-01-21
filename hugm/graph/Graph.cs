@@ -173,20 +173,20 @@ namespace hugm.graph
         {
             Queue<Node> schedule = new Queue<Node>();
             List<Node> reachable = new List<Node>();
+            n.Marked = true;
             schedule.Enqueue(n);
             reachable.Add(n);
-            n.Marked = true;
             while (schedule.Count > 0)
             {
                 Node m = schedule.Dequeue();
                 foreach (Node p in m.Adjacents)
                 {
-                    if (!p.Marked)
+                    if (!V[p.ID].Marked)
                     {
                         if (closure && !V.Contains(p))
                             continue;
 
-                        p.Marked = true;
+                        V[p.ID].Marked = true;
                         schedule.Enqueue(p);
                         reachable.Add(p);
                     }
@@ -201,7 +201,9 @@ namespace hugm.graph
         /// <param name="closure">True if only the adjacent nodes must also be in V</param>
         /// <returns>List of all connected components in the graph</returns>
         public List<ConnectedComponent> GetConnectedComponents(bool closure=false)
-        {           
+        {   
+            V.ForEach(x => x.Marked = false);
+
             List<ConnectedComponent> ret = new List<ConnectedComponent>();
             foreach (Node n in V)
             {
@@ -213,7 +215,8 @@ namespace hugm.graph
             }
 
             V.ForEach(x => x.Marked = false);
+      
             return ret;
-        }        
+        }
     }
 }

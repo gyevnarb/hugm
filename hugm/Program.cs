@@ -16,9 +16,17 @@ namespace hugm
             CultureInfo.CurrentCulture = new CultureInfo("en-US");
 
             Graph g = AreaUtils.Load("map.bin");
+            var ret = g.GetConnectedComponents(false);
+            var group = ret[0].CP.GroupBy(x => x.ID).Select(x => new { Key = x.Key, Count = x.Count() }).OrderByDescending(x => x.Count);
+            foreach (var gf in group)
+            {
+                if (gf.Count > 1)
+                    Console.WriteLine($"{gf.Key}: {gf.Count}");
+            }
             //DisplayElectoralConnectedComponents(g);
-            MapToData(g);
+            //MapToData(g);
             //WriteNewPartitionGraph(g);
+            //DispalyElectoralPopulations(g);
             Console.ReadLine();
         }
 
@@ -100,12 +108,26 @@ namespace hugm
             }
         }
 
+        private static void DispalyElectoralPopulations(Graph g)
+        {
+            int total = 0;
+            int pre_pop = 0;
+            foreach (var group in g.V.GroupBy(n => (n as AreaNode).Areas[0].ElectoralDistrict))
+            {
+                int pop = group.ToList().ConvertAll(x => x as AreaNode).Sum(x => x.Areas[0].Results.Osszes);
+                Console.WriteLine($"{group.Key}: {pop} ({Math.Abs((double)pop - pre_pop) / Math.Max(pop, pre_pop)*100:F3}%)");
+                total += pop;
+                pre_pop = pop;
+            }
+            Console.WriteLine($"Total: {total}");
+        }
+
         private static void WriteNewPartitionGraph(Graph g)
         {
             Console.WriteLine("Writing new assignment");
             Random r = new Random();
             var file = File.ReadAllLines(@"..\..\..\visualizer\data\partitions.csv").Select(x => x.Split(',')).Select(x => x.Select(y => int.Parse(y) + 1).ToList()).ToList();
-            var assignment = file[r.Next(file.Count)];
+            var assignment = file[99];//r.Next(file.Count)];
             int i = 0;
             foreach (AreaNode vert in g.V)
             {
@@ -115,7 +137,7 @@ namespace hugm
             AreaUtils.Save("../../map_new.bin", g);
             Console.WriteLine("Created new electoral assignment under file map_new.bin");
         }
-
+        
         private static double GetDistance(Node n1, Node n2)
         {
             return Math.Pow(n1.X - n2.X, 2) + Math.Pow(n1.Y - n2.Y, 2);

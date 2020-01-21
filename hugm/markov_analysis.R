@@ -35,19 +35,26 @@ find_params <- function(nsims=10000, ndists=18) {
   )
 }
 
-run_simulation <- function(nsims=10000, ndists=18, popcons=0.15, seed=1, nloop=1, savename="bud") {
+run_simulation <- function(nsims=100, ndists=18, popcons=0.15,
+  seed=1, nloop=1, beta=2500, eprob=0.01, lambda=10, savename="bud") {
+
   load("budapest.RData")
   set.seed(seed)
 
-  bud_alg <- redist.mcmc(adjobj=bud$adjobj,
+  bud_alg <- redist.mcmc(
+    adjobj=bud$adjobj,
     popvec=bud$popvec,
-    nsims=nsims, ndists=ndists,
+    nsims=nsims,
+    ndists=ndists,
     initcds=bud$initcds,
+    nloop=nloop,
+    eprob=eprob,
     popcons=popcons,
     ssdmat=bud$ssdist,
-    beta=9,
+    beta=beta,
+    lambda=lambda,
     constraint="compact",
-    nloop=nloop,
+    temper="parallel",
     savename=savename
   )
 
