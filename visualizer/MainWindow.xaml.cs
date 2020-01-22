@@ -19,6 +19,8 @@ namespace visualizer
         private static float atlag = 76818; // 2011
 
         private Graph myGraph;
+        private double similarity = 1.0;
+        List<int> origElectoralSettings = new List<int>();
 
         public Graph MyGraph
         {
@@ -111,7 +113,7 @@ namespace visualizer
 
         private void ShowGraph()
         {
-            if (MyGraph == null) return;
+            if (MyGraph == null || chkDisableui.IsChecked.Value) return;
 
             canvas.Children.Clear();
             associatedElems.Clear();
@@ -175,9 +177,10 @@ namespace visualizer
             // 3. Tul kicsiket felnoveljuk hogy elerjek a hatart
             // 4. Túl nagyokat meg lecsokkentjuk
             if (MyGraph == null) return;
+            int MAX_STEP = 10000;
 
             var rng = new Random();
-            foreach (var v in MyGraph.V) v.Marked = false;
+            foreach (var v in MyGraph.V) v.Marked = false;            
             List<AreaNode> points = new List<AreaNode>();
             for (int i = 1; i <= 18; ++i)
             {
@@ -226,10 +229,11 @@ namespace visualizer
                 }
             }
 
+            int l = 0;
             int h = 0;
             ujlista.Sort((a, b) => a.pop - b.pop);
             for (int k = 0; k < 18; ++k) if (ujlista[k].pop > atlag * 0.85) { h = k; break; }
-            while (ujlista[0].pop < atlag * 0.85)
+            while (ujlista[0].pop < atlag * 0.85 && l < MAX_STEP)
             {
                 bool done = false;
                 for (int i = 0; i < h && !done; ++i)
@@ -262,6 +266,7 @@ namespace visualizer
                             ujlista[j].pop -= n.Pop;
                             n.ElectorialDistrict = ujlista[i].id;
                             done = true;
+                            l++;
                         }
                     }
                 }
@@ -269,9 +274,10 @@ namespace visualizer
                 for (int k = 0; k < 18; ++k) if (ujlista[k].pop > atlag * 0.85) { h = k; break; }
             }
 
+            l = 0;
             ujlista.Sort((a, b) => b.pop - a.pop);
             for (int k = 0; k < 18; ++k) if (ujlista[k].pop < atlag * 1.15) { h = k; break; }
-            while (ujlista[0].pop > atlag * 1.15)
+            while (ujlista[0].pop > atlag * 1.15 && l < MAX_STEP)
             {
                 bool done = false;
                 for (int i = 0; i < h && !done; ++i)
@@ -305,6 +311,7 @@ namespace visualizer
 
                             n.ElectorialDistrict = ujlista[j].id;
                             done = true;
+                            l++;
                         }
                     }
                 }
@@ -565,6 +572,8 @@ namespace visualizer
             if (graph != null)
             {
                 MyGraph = graph;
+                origElectoralSettings.Clear();
+                foreach (AreaNode v in MyGraph.V) origElectoralSettings.Add(v.ElectorialDistrict);
                 ShowGraph();
             }
         }
@@ -615,8 +624,17 @@ namespace visualizer
 
         private void Button_Click_Do(object sender, RoutedEventArgs e)
         {
+            if (MyGraph == null) return;
+
             Dictionary<int, VoteResult> results = new Dictionary<int, VoteResult>();
             VoteResult glob = new VoteResult();
+
+            int diffs = 0;
+            for (int i = 0; i < origElectoralSettings.Count; ++i)
+            {
+                if ((MyGraph.V[i] as AreaNode).ElectorialDistrict != origElectoralSettings[i]) diffs++;
+            }
+            similarity = 1.0 - (double)diffs / (double)origElectoralSettings.Count;
 
             foreach (var n in MyGraph.V)
             {
@@ -651,7 +669,8 @@ namespace visualizer
             sss += $"FideszKDNP: {fideszkdnp / sumsum}, Osszefogas: {osszefogas / sumsum}, Jobbik: {jobbik / sumsum}, LMP: {lmp / sumsum}\n";
             sss += "Kellett volna:\n";
             sss += $"FideszKDNP: {(float)glob.FideszKDNP / sum}, Osszefogas: {(float)glob.Osszefogas / sum}, Jobbik: {(float)glob.Jobbik / sum}, LMP: {(float)glob.LMP / sum}\n";
-            sss += $"Valid 15: {valid15}, Valid 20: {valid20}";
+            sss += $"Valid 15: {valid15}, Valid 20: {valid20}\n";
+            sss += $"Similarity: {similarity}";
 
             MessageBox.Show(sss);
         }
@@ -820,6 +839,11 @@ namespace visualizer
             {
                 MessageBox.Show(err.ToString(), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
+        }
+
+        private void BtnRefresh_Click(object sender, RoutedEventArgs e)
+        {
+            ShowGraph();
         }
     }
 }

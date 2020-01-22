@@ -15,14 +15,16 @@
                 <Button Click="Button_Click_Do" Width="33">Stats</Button>
                 <Button Click="Button_Click_Do2" Width="32">RNG</Button>
                 <Label>Filter</Label>
-                <Label>District</Label>
-                <ComboBox SelectionChanged="FilterDistrict_SelectionChanged" x:Name="filterDistrict" Width="84"></ComboBox>
+                <Label Width="48">District</Label>
+                <ComboBox SelectionChanged="FilterDistrict_SelectionChanged" x:Name="filterDistrict" Width="59"></ComboBox>
                 <Label>Electorial</Label>
                 <ComboBox SelectionChanged="FilterElectorialIze_SelectionChanged" x:Name="filterElectorialIze" Width="82"></ComboBox>
                 <Button Click="Button_Click_2" Content="Rebuild" Visibility="Collapsed"/>
                 <TextBox x:Name="NumberTextBox" PreviewTextInput="NumberValidationTextBox" Width="41" Text="500" Visibility="Collapsed"/>
                 <Button x:Name="scrnBtn" Content="Prscrn" Click="ScrnBtn_Click"/>
                 <TextBox x:Name="scrnTxb" Width="94" Text="img.png"/>
+                <CheckBox x:Name="chkDisableui" IsChecked="False" Width="51">DisUI</CheckBox>
+                <Button x:Name="btnRefresh" Click="BtnRefresh_Click"> Refresh </Button>
             </StackPanel>
             <ScrollViewer DockPanel.Dock="Right">
                 <StackPanel Orientation="Vertical">
