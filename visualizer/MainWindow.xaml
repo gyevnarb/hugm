@@ -24,58 +24,82 @@
                 <Button x:Name="scrnBtn" Content="Prscrn" Click="ScrnBtn_Click"/>
                 <TextBox x:Name="scrnTxb" Width="94" Text="img.png"/>
                 <CheckBox x:Name="chkDisableui" IsChecked="False" Width="51">DisUI</CheckBox>
-                <Button x:Name="btnRefresh" Click="BtnRefresh_Click"> Refresh </Button>
+                <Button x:Name="btnRefresh" Click="BtnRefresh_Click">Refresh</Button>
             </StackPanel>
-            <ScrollViewer DockPanel.Dock="Right">
-                <StackPanel Orientation="Vertical">
-                    <ComboBox x:Name="comboo" SelectionChanged="ComboBox_SelectionChanged"></ComboBox>
-                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                        <Label>Fidesz-KDNP:</Label>
-                        <Label x:Name="fideszKdnp" ></Label>
+            <TabControl DockPanel.Dock="Right">
+                <TabItem Header="Area Info">
+                    <ScrollViewer>
+                        <StackPanel Orientation="Vertical">
+                            <ComboBox x:Name="comboo" SelectionChanged="ComboBox_SelectionChanged"></ComboBox>
+                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                <Label>Fidesz-KDNP:</Label>
+                                <Label x:Name="fideszKdnp" ></Label>
+                            </StackPanel>
+                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                <Label>Osszefogas:</Label>
+                                <Label x:Name="osszefogas"></Label>
+                            </StackPanel>
+                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                <Label>Jobbik:</Label>
+                                <Label x:Name="jobbik"></Label>
+                            </StackPanel>
+                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                <Label>LMP:</Label>
+                                <Label x:Name="lmp"></Label>
+                            </StackPanel>
+                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                <Label>Megjelent:</Label>
+                                <Label x:Name="megjelent"></Label>
+                            </StackPanel>
+                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                <Label>Osszes:</Label>
+                                <Label x:Name="osszes"></Label>
+                            </StackPanel>
+                            <Separator></Separator>
+                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                <Label>Electoral District:</Label>
+                                <Label x:Name="electDistrict"></Label>
+                            </StackPanel>
+                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                <Label>City District:</Label>
+                                <Label x:Name="cityDistrict"></Label>
+                            </StackPanel>
+                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                <Label>Area Number:</Label>
+                                <Label x:Name="areaNumber"></Label>
+                            </StackPanel>
+                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                <Label>Address:</Label>
+                                <Label x:Name="adress"></Label>
+                            </StackPanel>
+                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                <Label>Atjelentkezes:</Label>
+                                <CheckBox x:Name="atjelentkezes" VerticalAlignment="Center" IsEnabled="False"></CheckBox>
+                            </StackPanel>
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabItem>
+                <TabItem Header="Generation">
+                    <StackPanel Orientation="Vertical">
+                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                            <Label>Start seed:</Label>
+                            <TextBox x:Name="txSeed" PreviewTextInput="NumberValidationTextBox" Width="61"></TextBox>
+                        </StackPanel>
+                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                            <Label>Count:</Label>
+                            <TextBox x:Name="txCount" PreviewTextInput="NumberValidationTextBox" Width="79"></TextBox>
+                        </StackPanel>
+                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                            <Label>Folder:</Label>
+                            <TextBox x:Name="txFolder" Width="79"></TextBox>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <Button Click="Button_Click_3">GO!!</Button>
+                            <ProgressBar x:Name="progressbar" Width="97"></ProgressBar>
+                        </StackPanel>
                     </StackPanel>
-                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                        <Label>Osszefogas:</Label>
-                        <Label x:Name="osszefogas"></Label>
-                    </StackPanel>
-                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                        <Label>Jobbik:</Label>
-                        <Label x:Name="jobbik"></Label>
-                    </StackPanel>
-                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                        <Label>LMP:</Label>
-                        <Label x:Name="lmp"></Label>
-                    </StackPanel>
-                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                        <Label>Megjelent:</Label>
-                        <Label x:Name="megjelent"></Label>
-                    </StackPanel>
-                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                        <Label>Osszes:</Label>
-                        <Label x:Name="osszes"></Label>
-                    </StackPanel>
-                    <Separator></Separator>
-                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                        <Label>Electoral District:</Label>
-                        <Label x:Name="electDistrict"></Label>
-                    </StackPanel>
-                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                        <Label>City District:</Label>
-                        <Label x:Name="cityDistrict"></Label>
-                    </StackPanel>
-                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                        <Label>Area Number:</Label>
-                        <Label x:Name="areaNumber"></Label>
-                    </StackPanel>
-                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                        <Label>Address:</Label>
-                        <Label x:Name="adress"></Label>
-                    </StackPanel>
-                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                        <Label>Atjelentkezes:</Label>
-                        <CheckBox x:Name="atjelentkezes" VerticalAlignment="Center" IsEnabled="False"></CheckBox>
-                    </StackPanel>
-                </StackPanel>
-            </ScrollViewer>
+                </TabItem>
+            </TabControl>
 
             <Canvas Height="{Binding Path=ActualHeight, ElementName=container}" Background="Green" DockPanel.Dock="Bottom" ClipToBounds="True"  x:Name="canv">
                 <Canvas Height="{Binding Path=ActualHeight, ElementName=canv}" x:Name="canvas" Background="Green" Mouse.MouseDown="Canvas_MouseDown">
