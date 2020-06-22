@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:visualizer"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="MainWindow" Height="450" Width="821">
     <Grid>
         <DockPanel Margin="10" VerticalAlignment="Top" LastChildFill="True" x:Name="container">
             <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
@@ -14,17 +14,18 @@
                 <Button Click="Button_Click_1" RenderTransformOrigin="8.213,0.62" Width="40">Load</Button>
                 <Button Click="Button_Click_Do" Width="33">Stats</Button>
                 <Button Click="Button_Click_Do2" Width="32">RNG</Button>
-                <Label>Filter</Label>
-                <Label Width="48">District</Label>
-                <ComboBox SelectionChanged="FilterDistrict_SelectionChanged" x:Name="filterDistrict" Width="59"></ComboBox>
-                <Label>Electorial</Label>
-                <ComboBox SelectionChanged="FilterElectorialIze_SelectionChanged" x:Name="filterElectorialIze" Width="82"></ComboBox>
+                <Button Click="btnR_Click" Width="32">R</Button>
                 <Button Click="Button_Click_2" Content="Rebuild" Visibility="Collapsed"/>
                 <TextBox x:Name="NumberTextBox" PreviewTextInput="NumberValidationTextBox" Width="41" Text="500" Visibility="Collapsed"/>
+                <Label Content="Filter"/>
+                <Label Width="48" Content="District"/>
+                <ComboBox SelectionChanged="FilterDistrict_SelectionChanged" x:Name="filterDistrict" Width="59"/>
+                <Label Content="Electorial"/>
+                <ComboBox SelectionChanged="FilterElectorialIze_SelectionChanged" x:Name="filterElectorialIze" Width="82"/>
                 <Button x:Name="scrnBtn" Content="Prscrn" Click="ScrnBtn_Click"/>
                 <TextBox x:Name="scrnTxb" Width="94" Text="img.png"/>
-                <CheckBox x:Name="chkDisableui" IsChecked="False" Width="51">DisUI</CheckBox>
-                <Button x:Name="btnRefresh" Click="BtnRefresh_Click">Refresh</Button>
+                <CheckBox x:Name="chkDisableui" IsChecked="False" Width="51" Content="DisUI"/>
+                <Button x:Name="btnRefresh" Click="BtnRefresh_Click" Content="Refresh"/>
             </StackPanel>
             <TabControl DockPanel.Dock="Right">
                 <TabItem Header="Area Info">

@@ -1,5 +1,6 @@
 ﻿using hugm.graph;
 using hugm.map;
+using hugm;
 using createmap;
 using System;
 using System.Collections.Generic;
@@ -12,6 +13,9 @@ using System.Text.RegularExpressions;
 using System.Linq;
 using System.Windows.Media.Imaging;
 using System.ComponentModel;
+using RDotNet;
+using System.Linq.Expressions;
+using RDotNet.NativeLibrary;
 
 namespace visualizer
 {
@@ -25,6 +29,9 @@ namespace visualizer
         List<int> origElectoralSettings = new List<int>();
 
         BackgroundWorker bgw;
+
+        //Init R interoperability
+        REngine rEngine = REngine.GetInstance();
 
         public Graph MyGraph
         {
@@ -980,6 +987,27 @@ namespace visualizer
                 }
             };
             bgw.RunWorkerAsync();
+        }
+
+        private static void PrintPaths()
+        {
+            string rHome = "";
+            string rPath = "";
+
+            NativeUtility util = new NativeUtility();
+            var logInfo = util.FindRPaths(ref rPath, ref rHome);
+
+            Console.WriteLine("Is this process 64 bits? {0}", System.Environment.Is64BitProcess);
+            Console.WriteLine(logInfo);
+        }
+
+        private void btnR_Click(object sender, RoutedEventArgs e)
+        {
+            rEngine.Evaluate("library(redist)");
+            rEngine.Evaluate("source(\"../../../hugm/markov_analysis.R\")");
+            Graph g = RUtils.WriteNewPartitionGraph(myGraph, "../../../hugm/partitions.csv", "../../data/map_new.bin");
+            MyGraph = g;
+            ShowGraph();
         }
     }
 }
