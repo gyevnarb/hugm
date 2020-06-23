@@ -1,7 +1,5 @@
 ﻿using hugm.graph;
 using hugm.map;
-using hugm;
-using createmap;
 using System;
 using System.Collections.Generic;
 using System.Windows;
@@ -10,45 +8,14 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
 using System.Text.RegularExpressions;
-using System.Linq;
 using System.Windows.Media.Imaging;
-using System.ComponentModel;
-using RDotNet;
-using System.Linq.Expressions;
 using RDotNet.NativeLibrary;
 
 namespace visualizer
 {
     public partial class MainWindow : Window
     {
-        private static float atlag = 76818; // 2011
-
-        private int _seed;
-        private Graph myGraph;
-        private double similarity = 1.0;
-        List<int> origElectoralSettings = new List<int>();
-
-        BackgroundWorker bgw;
-
-        //Init R interoperability
-        REngine rEngine = REngine.GetInstance();
-
-        public Graph MyGraph
-        {
-            private get { return myGraph; }
-            set
-            {
-                if (value != null)
-                {
-                    myGraph = value;
-                    undoActions.Clear();
-                }
-                else
-                {
-                    Console.WriteLine("Null graph!");
-                }
-            }
-        }
+        private readonly GraphUtility graph = new GraphUtility();
 
         private List<object> associatedElems = new List<object>();
         private List<UndoAction> undoActions = new List<UndoAction>();
@@ -108,8 +75,6 @@ namespace visualizer
         private double CameraMoveSpeed = 5;
         private double ZoomScale = 10000;
 
-        private string CsvPath = @"../../data/korok.csv";
-
         public MainWindow()
         {
             InitializeComponent();
@@ -119,11 +84,12 @@ namespace visualizer
             SelectedBorder.BorderBrush = selectionBorderBaseColor;
 
             InitKeyHandlers();
-            //MyGraph = PopulateGraph.BuildGraph(CsvPath, false, 500.0);
         }
 
         private void ShowGraph()
         {
+            var MyGraph = graph.MyGraph;
+
             if (MyGraph == null || chkDisableui.IsChecked.Value) return;
 
             canvas.Children.Clear();
@@ -171,262 +137,7 @@ namespace visualizer
             }
             filterDistrict.SelectedIndex = 0;
             filterElectorialIze.SelectedIndex = 0;
-        }
-
-        class ElectoralDistrict
-        {
-            public List<AreaNode> nodes;
-            public HashSet<AreaNode> availableNodes;
-            public int pop = 0;
-            public int id;
-        }
-
-        private void ModifyRandomlyThyElectoralDsitrictSystem(long seed)
-        {
-            if (MyGraph == null) return;
-            int MAX_STEP = 1000;
-
-            _seed = (int)(seed % int.MaxValue);
-            var rng = new Random(_seed);
-
-            List<int> pops = new List<int>(18);
-            for (int i = 0; i < 18; ++i) pops.Add(0);
-            foreach (AreaNode v in MyGraph.V) pops[v.ElectorialDistrict - 1] += v.Pop;
-
-            double MIN_DISTRICT_SIZ = atlag * 0.85;
-            double MAX_DISTRICT_SIZ = atlag * 1.15;
-
-            for (int i = 0; i < MAX_STEP; ++i)
-            {
-                var possibleNodes = MyGraph.V.Where(n =>
-                {
-                    AreaNode a = n as AreaNode;
-                    if (pops[a.ElectorialDistrict - 1] - a.Pop < MIN_DISTRICT_SIZ) return false;
-
-                    bool hasGoodAdjacent = false;
-                    foreach (AreaNode v in a.Adjacents)
-                    {
-                        if (pops[v.ElectorialDistrict - 1] + a.Pop < MAX_DISTRICT_SIZ)
-                        {
-                            hasGoodAdjacent = true;
-                            break;
-                        }
-                    }
-                    if (!hasGoodAdjacent) return false;
-
-                    if (MyGraph.IsCuttingNode(a)) return false;
-
-                    return true;
-                }).ToList();
-
-                AreaNode f = possibleNodes[rng.Next(possibleNodes.Count)] as AreaNode;
-                var possibleTargets = f.Adjacents.Where(x =>
-                {
-                    var a = x as AreaNode;
-                    return pops[a.ElectorialDistrict - 1] + f.Pop < MAX_DISTRICT_SIZ;
-                }).ToList(); // Nagyobb valoszinuseggel megy oda, amibol tobb szomszedja van
-                AreaNode t = possibleTargets[rng.Next(possibleTargets.Count)] as AreaNode;
-
-                f.ElectorialDistrict = t.ElectorialDistrict;
-                pops[t.ElectorialDistrict - 1] += f.Pop;
-                pops[f.ElectorialDistrict - 1] -= f.Pop;
-            }
-        }
-
-        private void SaveAsStat(string filename)
-        {
-            if (MyGraph == null) return;
-
-            List<VoteResult> results = new List<VoteResult>(18);
-            for (int i = 0; i < 18; ++i) results.Add(new VoteResult());
-            VoteResult glob = new VoteResult();
-
-            int diffs = 0;
-            for (int i = 0; i < origElectoralSettings.Count; ++i)
-            {
-                if ((MyGraph.V[i] as AreaNode).ElectorialDistrict != origElectoralSettings[i]) diffs++;
-            }
-            similarity = 1.0 - (double)diffs / (double)origElectoralSettings.Count;
-
-            foreach (var n in MyGraph.V)
-            {
-                foreach (var a in (n as AreaNode).Areas)
-                {
-                    results[a.ElectoralDistrict - 1].Add(a.Results);
-                    glob.Add(a.Results);
-                }
-            }
-
-            int valid15 = 1;
-            int valid20 = 1;
-            foreach (var se in results)
-            {
-                if (se.Osszes > atlag * 1.15 || se.Osszes < atlag * 0.85)
-                    valid15 = 0;
-                if (se.Osszes > atlag * 1.2 || se.Osszes < atlag * 0.8)
-                    valid20 = 0;
-            }
-
-            float fideszkdnp = results.Count(x => x.Gyoztes == "FideszKDNP");
-            float osszefogas = results.Count(x => x.Gyoztes == "Osszefogas");
-            float jobbik = results.Count(x => x.Gyoztes == "Jobbik");
-            float lmp = results.Count(x => x.Gyoztes == "LMP");
-
-            string text = $"0.1;{_seed};{valid15};{valid20};{fideszkdnp};{osszefogas};{jobbik};{lmp};{similarity}";
-            foreach(var se in results) text += $";{se.Gyoztes}";            
-            System.IO.File.WriteAllText(filename, text);
-        }
-
-        private void GenerateRandomElectoralDsitrictSystem(long seed)
-        {
-            // 1. 18 Random node kivalasztasa, minden keruletbol egyet
-            // 2. Novesztes egyelore nepesseg korlat betartasa nelkul
-            // 3. Tul kicsiket felnoveljuk hogy elerjek a hatart
-            // 4. Túl nagyokat meg lecsokkentjuk
-            if (MyGraph == null) return;
-            int MAX_STEP = 10000; // Ha 3. vagy 4. lepes egyenként tul lepne a max step-et akkor megallitjuk
-
-            _seed = (int)(seed % int.MaxValue);
-            var rng = new Random(_seed);
-            foreach (var v in MyGraph.V) v.Marked = false;
-            List<AreaNode> points = new List<AreaNode>();
-            for (int i = 1; i <= 18; ++i)
-            {
-                var ns = MyGraph.V.Where(x =>
-                {
-                    return (x as AreaNode).Areas[0].ElectoralDistrict == i;
-                }).ToList();
-                var p = ns[rng.Next(ns.Count)];
-                points.Add(p as AreaNode);
-            }
-
-            var ujlista = new List<ElectoralDistrict>();
-            foreach (var p in points)
-            {
-                p.Marked = true;
-                p.ElectorialDistrict = p.Areas[0].ElectoralDistrict;
-                ujlista.Add(new ElectoralDistrict
-                {
-                    nodes = new List<AreaNode> { p },
-                    availableNodes = new HashSet<AreaNode>(p.Adjacents.Select(x => x as AreaNode)),
-                    pop = p.Pop,
-                    id = p.ElectorialDistrict
-                });
-            }
-
-            // TODO: +-20 at is figylemebe lehetne venni, akkora hiba meg torveny szeirnt belefer
-            int z = 0;
-            while (z < MyGraph.V.Count - 18)
-            {
-                for (int i = 0; i < 18; ++i)
-                {
-                    var adnonamrked0 = ujlista[i].availableNodes.Where(x => !x.Marked).ToList();
-                    if (adnonamrked0.Count != 0)
-                    {
-                        int j = rng.Next(adnonamrked0.Count);
-                        var chosenNode = adnonamrked0[j];
-
-                        chosenNode.Marked = true;
-                        ujlista[i].availableNodes.UnionWith(chosenNode.Adjacents.Select(x => x as AreaNode));
-                        ujlista[i].availableNodes.Remove(chosenNode);
-                        ujlista[i].nodes.Add(chosenNode);
-                        ujlista[i].pop += chosenNode.Pop;
-                        chosenNode.ElectorialDistrict = ujlista[i].id;
-                        z++;
-                    }
-                }
-            }
-
-            int l = 0;
-            int h = 0;
-            ujlista.Sort((a, b) => a.pop - b.pop);
-            for (int k = 0; k < 18; ++k) if (ujlista[k].pop > atlag * 0.85) { h = k; break; }
-            while (ujlista[0].pop < atlag * 0.85 && l < MAX_STEP)
-            {
-                bool done = false;
-                for (int i = 0; i < h && !done; ++i)
-                {
-                    for (int j = 17; j >= h && !done; --j)
-                    {
-                        int id = ujlista[j].id;
-                        AreaNode n = null;
-                        foreach (var v in ujlista[i].availableNodes)
-                        {
-                            if (v.ElectorialDistrict == id && !MyGraph.IsCuttingNode(v))
-                            {
-                                n = v;
-                                break;
-                            }
-                        }
-                        if (n != null)
-                        {
-                            ujlista[i].availableNodes.UnionWith(n.Adjacents.Select(x => x as AreaNode));
-                            ujlista[i].availableNodes.Remove(n);
-
-                            ujlista[j].availableNodes.Clear();
-                            ujlista[j].nodes.Remove(n);
-                            foreach (var v in ujlista[j].nodes)
-                            {
-                                ujlista[j].availableNodes.UnionWith(v.Adjacents.Select(x => x as AreaNode));
-                            }
-                            ujlista[i].nodes.Add(n);
-                            ujlista[i].pop += n.Pop;
-                            ujlista[j].pop -= n.Pop;
-                            n.ElectorialDistrict = ujlista[i].id;
-                            done = true;
-                        }
-                        l++;
-                    }
-                }
-                ujlista.Sort((a, b) => a.pop - b.pop);
-                for (int k = 0; k < 18; ++k) if (ujlista[k].pop > atlag * 0.85) { h = k; break; }
-            }
-
-            l = 0;
-            ujlista.Sort((a, b) => b.pop - a.pop);
-            for (int k = 0; k < 18; ++k) if (ujlista[k].pop < atlag * 1.15) { h = k; break; }
-            while (ujlista[0].pop > atlag * 1.15 && l < MAX_STEP)
-            {
-                bool done = false;
-                for (int i = 0; i < h && !done; ++i)
-                {
-                    for (int j = 17; j >= h && !done; --j)
-                    {
-                        int id = ujlista[i].id;
-                        AreaNode n = null;
-                        foreach (var v in ujlista[j].availableNodes)
-                        {
-                            if (v.ElectorialDistrict == id && !MyGraph.IsCuttingNode(v))
-                            {
-                                n = v;
-                                break;
-                            }
-                        }
-                        if (n != null)
-                        {
-                            ujlista[j].nodes.Add(n);
-                            ujlista[j].availableNodes.UnionWith(n.Adjacents.Select(x => x as AreaNode));
-                            ujlista[j].availableNodes.Remove(n);
-                            ujlista[j].pop += n.Pop;
-
-                            ujlista[i].availableNodes.Clear();
-                            ujlista[i].nodes.Remove(n);
-                            foreach (var v in ujlista[i].nodes)
-                            {
-                                ujlista[i].availableNodes.UnionWith(v.Adjacents.Select(x => x as AreaNode));
-                            }
-                            ujlista[i].pop -= n.Pop;
-
-                            n.ElectorialDistrict = ujlista[j].id;
-                            done = true;
-                        }
-                        l++;
-                    }
-                }
-                ujlista.Sort((a, b) => b.pop - a.pop);
-                for (int k = 0; k < 18; ++k) if (ujlista[k].pop < atlag * 1.15) { h = k; break; }
-            }
-        }
+        }        
         
         private void DrawVotingArea(Node v)
         {
@@ -493,18 +204,20 @@ namespace visualizer
 
         private void RemoveElement(UIElement selectedElement)
         {
+            var MyGraph = graph.MyGraph;
+
             int index = canvas.Children.IndexOf(selectedElement);
             var ae = associatedElems[index];
             if (ae is Node)
             {
                 MyGraph.RemoveNode(ae as Node);
-                undoActions.Add(new UndoAction(myGraph, ae as Node));
+                undoActions.Add(new UndoAction(MyGraph, ae as Node));
                 ShowGraph();
             }
             else if (ae is Edge)
             {
                 MyGraph.RemoveEdge(ae as Edge);
-                undoActions.Add(new UndoAction(myGraph, ae as Edge));
+                undoActions.Add(new UndoAction(MyGraph, ae as Edge));
                 canvas.Children.RemoveAt(index);
                 associatedElems.RemoveAt(index);
             }
@@ -512,6 +225,8 @@ namespace visualizer
 
         private void CreateConnection(Ellipse e1, Ellipse e2)
         {
+            var MyGraph = graph.MyGraph;
+
             if (e1 == e2) return;
 
             int index1 = canvas.Children.IndexOf(e1);
@@ -522,7 +237,7 @@ namespace visualizer
             if (!MyGraph.Adjacent(ae1 as Node, ae2 as Node))
             {
                 MyGraph.AddEdge(ae1 as Node, ae2 as Node);
-                undoActions.Add(new UndoAction(myGraph, ae1 as Node, ae2 as Node));
+                undoActions.Add(new UndoAction(MyGraph, ae1 as Node, ae2 as Node));
                 DrawNeighbourhood(new Edge(ae1 as Node, ae2 as Node));
             }
         }
@@ -671,19 +386,14 @@ namespace visualizer
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            AreaUtils.Save(txbox.Text, myGraph);
+            AreaUtils.Save(txbox.Text, graph.MyGraph);
         }
 
         private void Button_Click_1(object sender, RoutedEventArgs e)
         {
-            var graph = AreaUtils.Load(txbox.Text);
-            if (graph != null)
-            {
-                MyGraph = graph;
-                origElectoralSettings.Clear();
-                foreach (AreaNode v in MyGraph.V) origElectoralSettings.Add(v.ElectorialDistrict);
-                ShowGraph();
-            }
+            graph.Load(AreaUtils.Load(txbox.Text));
+            undoActions.Clear();
+            ShowGraph();
         }
 
         private void NumberValidationTextBox(object sender, TextCompositionEventArgs e)
@@ -692,15 +402,7 @@ namespace visualizer
             e.Handled = regex.IsMatch(e.Text);
         }
 
-        private void Button_Click_2(object sender, RoutedEventArgs e)
-        {
-            if (int.TryParse(NumberTextBox.Text, out int thresh))
-            {
-                MyGraph = PopulateGraph.BuildGraph(CsvPath, false, thresh);
-            }
-        }
-
-        private void Save(string path)
+        private void SaveImage(string path)
         {
             if (path == null || path.Length == 0) path = $"default_{DateTime.Now.Ticks}.png";
 
@@ -732,61 +434,14 @@ namespace visualizer
 
         private void Button_Click_Do(object sender, RoutedEventArgs e)
         {
-            if (MyGraph == null) return;
-
-            Dictionary<int, VoteResult> results = new Dictionary<int, VoteResult>();
-            VoteResult glob = new VoteResult();
-
-            int diffs = 0;
-            for (int i = 0; i < origElectoralSettings.Count; ++i)
-            {
-                if ((MyGraph.V[i] as AreaNode).ElectorialDistrict != origElectoralSettings[i]) diffs++;
-            }
-            similarity = 1.0 - (double)diffs / (double)origElectoralSettings.Count;
-
-            foreach (var n in MyGraph.V)
-            {
-                foreach (var a in (n as AreaNode).Areas)
-                {
-                    if (!results.ContainsKey(a.ElectoralDistrict)) results.Add(a.ElectoralDistrict, a.Results.Clone());
-                    else results[a.ElectoralDistrict].Add(a.Results);
-                    glob.Add(a.Results);
-                }
-            }
-
-            string sss = "";
-            bool valid15 = true;
-            bool valid20 = true;
-            foreach (var se in results)
-            {
-                sss += se.Key.ToString() + ": " + se.Value.Gyoztes + '\n';
-                if (se.Value.Osszes > atlag * 1.15 || se.Value.Osszes < atlag * 0.85)
-                    valid15 = false;
-                if (se.Value.Osszes > atlag * 1.2 || se.Value.Osszes < atlag * 0.8)
-                    valid20 = false;
-            }
-
-            float fideszkdnp = results.Count(x => x.Value.Gyoztes == "FideszKDNP");
-            float osszefogas = results.Count(x => x.Value.Gyoztes == "Osszefogas");
-            float jobbik = results.Count(x => x.Value.Gyoztes == "Jobbik");
-            float lmp = results.Count(x => x.Value.Gyoztes == "LMP");
-            float sumsum = fideszkdnp + osszefogas + jobbik + lmp;
-                       
-            float sum = glob.FideszKDNP + glob.LMP + glob.Jobbik + glob.Osszefogas;
-            sss += "\n Tenyleges:\n";
-            sss += $"FideszKDNP: {fideszkdnp / sumsum}, Osszefogas: {osszefogas / sumsum}, Jobbik: {jobbik / sumsum}, LMP: {lmp / sumsum}\n";
-            sss += "Kellett volna:\n";
-            sss += $"FideszKDNP: {(float)glob.FideszKDNP / sum}, Osszefogas: {(float)glob.Osszefogas / sum}, Jobbik: {(float)glob.Jobbik / sum}, LMP: {(float)glob.LMP / sum}\n";
-            sss += $"Valid 15: {valid15}, Valid 20: {valid20}\n";
-            sss += $"Similarity: {similarity}";
-
-            MessageBox.Show(sss);
+            string stat = graph.GetStatistics();
+            if (stat != null && stat != "") MessageBox.Show(stat);
         }
 
         private void Button_Click_Do2(object sender, RoutedEventArgs e)
         {
-            GenerateRandomElectoralDsitrictSystem(DateTime.Now.Ticks);
-            //ModifyRandomlyThyElectoralDsitrictSystem(DateTime.Now.Ticks);
+            graph.GenerateRandomElectoralDistrictSystem(DateTime.Now.Ticks);
+            undoActions.Clear();
             ShowGraph();
         }
 
@@ -807,17 +462,15 @@ namespace visualizer
 
         private void updateFiltering()
         {
-           // var myavailabledistricts = new List<string>();
-           // var myavailableelectorials = new List<string>();
-
-           // myavailabledistricts.Add("All");
-           // myavailableelectorials.Add("All");
-
             if (filterElectorialIze.SelectedIndex == 0 && filterDistrict.SelectedIndex == 0)
             {
-                foreach (var c in canvas.Children) if (c is Shape) (c as Shape).Visibility = Visibility.Visible;
-           //     filterDistrict.ItemsSource = availableDistricts;
-            //    filterElectorialIze.ItemsSource = availableElectorials;
+                foreach (var c in canvas.Children)
+                {
+                    if (c is Shape)
+                    {
+                        (c as Shape).Visibility = Visibility.Visible;
+                    }
+                }
                 return;
             }
 
@@ -832,7 +485,6 @@ namespace visualizer
                         {
                             if ((string)filterDistrict.SelectedItem == e.CityDistrict)
                             {
-                             //   mya.Add(e.ElectoralDistrict.ToString());
                                 toHide = false;
                                 break;
                             }
@@ -847,7 +499,6 @@ namespace visualizer
                             bool b = false;
                             if ((string)filterElectorialIze.SelectedItem == e.ElectoralDistrict.ToString())
                             {
-                             //   mya.Add(e.CityDistrict.ToString());
                                 b = true;
                                 break;
                             }
@@ -923,25 +574,13 @@ namespace visualizer
                     }
                 }
             }
-
-      /*      if (filterElectorialIze.SelectedIndex != 0)
-            {
-                filterDistrict.Items.Clear();
-                filterDistrict.ItemsSource = myavailabledistricts;
-            }
-
-            if (filterDistrict.SelectedIndex != 0)
-            {
-                filterElectorialIze.Items.Clear();
-                filterElectorialIze.ItemsSource = myavailableelectorials;
-            }*/
         }
 
         private void ScrnBtn_Click(object sender, RoutedEventArgs e)
         {
             try
             {
-                Save(scrnTxb.Text);
+                SaveImage(scrnTxb.Text);
                 MessageBox.Show("Image saved!");
             }
             catch (Exception err)
@@ -957,36 +596,9 @@ namespace visualizer
 
         private void Button_Click_3(object sender, RoutedEventArgs e)
         {
-            bgw = new BackgroundWorker();
-            bgw = new BackgroundWorker();
-            bgw.WorkerReportsProgress = true;
-            bgw.ProgressChanged += (s, ee) => progressbar.Value = ee.ProgressPercentage;
-            bgw.RunWorkerCompleted += (s, ee) => progressbar.Value = 0;
-
-            var folder = txFolder.Text;
-            var now = DateTime.Now;
-            if (folder.Length == 0) folder = $"{now.Year}_{now.Month}_{now.Day}_{now.Minute}_{now.Second}";
-            int start = int.Parse(txSeed.Text);
-            int end = start + int.Parse(txCount.Text);
-            var orig = txbox.Text;
-            bgw.DoWork += (s, ee) =>
-            {
-                for (int i = start; i < end; ++i)
-                {
-                    GenerateRandomElectoralDsitrictSystem(i);
-                    System.IO.Directory.CreateDirectory(folder);
-                    SaveAsStat(System.IO.Path.Combine(folder, i + ".stat"));
-                    var graph = AreaUtils.Load(orig); // TODO: klonozni kene nem fajlbol vissza olvasni
-                    if (graph != null)
-                    {
-                        MyGraph = graph;
-                        origElectoralSettings.Clear();
-                        foreach (AreaNode v in MyGraph.V) origElectoralSettings.Add(v.ElectorialDistrict);
-                    }
-                    bgw.ReportProgress((int)((double)(i - start) / (double)(end - start) * 100));
-                }
-            };
-            bgw.RunWorkerAsync();
+            graph.StartBatchedGeneration(txFolder.Text, int.Parse(txSeed.Text), int.Parse(txCount.Text), txbox.Text,
+                (s, ee) => progressbar.Value = ee.ProgressPercentage,
+                (s, ee) => progressbar.Value = 0);
         }
 
         private static void PrintPaths()
@@ -1003,10 +615,8 @@ namespace visualizer
 
         private void btnR_Click(object sender, RoutedEventArgs e)
         {
-            rEngine.Evaluate("library(redist)");
-            rEngine.Evaluate("source(\"../../../hugm/markov_analysis.R\")");
-            Graph g = RUtils.WriteNewPartitionGraph(myGraph, "../../../hugm/partitions.csv", "../../data/map_new.bin");
-            MyGraph = g;
+            graph.GenerateMarkovAnalysis();
+            undoActions.Clear();
             ShowGraph();
         }
     }

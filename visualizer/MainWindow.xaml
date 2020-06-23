@@ -15,8 +15,6 @@
                 <Button Click="Button_Click_Do" Width="33">Stats</Button>
                 <Button Click="Button_Click_Do2" Width="32">RNG</Button>
                 <Button Click="btnR_Click" Width="32">R</Button>
-                <Button Click="Button_Click_2" Content="Rebuild" Visibility="Collapsed"/>
-                <TextBox x:Name="NumberTextBox" PreviewTextInput="NumberValidationTextBox" Width="41" Text="500" Visibility="Collapsed"/>
                 <Label Content="Filter"/>
                 <Label Width="48" Content="District"/>
                 <ComboBox SelectionChanged="FilterDistrict_SelectionChanged" x:Name="filterDistrict" Width="59"/>
