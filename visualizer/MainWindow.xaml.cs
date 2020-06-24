@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
+using System.Globalization;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
@@ -15,7 +16,7 @@ namespace visualizer
 {
     public partial class MainWindow : Window
     {
-        private readonly GraphUtility graph = new GraphUtility();
+        public static readonly GraphUtility graphUtil = new GraphUtility();
 
         private List<object> associatedElems = new List<object>();
         private List<UndoAction> undoActions = new List<UndoAction>();
@@ -83,12 +84,14 @@ namespace visualizer
             SelectedBorder.BorderThickness = new Thickness(SelectionBorderThickness);
             SelectedBorder.BorderBrush = selectionBorderBaseColor;
 
+            CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("en-US");
+
             InitKeyHandlers();
         }
 
-        private void ShowGraph()
+        public void ShowGraph()
         {
-            var MyGraph = graph.MyGraph;
+            var MyGraph = graphUtil.MyGraph;
 
             if (MyGraph == null || chkDisableui.IsChecked.Value) return;
 
@@ -204,7 +207,7 @@ namespace visualizer
 
         private void RemoveElement(UIElement selectedElement)
         {
-            var MyGraph = graph.MyGraph;
+            var MyGraph = graphUtil.MyGraph;
 
             int index = canvas.Children.IndexOf(selectedElement);
             var ae = associatedElems[index];
@@ -225,7 +228,7 @@ namespace visualizer
 
         private void CreateConnection(Ellipse e1, Ellipse e2)
         {
-            var MyGraph = graph.MyGraph;
+            var MyGraph = graphUtil.MyGraph;
 
             if (e1 == e2) return;
 
@@ -386,12 +389,12 @@ namespace visualizer
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            AreaUtils.Save(txbox.Text, graph.MyGraph);
+            AreaUtils.Save(txbox.Text, graphUtil.MyGraph);
         }
 
         private void Button_Click_1(object sender, RoutedEventArgs e)
         {
-            graph.Load(AreaUtils.Load(txbox.Text));
+            graphUtil.Load(AreaUtils.Load(txbox.Text));
             undoActions.Clear();
             ShowGraph();
         }
@@ -434,13 +437,13 @@ namespace visualizer
 
         private void Button_Click_Do(object sender, RoutedEventArgs e)
         {
-            string stat = graph.GetStatistics();
+            string stat = graphUtil.GetStatistics();
             if (stat != null && stat != "") MessageBox.Show(stat);
         }
 
         private void Button_Click_Do2(object sender, RoutedEventArgs e)
         {
-            graph.GenerateRandomElectoralDistrictSystem(DateTime.Now.Ticks);
+            graphUtil.GenerateRandomElectoralDistrictSystem(DateTime.Now.Ticks);
             undoActions.Clear();
             ShowGraph();
         }
@@ -596,7 +599,7 @@ namespace visualizer
 
         private void Button_Click_3(object sender, RoutedEventArgs e)
         {
-            graph.StartBatchedGeneration(txFolder.Text, int.Parse(txSeed.Text), int.Parse(txCount.Text), txbox.Text,
+            graphUtil.StartBatchedGeneration(txFolder.Text, int.Parse(txSeed.Text), int.Parse(txCount.Text), txbox.Text,
                 (s, ee) => progressbar.Value = ee.ProgressPercentage,
                 (s, ee) => progressbar.Value = 0);
         }
@@ -615,9 +618,9 @@ namespace visualizer
 
         private void btnR_Click(object sender, RoutedEventArgs e)
         {
-            graph.GenerateMarkovAnalysis();
-            undoActions.Clear();
-            ShowGraph();
+            RSimSettings settings = new RSimSettings();
+            settings.ShowDialog();
+            ShowGraph()
         }
     }
 }
