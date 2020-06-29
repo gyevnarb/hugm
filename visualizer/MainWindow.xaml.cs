@@ -11,6 +11,7 @@ using System.Windows.Shapes;
 using System.Text.RegularExpressions;
 using System.Windows.Media.Imaging;
 using RDotNet.NativeLibrary;
+using hugm;
 
 namespace visualizer
 {
@@ -91,6 +92,8 @@ namespace visualizer
 
         public void ShowGraph()
         {
+            Console.WriteLine("Displaying graph");
+
             var MyGraph = graphUtil.MyGraph;
 
             if (MyGraph == null || chkDisableui.IsChecked.Value) return;
@@ -604,23 +607,18 @@ namespace visualizer
                 (s, ee) => progressbar.Value = 0);
         }
 
-        private static void PrintPaths()
-        {
-            string rHome = "";
-            string rPath = "";
-
-            NativeUtility util = new NativeUtility();
-            var logInfo = util.FindRPaths(ref rPath, ref rHome);
-
-            Console.WriteLine("Is this process 64 bits? {0}", System.Environment.Is64BitProcess);
-            Console.WriteLine(logInfo);
-        }
-
         private void btnR_Click(object sender, RoutedEventArgs e)
         {
-            RSimSettings settings = new RSimSettings();
-            settings.ShowDialog();
-            ShowGraph()
+            if (graphUtil.MyGraph != null)
+            {
+                RSimSettings settings = new RSimSettings();
+                settings.ShowDialog();
+                ShowGraph();
+            }
+            else
+            {
+                Console.WriteLine("The current graph is empty!");
+            }
         }
     }
 }

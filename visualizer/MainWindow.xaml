@@ -5,31 +5,31 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:visualizer"
         mc:Ignorable="d"
-        Title="HUGM" Height="450" Width="951">
-    <Grid Margin="0,0,0,-21">
+        Title="HUGM" Height="768" Width="1024">
+    <Grid Margin="0">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="49*"/>
             <ColumnDefinition Width="894*"/>
         </Grid.ColumnDefinitions>
-        <DockPanel Margin="10,10,10,0" VerticalAlignment="Top" LastChildFill="True" x:Name="container" Grid.ColumnSpan="2">
-            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
-                <TextBox x:Name="txbox" Grid.Row="0" Width="104" Text="data/map.bin"></TextBox>
-                <Button Click="Button_Click" RenderTransformOrigin="-1.141,0.286" Width="41">Save</Button>
-                <Button Click="Button_Click_1" RenderTransformOrigin="8.213,0.62" Width="40">Load</Button>
-                <Button Click="Button_Click_Do" Width="33">Stats</Button>
-                <Button Click="Button_Click_Do2" Width="32">RNG</Button>
-                <Button Click="btnR_Click" Width="32">R</Button>
-                <Label Content="Filter"/>
+        <DockPanel Margin="10,10,10,0" LastChildFill="True" x:Name="container" Grid.ColumnSpan="2">
+            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" VerticalAlignment="Top" Margin="0,0,0,5">
+                <TextBox x:Name="txbox" Grid.Row="0" Width="200" Text="data/map.bin"></TextBox>
+                <Button Click="Button_Click_1" RenderTransformOrigin="8.213,0.62" Width="40" Margin="2,0,0,0">Load</Button>
+                <Button Click="Button_Click" RenderTransformOrigin="-1.141,0.286" Width="40" Margin="2,0,0,0">Save</Button>
+                <Button Click="Button_Click_Do" Width="40" Margin="2,0,0,0">Stats</Button>
+                <Button Click="Button_Click_Do2" Width="40" Margin="2,0,0,0">RNG</Button>
+                <Button Click="btnR_Click" Width="40" Margin="2,0,0,0">R</Button>
+                <Label Content="Filter:" Margin="10,0,0,0" VerticalAlignment="Center"/>
                 <Label Width="48" Content="District"/>
-                <ComboBox SelectionChanged="FilterDistrict_SelectionChanged" x:Name="filterDistrict" Width="59"/>
+                <ComboBox SelectionChanged="FilterDistrict_SelectionChanged" x:Name="filterDistrict" Width="60"/>
                 <Label Content="Electorial"/>
-                <ComboBox SelectionChanged="FilterElectorialIze_SelectionChanged" x:Name="filterElectorialIze" Width="82"/>
-                <Button x:Name="scrnBtn" Content="Prscrn" Click="ScrnBtn_Click"/>
-                <TextBox x:Name="scrnTxb" Width="94" Text="img.png"/>
-                <CheckBox x:Name="chkDisableui" IsChecked="False" Width="51" Content="DisUI"/>
-                <Button x:Name="btnRefresh" Click="BtnRefresh_Click" Content="Refresh"/>
+                <ComboBox SelectionChanged="FilterElectorialIze_SelectionChanged" x:Name="filterElectorialIze" Width="60"/>
+                <Button x:Name="scrnBtn" Content="PrtScrn" Click="ScrnBtn_Click" Margin="10,0,0,0" Width="45"/>
+                <TextBox x:Name="scrnTxb" Width="94" Text="img.png" Margin="5,0,0,0"/>
+                <CheckBox x:Name="chkDisableui" IsChecked="False" Content="UI" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="10,0"/>
+                <Button x:Name="btnRefresh" Click="BtnRefresh_Click" Content="Refresh" HorizontalAlignment="Right" Margin="0,0,10,0"/>
             </StackPanel>
-            <TabControl DockPanel.Dock="Right">
+            <TabControl DockPanel.Dock="Right" HorizontalAlignment="Right" Width="162">
                 <TabItem Header="Area Info">
                     <ScrollViewer>
                         <StackPanel Orientation="Vertical">
@@ -77,7 +77,7 @@
                             </StackPanel>
                             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
                                 <Label>Atjelentkezes:</Label>
-                                <CheckBox x:Name="atjelentkezes" VerticalAlignment="Center" IsEnabled="False"></CheckBox>
+                                <CheckBox x:Name="atjelentkezes" VerticalAlignment="Center" IsEnabled="False"/>
                             </StackPanel>
                         </StackPanel>
                     </ScrollViewer>
@@ -104,8 +104,8 @@
                 </TabItem>
             </TabControl>
 
-            <Canvas Height="379" Background="Green" DockPanel.Dock="Bottom" ClipToBounds="True"  x:Name="canv">
-                <Canvas Height="{Binding Path=ActualHeight, ElementName=canv}" x:Name="canvas" Background="Green" Mouse.MouseDown="Canvas_MouseDown">
+            <Canvas Background="Green" DockPanel.Dock="Bottom" ClipToBounds="True"  x:Name="canv" Margin="0">
+                <Canvas x:Name="canvas" Background="Green" Mouse.MouseDown="Canvas_MouseDown">
                     <Canvas.RenderTransform>
                         <TransformGroup>
                             <ScaleTransform x:Name="canvasScale"></ScaleTransform>

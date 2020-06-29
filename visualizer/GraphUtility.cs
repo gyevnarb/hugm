@@ -7,7 +7,9 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Documents;
 
 namespace visualizer
@@ -26,11 +28,8 @@ namespace visualizer
 
     public class GraphUtility
     {
-        //Init R interoperability
-        REngine rEngine = REngine.GetInstance();
 
         BackgroundWorker bgw;
-        BackgroundWorker bgwRSim;
 
         private static float atlag = 76818; // 2011
 
@@ -53,47 +52,6 @@ namespace visualizer
                     Console.WriteLine("Null graph!");
                 }
             }
-        }
-
-        /// <summary>
-        /// Run MCMC redistributing simulator
-        /// </summary>
-        /// <remarks>
-        ///  popcons = 0.05 means that any proposed swap that brings a district more than 5% away from population parity will be rejected.
-        ///  Note that the total number of simulations run will be nsims* nloop.
-        ///  The number of swaps each iteration is equal to Pois(lambda) + 1.
-        /// </remarks>
-        /// <see cref="https://cran.r-project.org/web/packages/redist/redist.pdf"/>
-        /// <param name="nsims">The number of simulations run before a save point.</param>
-        /// <param name="ndists">The numbe of congressional districts. The default is 18 for Budapest.</param>
-        /// <param name="popcons">The strength of the hard population constraint.</param>
-        /// <param name="seed">Random seed for reproducabilty</param>
-        /// <param name="nloop">The total number of save points for the algorithm. The default is 1. </param>
-        /// <param name="beta">The strength of the target strength in the MH ratio</param>
-        /// <param name="eprob">The probability of keeping an edge connected. The default is 0.05.</param>
-        /// <param name="lambda">The parameter detmerining the number of swaps to attempt each iteration fo the algoirhtm. The default is 0.</param>
-        /// <param name="savePath">Save path of resulting partition.</param>
-        public void GenerateMarkovAnalysis(int nsims = 100, int ndists= 18, double popcons = 0.15, int seed = 1,
-            int nloop = 1, double beta = 2500.0, double eprob = 0.01, double lambda = 0.0, string savePath = "data/partitions.csv",
-            ProgressChangedEventHandler workHandler = null, RunWorkerCompletedEventHandler completeHandler = null)
-        {
-
-            string run_analysis = File.ReadAllText("data/markov_analysis.R");
-            run_analysis += $"run_simulation({nsims}, {ndists}, {popcons:F4}, {seed}, {nloop}, {beta:F4}, {eprob:F4}, {lambda:F4}, \"{savePath}\")";
-
-            bgwRSim = new BackgroundWorker();
-            bgw.WorkerReportsProgress = true;
-            bgw.ProgressChanged += workHandler;
-            bgw.RunWorkerCompleted += completeHandler;
-
-            bgw.DoWork += (s, ee) =>
-            {
-                List<string> a = rEngine.Evaluate(run_analysis).AsCharacter().ToList();
-                bgw.ReportProgress(a.Join());
-            };
-            bgw.RunWorkerAsync();
-
-            MyGraph = RUtils.WriteNewPartitionGraph(MyGraph, "data/partitions.csv", "data/map_new.bin");
         }
 
         public void GenerateRandomElectoralDistrictSystem(long seed)

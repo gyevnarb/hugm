@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using hugm;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
@@ -11,6 +12,11 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using hugm.map;
+using System.IO;
+using hugm.graph;
+using System.ComponentModel;
+using RDotNet;
 
 namespace visualizer
 {
@@ -19,10 +25,22 @@ namespace visualizer
     /// </summary>
     public partial class RSimSettings : Window
     {
+        private TextWriter cls_out;
+
+        RUtils r;
+        REngine rEngine;
+
         public RSimSettings()
         {
             InitializeComponent();
-            wndRSim.Width = 256;
+
+            TextBoxOutputter outputter = new TextBoxOutputter(txtOut);  // Setup writing to text box output
+            cls_out = Console.Out;  // Store for resetting later
+            Console.SetOut(outputter);  // Redirect all console writes to textbox
+            TextBoxDevice device = new TextBoxDevice(outputter);
+
+            rEngine = REngine.GetInstance(device: device);
+            r = new RUtils(rEngine);
         }
 
         private void btnStart_Click(object sender, RoutedEventArgs e)
@@ -35,10 +53,12 @@ namespace visualizer
             double beta = double.Parse(txtBeta.Text);
             double lambda = double.Parse(txtLambda.Text);
             double eprob = double.Parse(txtEprob.Text);
-            string savePath = txtPath.Text;
+            string savePath = txtPath.Text.Replace('\\', '/');
 
-            wndRSim.Width = 512;
-            MainWindow.graphUtil.GenerateMarkovAnalysis(nsims, ndists, popcons, seed, nloop, beta, eprob, lambda, savePath);            
+            string[] selectionList = new string[] { "last", "first", "random" };
+            string selection = selectionList[cmbSelection.SelectedIndex];
+
+            r.GenerateMarkovAnalysis(MainWindow.graphUtil.MyGraph, selection, nsims, ndists, popcons, seed, nloop, beta, eprob, lambda, savePath);
         }
 
         private void btnPath_Click(object sender, RoutedEventArgs e)
@@ -46,8 +66,46 @@ namespace visualizer
             using (var dialog = new System.Windows.Forms.FolderBrowserDialog())
             {
                 System.Windows.Forms.DialogResult result = dialog.ShowDialog();
-                txtPath.Text = result.ToString();
+                if (result.ToString() == "OK")
+                    txtPath.Text = dialog.SelectedPath;
             }
+        }
+
+        private void btnCancel_Click(object sender, RoutedEventArgs e)
+        {
+            r.CancelSimRun();
+        }
+
+        private void btnExit_Click(object sender, RoutedEventArgs e)
+        {
+            Console.WriteLine("Exiting R simulation.");
+            Console.SetOut(cls_out);
+            Close();
+        }
+    }
+
+    public class TextBoxOutputter : TextWriter
+    {
+        TextBox textBox = null;
+
+        public TextBoxOutputter(TextBox output)
+        {
+            textBox = output;
+        }
+
+        public override void Write(char value)
+        {
+            base.Write(value);
+            textBox.Dispatcher.BeginInvoke(new Action(() =>
+            {
+                textBox.AppendText(value.ToString());
+                textBox.ScrollToEnd();
+            }));
+        }
+
+        public override Encoding Encoding
+        {
+            get { return System.Text.Encoding.UTF8; }
         }
     }
 }
