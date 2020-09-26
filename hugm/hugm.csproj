@@ -59,6 +59,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="graph\ConnectedComponent.cs" />
+    <Compile Include="graph\RandomWalk.cs" />
     <Compile Include="map\AreaNode.cs" />
     <Compile Include="map\AreaUtils.cs" />
     <Compile Include="map\Coord.cs" />

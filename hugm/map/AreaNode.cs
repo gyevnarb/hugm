@@ -74,7 +74,7 @@ namespace hugm.map
         /// <returns>ID and Formatted Address of node</returns>
         public override string ToString()
         {
-            return string.Format($"ID = {ID}; FormattedAddress = {Areas.First().FormattedAddress}");
+            return string.Format($"ID = {ID}; Kerület = {Areas.First().ElectoralDistrict}; Kör = {Areas.First().AreaNo}");
         }
     }
 }

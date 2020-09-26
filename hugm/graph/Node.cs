@@ -10,6 +10,8 @@ namespace hugm.graph
     [Serializable]
     public class Node
     {
+        public const Node EmptyNode = null;
+
         public int ID { get; private set; }
 
         public List<Node> Adjacents { get; set; }
@@ -37,7 +39,12 @@ namespace hugm.graph
 
         public override int GetHashCode()
         {
-            return ID * (ID * (ID + 3) + 7) % 281719;
+            return ID * (ID * (ID + 3) + 7) % 986324051;
+        }
+
+        public override string ToString()
+        {
+            return $"{ID}: {string.Join(",", Adjacents)}";
         }
     }
 }

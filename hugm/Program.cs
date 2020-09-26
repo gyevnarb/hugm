@@ -16,6 +16,9 @@ namespace hugm
             CultureInfo.CurrentCulture = new CultureInfo("en-US");
 
             Graph g = AreaUtils.Load("map.bin");
+            RandomWalkSimulation simulation = new RandomWalkSimulation(g, SamplingMethod.UNIFORM, 5, 1000);
+            simulation.Simulate();
+            var dist = simulation.CalculateDistribution(18);
             //DisplayElectoralConnectedComponents(g);
             //MapToData(g);
             //WriteNewPartitionGraph(g);
