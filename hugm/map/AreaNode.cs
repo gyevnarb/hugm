@@ -35,7 +35,7 @@ namespace hugm.map
         /// <param name="areas">Areas the node is grouping</param>
         public AreaNode(int id, List<VotingArea> areas) : base(id) => Areas = areas;
 
-        public int Pop
+        public int Population
         {
             get
             {
@@ -57,6 +57,13 @@ namespace hugm.map
             }
         }
 
+        public override string ToJSON()
+        {
+            string baseString = base.ToJSON();
+            baseString = baseString.Substring(1, baseString.Length - 2);
+            return "{" + baseString + $", \"district\": {ElectorialDistrict}, \"area\": {Areas.First().AreaNo}" + "}";
+        }
+
         public virtual bool Equals(AreaNode n)
         {
             return ID == n.ID;
@@ -74,7 +81,7 @@ namespace hugm.map
         /// <returns>ID and Formatted Address of node</returns>
         public override string ToString()
         {
-            return string.Format($"ID = {ID}; Kerület = {Areas.First().ElectoralDistrict}; Kör = {Areas.First().AreaNo}");
+            return ID.ToString(); //string.Format($"ID = {ID}; Kerület = {Areas.First().ElectoralDistrict}; Kör = {Areas.First().AreaNo}");
         }
     }
 }

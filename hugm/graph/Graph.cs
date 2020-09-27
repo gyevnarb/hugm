@@ -1,6 +1,9 @@
 ﻿using hugm.map;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading;
 
 namespace hugm.graph
 {
@@ -260,6 +263,15 @@ namespace hugm.graph
             V.ForEach(x => x.Marked = false);
       
             return ret;
+        }
+
+        public string ToJSON()
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.Append("[");
+            sb.Append(string.Join(",\n", V.Select(x => x.ToJSON())));
+            sb.Append("]");
+            return sb.ToString();
         }
     }
 }

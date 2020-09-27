@@ -28,6 +28,11 @@ namespace hugm.graph
             Adjacents = new List<Node>();
         }
 
+        public virtual string ToJSON()
+        {
+            return "{" + $"\"id\": {ID},\"adjacents\": [{string.Join(",", Adjacents.Select(x => x.ID))}], \"marked\": {Marked.ToString().ToLower()}, \"x\": {X}, \"y\": {Y}" + "}";
+        }
+
         public override bool Equals(object obj)
         {
             if (!(obj is Node))
@@ -44,7 +49,7 @@ namespace hugm.graph
 
         public override string ToString()
         {
-            return $"{ID}: {string.Join(",", Adjacents)}";
+            return ID.ToString(); //$"{ID}: {string.Join(",", Adjacents)}";
         }
     }
 }

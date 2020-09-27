@@ -86,7 +86,7 @@ namespace visualizer
                 {
                     nodes = new List<AreaNode> { p },
                     availableNodes = new HashSet<AreaNode>(p.Adjacents.Select(x => x as AreaNode)),
-                    pop = p.Pop,
+                    pop = p.Population,
                     id = p.ElectorialDistrict
                 });
             }
@@ -107,7 +107,7 @@ namespace visualizer
                         ujlista[i].availableNodes.UnionWith(chosenNode.Adjacents.Select(x => x as AreaNode));
                         ujlista[i].availableNodes.Remove(chosenNode);
                         ujlista[i].nodes.Add(chosenNode);
-                        ujlista[i].pop += chosenNode.Pop;
+                        ujlista[i].pop += chosenNode.Population;
                         chosenNode.ElectorialDistrict = ujlista[i].id;
                         z++;
                     }
@@ -147,8 +147,8 @@ namespace visualizer
                                 ujlista[j].availableNodes.UnionWith(v.Adjacents.Select(x => x as AreaNode));
                             }
                             ujlista[i].nodes.Add(n);
-                            ujlista[i].pop += n.Pop;
-                            ujlista[j].pop -= n.Pop;
+                            ujlista[i].pop += n.Population;
+                            ujlista[j].pop -= n.Population;
                             n.ElectorialDistrict = ujlista[i].id;
                             done = true;
                         }
@@ -184,7 +184,7 @@ namespace visualizer
                             ujlista[j].nodes.Add(n);
                             ujlista[j].availableNodes.UnionWith(n.Adjacents.Select(x => x as AreaNode));
                             ujlista[j].availableNodes.Remove(n);
-                            ujlista[j].pop += n.Pop;
+                            ujlista[j].pop += n.Population;
 
                             ujlista[i].availableNodes.Clear();
                             ujlista[i].nodes.Remove(n);
@@ -192,7 +192,7 @@ namespace visualizer
                             {
                                 ujlista[i].availableNodes.UnionWith(v.Adjacents.Select(x => x as AreaNode));
                             }
-                            ujlista[i].pop -= n.Pop;
+                            ujlista[i].pop -= n.Population;
 
                             n.ElectorialDistrict = ujlista[j].id;
                             done = true;

@@ -59,7 +59,7 @@ namespace visualizer
                 try
                 {
                     string graphPath = savePath.Substring(0, savePath.LastIndexOf('/'));
-                    graphPath += "/new_map.bin";
+                    graphPath += "/map_rsim.bin";
                     WriteNewPartitionGraph(g, selection, savePath, graphPath);
                     Graph gr = AreaUtils.Load(graphPath);
                     MainWindow.graphUtil.Load(gr);

@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:visualizer"
         mc:Ignorable="d"
-        Title="HUGM" Height="768" Width="1024">
+        Title="HUGM" Height="768" Width="1024" Loaded="Window_Loaded">
     <Grid Margin="0">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="49*"/>
@@ -84,22 +84,41 @@
                 </TabItem>
                 <TabItem Header="Generation">
                     <StackPanel Orientation="Vertical">
-                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Margin="0,5">
                             <Label>Start seed:</Label>
-                            <TextBox x:Name="txSeed" PreviewTextInput="NumberValidationTextBox" Width="61"></TextBox>
+                            <TextBox x:Name="txSeed" PreviewTextInput="NumberValidationTextBox" Margin="0,0,5,0" Width="85"/>
                         </StackPanel>
-                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                            <Label>Count:</Label>
-                            <TextBox x:Name="txCount" PreviewTextInput="NumberValidationTextBox" Width="79"></TextBox>
+                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Margin="0,0,0,5">
+                            <Label Content="Count:"/>
+                            <TextBox x:Name="txCount" PreviewTextInput="NumberValidationTextBox" Width="100" Margin="5,0,0,0"/>
                         </StackPanel>
-                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Margin="0,0,0,5">
                             <Label>Folder:</Label>
-                            <TextBox x:Name="txFolder" Width="79"></TextBox>
+                            <TextBox x:Name="txFolder" Width="99" Margin="5,0,0,0"></TextBox>
                         </StackPanel>
-                        <StackPanel Orientation="Horizontal">
+                        <StackPanel Orientation="Horizontal" Margin="5,0,0,0">
                             <Button Click="Button_Click_3">GO!!</Button>
-                            <ProgressBar x:Name="progressbar" Width="97"></ProgressBar>
+                            <ProgressBar x:Name="progressbar" Margin="5,0" Width="113" />
                         </StackPanel>
+                    </StackPanel>
+                </TabItem>
+                <TabItem Header="Random Walk">
+                    <StackPanel Orientation="Vertical">
+                        <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+                            <Label Content="Runs:"></Label>
+                            <TextBox x:Name="txtNumRuns" Width="115" Text="1000" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+                            <Label Content="Length:"></Label>
+                            <TextBox x:Name="txtLenWalk" Width="104" Text="5" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+                            <Label Content="Sampling:"></Label>
+                            <ComboBox x:Name="cmbMethod" Width="90"></ComboBox>
+                        </StackPanel>
+                        <Button x:Name="btnRunRandomWalk" Content="Run" Margin="5,5,0,0" Click="btnRunRandomWalk_Click"></Button>
+                        <Button x:Name="btnPlotRandomWalk" Content="Plot Results" Margin="5,5,0,0"></Button>
+
                     </StackPanel>
                 </TabItem>
             </TabControl>

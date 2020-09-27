@@ -16,13 +16,14 @@ namespace hugm
             CultureInfo.CurrentCulture = new CultureInfo("en-US");
 
             Graph g = AreaUtils.Load("map.bin");
+            File.WriteAllText("graph.json", g.ToJSON());
             RandomWalkSimulation simulation = new RandomWalkSimulation(g, SamplingMethod.UNIFORM, 5, 1000);
             simulation.Simulate();
-            var dist = simulation.CalculateDistribution(18);
-            //DisplayElectoralConnectedComponents(g);
-            //MapToData(g);
-            //WriteNewPartitionGraph(g);
-            //DispalyElectoralPopulations(g);
+            RandomWalkAnalysis analysis = new RandomWalkAnalysis(simulation);
+            File.WriteAllText("dist.json", analysis.Distribution.DistributionToJSON());
+            File.WriteAllText("MAP.json", analysis.MAPDistrict.ToJSON());
+            File.WriteAllText("expected.json", analysis.ExpectedDistrict.ToJSON());
+            File.WriteAllText("std.json", analysis.StandardDeviationDistrict.ToJSON());
             Console.ReadLine();
         }
 

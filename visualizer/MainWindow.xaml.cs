@@ -12,6 +12,8 @@ using System.Text.RegularExpressions;
 using System.Windows.Media.Imaging;
 using RDotNet.NativeLibrary;
 using hugm;
+using System.Windows.Media.Effects;
+using System.Linq;
 
 namespace visualizer
 {
@@ -619,6 +621,28 @@ namespace visualizer
             {
                 Console.WriteLine("The current graph is empty!");
             }
+        }
+
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            cmbMethod.ItemsSource = Enum.GetValues(typeof(SamplingMethod)).Cast<SamplingMethod>();
+        }
+
+        private void btnRunRandomWalk_Click(object sender, RoutedEventArgs e)
+        {
+            if (graphUtil.MyGraph == null) { 
+                MessageBox.Show("No graph loaded!", "No Graph", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            int numRun = int.Parse(txtNumRuns.Text);
+            int walkLen = int.Parse(txtLenWalk.Text);
+            SamplingMethod method = (SamplingMethod)cmbMethod.SelectedItem;
+
+            RandomWalkSimulation simulation = new RandomWalkSimulation(graphUtil.MyGraph, method, walkLen, numRun);
+            simulation.Simulate();
+            RandomWalkAnalysis analysis = new RandomWalkAnalysis(simulation);
+            Console.WriteLine();
         }
     }
 }
