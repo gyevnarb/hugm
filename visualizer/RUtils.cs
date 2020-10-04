@@ -75,7 +75,7 @@ namespace visualizer
         public void CancelSimRun()
         {
             Console.WriteLine("Cancelling simulation");
-            if (bgw.IsBusy)
+            if (bgw != null && bgw.IsBusy)
             {
                 bgw.CancelAsync();
                 rEngine.Dispose();
