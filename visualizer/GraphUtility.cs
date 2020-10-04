@@ -5,6 +5,9 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace visualizer
 {
@@ -49,7 +52,7 @@ namespace visualizer
         private int _seed;
         private Graph myGraph;
         private double similarity = 1.0;
-        List<int> origElectoralSettings = new List<int>();
+        public List<int> origElectoralSettings = new List<int>();
 
         public Graph MyGraph
         {
@@ -69,22 +72,22 @@ namespace visualizer
 
         public Stats MyStats { get; set; }
 
-        public void GenerateRandomElectoralDistrictSystem(long seed)
+        public void GenerateRandomElectoralDistrictSystem(long seed, Graph graph)
         {
             // 1. 18 Random node kivalasztasa, minden keruletbol egyet
             // 2. Novesztes egyelore nepesseg korlat betartasa nelkul
             // 3. Tul kicsiket felnoveljuk hogy elerjek a hatart
             // 4. Túl nagyokat meg lecsokkentjuk
-            if (MyGraph == null) return;
+            if (graph == null) return;
             int MAX_STEP = 10000; // Ha 3. vagy 4. lepes egyenként tul lepne a max step-et akkor megallitjuk
 
             _seed = (int)(seed % int.MaxValue);
             var rng = new Random(_seed);
-            foreach (var v in MyGraph.V) v.Marked = false;
+            foreach (var v in graph.V) v.Marked = false;
             List<AreaNode> points = new List<AreaNode>();
             for (int i = 1; i <= 18; ++i)
             {
-                var ns = MyGraph.V.Where(x =>
+                var ns = graph.V.Where(x =>
                 {
                     return (x as AreaNode).Areas[0].ElectoralDistrict == i;
                 }).ToList();
@@ -108,7 +111,7 @@ namespace visualizer
 
             // TODO: +-20 at is figylemebe lehetne venni, akkora hiba meg torveny szeirnt belefer
             int z = 0;
-            while (z < MyGraph.V.Count - 18)
+            while (z < graph.V.Count - 18)
             {
                 for (int i = 0; i < 18; ++i)
                 {
@@ -144,7 +147,7 @@ namespace visualizer
                         AreaNode n = null;
                         foreach (var v in ujlista[i].availableNodes)
                         {
-                            if (v.ElectorialDistrict == id && !MyGraph.IsCuttingNode(v))
+                            if (v.ElectorialDistrict == id && !graph.IsCuttingNode(v))
                             {
                                 n = v;
                                 break;
@@ -188,7 +191,7 @@ namespace visualizer
                         AreaNode n = null;
                         foreach (var v in ujlista[j].availableNodes)
                         {
-                            if (v.ElectorialDistrict == id && !MyGraph.IsCuttingNode(v))
+                            if (v.ElectorialDistrict == id && !graph.IsCuttingNode(v))
                             {
                                 n = v;
                                 break;
@@ -237,74 +240,80 @@ namespace visualizer
             Stats s = new Stats();
             foreach (var file in Directory.GetFiles(folder))
             {
-                var result = new GenerationResult();
-                var text = File.ReadAllText(file);
-                var splitted = text.Split(';');
-
-                result.seed = int.Parse(splitted[1]);
-
-                var fidesz = double.Parse(splitted[4]);
-                var osszefogas = double.Parse(splitted[5]);
-                var jobbik = double.Parse(splitted[6]);
-                var lmp = double.Parse(splitted[7]);
-
-                // TODO: egyenloseg?
-                if (fidesz >= osszefogas && fidesz >= jobbik && fidesz >= lmp)
-                    result.winner = 0;
-                else if (osszefogas >= fidesz && osszefogas >= jobbik && osszefogas >= lmp)
-                    result.winner = 1;
-                else if (jobbik >= fidesz && jobbik >= osszefogas && jobbik >= lmp)
-                    result.winner = 2;
-                else if (lmp >= fidesz && lmp >= jobbik && lmp >= osszefogas)
-                    result.winner = 3;
-
-                int offset = 9, stride = 5;
-                for (int i = 0; i < 18; ++i)
+                var fileStream =new System.IO.StreamReader(file);
+                string text;
+                while ((text = fileStream.ReadLine()) != null)
                 {
-                    var eres = new ElectDistrictResult();
-                    eres.results = new double[4] {  double.Parse(splitted[offset + stride * i + 1]),
-                                                    double.Parse(splitted[offset + stride * i + 2]),
-                                                    double.Parse(splitted[offset + stride * i + 3]),
-                                                    double.Parse(splitted[offset + stride * i + 4])};
-                    eres.winner = 0; // maximum index a winnerbe
-                    for (int j = 0; j < eres.results.Length; ++j)
+                    if (text == "") continue;
+
+                    var result = new GenerationResult();
+                    var splitted = text.Split(';');
+
+                    result.seed = int.Parse(splitted[1]);
+
+                    var fidesz = double.Parse(splitted[4]);
+                    var osszefogas = double.Parse(splitted[5]);
+                    var jobbik = double.Parse(splitted[6]);
+                    var lmp = double.Parse(splitted[7]);
+
+                    // TODO: egyenloseg?
+                    if (fidesz >= osszefogas && fidesz >= jobbik && fidesz >= lmp)
+                        result.winner = 0;
+                    else if (osszefogas >= fidesz && osszefogas >= jobbik && osszefogas >= lmp)
+                        result.winner = 1;
+                    else if (jobbik >= fidesz && jobbik >= osszefogas && jobbik >= lmp)
+                        result.winner = 2;
+                    else if (lmp >= fidesz && lmp >= jobbik && lmp >= osszefogas)
+                        result.winner = 3;
+
+                    int offset = 9, stride = 5;
+                    for (int i = 0; i < 18; ++i)
                     {
-                        if (eres.results[j] > eres.results[eres.winner])
+                        var eres = new ElectDistrictResult();
+                        eres.results = new double[4] {  double.Parse(splitted[offset + stride * i + 1]),
+                                                        double.Parse(splitted[offset + stride * i + 2]),
+                                                        double.Parse(splitted[offset + stride * i + 3]),
+                                                        double.Parse(splitted[offset + stride * i + 4])};
+                        eres.winner = 0; // maximum index a winnerbe
+                        for (int j = 0; j < eres.results.Length; ++j)
                         {
-                            eres.winner = j;
+                            if (eres.results[j] > eres.results[eres.winner])
+                            {
+                                eres.winner = j;
+                            }
                         }
+                        result.result.Add(eres);
                     }
-                    result.result.Add(eres);
-                }
 
-                if (file.Contains("base.stat"))
-                {
-                    s.baseResult = result;
-                }
-                else
-                {
-                    s.generationResults.Add(result);
+                    if (file.Contains("base.stat"))
+                    {
+                        s.baseResult = result;
+                    }
+                    else
+                    {
+                        s.generationResults.Add(result);
+                    }
                 }
             }
             MyStats = s;
         }
 
-        public void SaveAsStat(string filename)
+        public string ToStat(Graph graph, List<int> origElectSettings)
         {
-            if (MyGraph == null) return;
+            if (graph == null) return "";
 
             List<VoteResult> results = new List<VoteResult>(18);
             for (int i = 0; i < 18; ++i) results.Add(new VoteResult());
             VoteResult glob = new VoteResult();
 
             int diffs = 0;
-            for (int i = 0; i < origElectoralSettings.Count; ++i)
+            for (int i = 0; i < origElectSettings.Count; ++i)
             {
-                if ((MyGraph.V[i] as AreaNode).ElectorialDistrict != origElectoralSettings[i]) diffs++;
+                if ((graph.V[i] as AreaNode).ElectorialDistrict != origElectSettings[i]) diffs++;
             }
-            similarity = 1.0 - (double)diffs / (double)origElectoralSettings.Count;
+            similarity = 1.0 - (double)diffs / (double)origElectSettings.Count;
 
-            foreach (var n in MyGraph.V)
+            foreach (var n in graph.V)
             {
                 foreach (var a in (n as AreaNode).Areas)
                 {
@@ -330,7 +339,12 @@ namespace visualizer
 
             string text = $"0.2;{_seed};{valid15};{valid20};{fideszkdnp};{osszefogas};{jobbik};{lmp};{similarity}";
             foreach (var se in results) text += $";{se.Gyoztes};{(float)se.FideszKDNP / (float)se.Megjelent};{(float)se.Osszefogas / (float)se.Megjelent};{(float)se.Jobbik / (float)se.Megjelent};{(float)se.LMP / (float)se.Megjelent}";
-            System.IO.File.WriteAllText(filename, text);
+            return text;
+        }
+
+        public void SaveAsStat(string filename, Graph graph, List<int> origElectSettings)
+        {
+            System.IO.File.WriteAllText(filename, ToStat(graph, origElectSettings));
         }
 
         public string GetStatistics()
@@ -395,24 +409,39 @@ namespace visualizer
 
             var now = DateTime.Now;
             if (folder.Length == 0) folder = $"{now.Year}_{now.Month}_{now.Day}_{now.Minute}_{now.Second}";
+            System.IO.Directory.CreateDirectory(folder);
+
+            var origGraph = AreaUtils.Load(originalGraph);
+            List<int> origElectSettings = new List<int>();
+            foreach (AreaNode v in origGraph.V) 
+                origElectSettings.Add(v.ElectorialDistrict);
+
             int end = startSeed + count;
+            int cc = 0;
+
+            ThreadLocal<StringBuilder> perThreadStat = new ThreadLocal<StringBuilder>(true);
+
             bgw.DoWork += (s, ee) =>
             {
-                SaveAsStat(System.IO.Path.Combine(folder, "base.stat"));
-                for (int i = startSeed; i < end; ++i)
+                SaveAsStat(System.IO.Path.Combine(folder, "base.stat"), origGraph, origElectSettings);
+
+                Parallel.For(startSeed, end, (i) =>
                 {
-                    GenerateRandomElectoralDistrictSystem(i);
-                    System.IO.Directory.CreateDirectory(folder);
-                    SaveAsStat(System.IO.Path.Combine(folder, i + ".stat"));
-                    var graph = AreaUtils.Load(originalGraph); // TODO: klonozni kene nem fajlbol vissza olvasni
-                    if (graph != null)
+                    var graph = ObjectCopier.Clone(origGraph);
+                    GenerateRandomElectoralDistrictSystem(i, graph);
+                    string stat = ToStat(graph, origElectSettings);
+
+                    if (!perThreadStat.IsValueCreated) perThreadStat.Value = new StringBuilder();
+                    perThreadStat.Value.AppendLine(stat);
+
+                    Interlocked.Increment(ref cc);
+                    if (cc % 100 == 0)
                     {
-                        MyGraph = graph;
-                        origElectoralSettings.Clear();
-                        foreach (AreaNode v in MyGraph.V) origElectoralSettings.Add(v.ElectorialDistrict);
+                        bgw.ReportProgress((int)((double)(cc) / (double)(count) * 100));
                     }
-                    bgw.ReportProgress((int)((double)(i - startSeed) / (double)(end - startSeed) * 100));
-                }
+                });
+
+                File.WriteAllLines(System.IO.Path.Combine(folder, "generated.stat"), perThreadStat.Values.Select(x => x.ToString()));
             };
             bgw.RunWorkerAsync();
         }

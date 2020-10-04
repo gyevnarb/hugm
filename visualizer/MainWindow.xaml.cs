@@ -448,7 +448,7 @@ namespace visualizer
 
         private void Button_Click_Do2(object sender, RoutedEventArgs e)
         {
-            graphUtil.GenerateRandomElectoralDistrictSystem(DateTime.Now.Ticks);
+            graphUtil.GenerateRandomElectoralDistrictSystem(DateTime.Now.Ticks, graphUtil.MyGraph);
             undoActions.Clear();
             ShowGraph();
         }
@@ -622,7 +622,7 @@ namespace visualizer
 
         private void Button_Click_SaveStat(object sender, RoutedEventArgs e)
         {
-            graphUtil.SaveAsStat(txStatFolder.Text);
+            graphUtil.SaveAsStat(txStatFolder.Text, graphUtil.MyGraph, graphUtil.origElectoralSettings);
         }
 
         private void Button_Click_PlotGraph(object sender, RoutedEventArgs e)

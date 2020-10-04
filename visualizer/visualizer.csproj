@@ -97,6 +97,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="ObjectCopier.cs" />
     <Compile Include="GraphUtility.cs" />
     <Compile Include="Plotter.xaml.cs">
       <DependentUpon>Plotter.xaml</DependentUpon>
