@@ -609,6 +609,31 @@ namespace visualizer
                 (s, ee) => progressbar.Value = 0);
         }
 
+        private void Button_Click_LoadStats(object sender, RoutedEventArgs e)
+        {
+            graphUtil.LoadStats(txStatFolder.Text);
+            if (graphUtil.MyStats == null) return;
+
+            plotCombo.IsEnabled = true;
+            plotBtn.IsEnabled = true;
+            plotCombo.ItemsSource = Plotter.Plots;
+            plotCombo.SelectedIndex = 0;
+        }
+
+        private void Button_Click_SaveStat(object sender, RoutedEventArgs e)
+        {
+            graphUtil.SaveAsStat(txStatFolder.Text);
+        }
+
+        private void Button_Click_PlotGraph(object sender, RoutedEventArgs e)
+        {
+            if (graphUtil.MyStats == null) return;
+
+            var plt = new Plotter();
+            plt.Plot(plotCombo.Text, graphUtil.MyStats);
+            plt.ShowDialog();
+        }
+
         private void btnR_Click(object sender, RoutedEventArgs e)
         {
             if (graphUtil.MyGraph != null)

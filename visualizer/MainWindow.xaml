@@ -102,6 +102,23 @@
                         </StackPanel>
                     </StackPanel>
                 </TabItem>
+				<TabItem Header="Stats">
+					<StackPanel Orientation="Vertical">
+						<StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Margin="0,5">
+							<Label>Folder/File:</Label>
+							<TextBox x:Name="txStatFolder" Margin="0,0,5,0" Width="85"/>
+						</StackPanel>
+						<StackPanel Orientation="Horizontal" Margin="5,0,0,0">
+							<Button Click="Button_Click_LoadStats">Load</Button>
+							<Button Click="Button_Click_SaveStat">Save</Button>
+							<ProgressBar x:Name="progressbarLoadStats" Margin="5,0" Width="113" />
+						</StackPanel>
+						<StackPanel Orientation="Horizontal" Margin="5,0,0,0">
+							<ComboBox IsEnabled="false" x:Name="plotCombo"></ComboBox>
+							<Button IsEnabled="false" x:Name="plotBtn" Click="Button_Click_PlotGraph">Plot</Button>
+						</StackPanel>
+					</StackPanel>
+				</TabItem>
                 <TabItem Header="Random Walk">
                     <StackPanel Orientation="Vertical">
                         <StackPanel Orientation="Horizontal" Margin="0,5,0,0">

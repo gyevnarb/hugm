@@ -1,16 +1,10 @@
-﻿using hugm;
-using hugm.graph;
+﻿using hugm.graph;
 using hugm.map;
-using RDotNet;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
-using System.Windows.Documents;
 
 namespace visualizer
 {
@@ -24,6 +18,25 @@ namespace visualizer
         public HashSet<AreaNode> availableNodes;
         public int pop = 0;
         public int id;
+    }
+
+    public struct ElectDistrictResult
+    {
+        public double[] results;
+        public int winner;
+    }
+
+    public class GenerationResult
+    {
+        public List<ElectDistrictResult> result = new List<ElectDistrictResult>();
+        public int winner;
+        public int seed;
+    }
+
+    public class Stats
+    {
+        public GenerationResult baseResult = new GenerationResult();
+        public List<GenerationResult> generationResults = new List<GenerationResult>();
     }
 
     public class GraphUtility
@@ -53,6 +66,8 @@ namespace visualizer
                 }
             }
         }
+
+        public Stats MyStats { get; set; }
 
         public void GenerateRandomElectoralDistrictSystem(long seed)
         {
@@ -215,7 +230,66 @@ namespace visualizer
             }
         }
 
-        private void SaveAsStat(string filename)
+        public void LoadStats(string folder)
+        {
+            if (!Directory.Exists(folder)) return;
+
+            Stats s = new Stats();
+            foreach (var file in Directory.GetFiles(folder))
+            {
+                var result = new GenerationResult();
+                var text = File.ReadAllText(file);
+                var splitted = text.Split(';');
+
+                result.seed = int.Parse(splitted[1]);
+
+                var fidesz = double.Parse(splitted[4]);
+                var osszefogas = double.Parse(splitted[5]);
+                var jobbik = double.Parse(splitted[6]);
+                var lmp = double.Parse(splitted[7]);
+
+                // TODO: egyenloseg?
+                if (fidesz >= osszefogas && fidesz >= jobbik && fidesz >= lmp)
+                    result.winner = 0;
+                else if (osszefogas >= fidesz && osszefogas >= jobbik && osszefogas >= lmp)
+                    result.winner = 1;
+                else if (jobbik >= fidesz && jobbik >= osszefogas && jobbik >= lmp)
+                    result.winner = 2;
+                else if (lmp >= fidesz && lmp >= jobbik && lmp >= osszefogas)
+                    result.winner = 3;
+
+                int offset = 9, stride = 5;
+                for (int i = 0; i < 18; ++i)
+                {
+                    var eres = new ElectDistrictResult();
+                    eres.results = new double[4] {  double.Parse(splitted[offset + stride * i + 1]),
+                                                    double.Parse(splitted[offset + stride * i + 2]),
+                                                    double.Parse(splitted[offset + stride * i + 3]),
+                                                    double.Parse(splitted[offset + stride * i + 4])};
+                    eres.winner = 0; // maximum index a winnerbe
+                    for (int j = 0; j < eres.results.Length; ++j)
+                    {
+                        if (eres.results[j] > eres.results[eres.winner])
+                        {
+                            eres.winner = j;
+                        }
+                    }
+                    result.result.Add(eres);
+                }
+
+                if (file.Contains("base.stat"))
+                {
+                    s.baseResult = result;
+                }
+                else
+                {
+                    s.generationResults.Add(result);
+                }
+            }
+            MyStats = s;
+        }
+
+        public void SaveAsStat(string filename)
         {
             if (MyGraph == null) return;
 
@@ -254,8 +328,8 @@ namespace visualizer
             float jobbik = results.Count(x => x.Gyoztes == "Jobbik");
             float lmp = results.Count(x => x.Gyoztes == "LMP");
 
-            string text = $"0.1;{_seed};{valid15};{valid20};{fideszkdnp};{osszefogas};{jobbik};{lmp};{similarity}";
-            foreach (var se in results) text += $";{se.Gyoztes}";
+            string text = $"0.2;{_seed};{valid15};{valid20};{fideszkdnp};{osszefogas};{jobbik};{lmp};{similarity}";
+            foreach (var se in results) text += $";{se.Gyoztes};{(float)se.FideszKDNP / (float)se.Megjelent};{(float)se.Osszefogas / (float)se.Megjelent};{(float)se.Jobbik / (float)se.Megjelent};{(float)se.LMP / (float)se.Megjelent}";
             System.IO.File.WriteAllText(filename, text);
         }
 
@@ -324,6 +398,7 @@ namespace visualizer
             int end = startSeed + count;
             bgw.DoWork += (s, ee) =>
             {
+                SaveAsStat(System.IO.Path.Combine(folder, "base.stat"));
                 for (int i = startSeed; i < end; ++i)
                 {
                     GenerateRandomElectoralDistrictSystem(i);
