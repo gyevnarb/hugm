@@ -8,7 +8,7 @@ using hugm.map;
 namespace hugm.graph
 {
     [Serializable]
-    public class Node
+    public class Node : IComparable
     {
         public const Node EmptyNode = null;
 
@@ -50,6 +50,11 @@ namespace hugm.graph
         public override string ToString()
         {
             return ID.ToString(); //$"{ID}: {string.Join(",", Adjacents)}";
+        }
+
+        public int CompareTo(object obj)
+        {
+            return ID - (obj as Node).ID;
         }
     }
 }

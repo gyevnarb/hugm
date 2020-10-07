@@ -20,7 +20,9 @@ namespace visualizer
         private static Dictionary<string, Action<Plotter, Stats>> plots = new Dictionary<string, Action<Plotter, Stats>>()
         {
             {"WinnerRates", (plot, stat) => plot.PlotWinnerRates(stat) },
-            {"AvgWinnerRate", (plot, stat) => plot.PlotAverageWinnerRate(stat) }
+            {"AvgWinnerRate", (plot, stat) => plot.PlotAverageWinnerRate(stat) },
+            {"WinnerWins", (plot, stat) => plot.PlotWinnerWins(stat) },
+            {"FideszWins", (plot, stat) => plot.PlotFideszWins(stat) }
         };
 
         public static List<string> Plots
@@ -73,6 +75,40 @@ namespace visualizer
             }
 
             plot1.Render();
+        }
+
+        public void PlotFideszWins(Stats stats)
+        {
+            var yaxis = new List<double>();
+            yaxis.AddRange(new List<double>() { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 });
+
+            foreach (var x in stats.generationResults)
+            {
+                var c = x.result.Count(y => y.results.ToList().FindIndex(z => z == y.results.Max()) == 0);
+                yaxis[c] += 1.0;
+            }
+
+            var xaxis = Enumerable.Range(0, 19).Select(x => (double)x).ToArray();
+
+            plot1.plt.PlotBar(xaxis, yaxis.ToArray());
+            plot1.plt.PlotPoint(stats.baseResult.result.Count(y => y.results.ToList().FindIndex(z => z == y.results.Max()) == stats.baseResult.winner), 0, markerSize: 15);
+        }
+
+        public void PlotWinnerWins(Stats stats)
+        {
+            var yaxis = new List<double>();
+            yaxis.AddRange(new List<double>(){0, 0, 0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 , 0, 0, 0});
+
+            foreach (var x in stats.generationResults)
+            {
+                var c = x.result.Count(y => y.results.ToList().FindIndex(z => z == y.results.Max()) == x.winner);
+                yaxis[c] += 1.0;
+            }
+            
+            var xaxis = Enumerable.Range(0, 19).Select(x => (double)x).ToArray();
+
+            plot1.plt.PlotBar(xaxis, yaxis.ToArray());
+            plot1.plt.PlotPoint(stats.baseResult.result.Count(y => y.results.ToList().FindIndex(z => z == y.results.Max()) == stats.baseResult.winner), 0, markerSize: 15);
         }
     }
 }
