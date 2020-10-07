@@ -70,6 +70,11 @@ namespace visualizer
             }
         }
 
+        public bool ValidGraph()
+        {
+            return MyGraph != null;
+        }
+
         public Stats MyStats { get; set; }
 
         public void GenerateRandomElectoralDistrictSystem(long seed, Graph graph)
@@ -347,21 +352,19 @@ namespace visualizer
             System.IO.File.WriteAllText(filename, ToStat(graph, origElectSettings));
         }
 
-        public string GetStatistics()
+        public string GetStatistics(Graph graph)
         {
-            if (MyGraph == null) return "";
-
             Dictionary<int, VoteResult> results = new Dictionary<int, VoteResult>();
             VoteResult glob = new VoteResult();
 
             int diffs = 0;
             for (int i = 0; i < origElectoralSettings.Count; ++i)
             {
-                if ((MyGraph.V[i] as AreaNode).ElectorialDistrict != origElectoralSettings[i]) diffs++;
+                if ((graph.V[i] as AreaNode).ElectorialDistrict != origElectoralSettings[i]) diffs++;
             }
             similarity = 1.0 - (double)diffs / (double)origElectoralSettings.Count;
 
-            foreach (var n in MyGraph.V)
+            foreach (var n in graph.V)
             {
                 foreach (var a in (n as AreaNode).Areas)
                 {
@@ -400,7 +403,7 @@ namespace visualizer
             return sss;
         }
 
-        public void StartBatchedGeneration(string folder, int startSeed, int count, string originalGraph, ProgressChangedEventHandler workHandler, RunWorkerCompletedEventHandler completeHandler)
+        public void StartBatchedGeneration(string folder, int startSeed, int count, Graph originalGraph, ProgressChangedEventHandler workHandler, RunWorkerCompletedEventHandler completeHandler)
         {
             bgw = new BackgroundWorker();
             bgw.WorkerReportsProgress = true;
@@ -411,9 +414,8 @@ namespace visualizer
             if (folder.Length == 0) folder = $"{now.Year}_{now.Month}_{now.Day}_{now.Minute}_{now.Second}";
             System.IO.Directory.CreateDirectory(folder);
 
-            var origGraph = AreaUtils.Load(originalGraph);
             List<int> origElectSettings = new List<int>();
-            foreach (AreaNode v in origGraph.V) 
+            foreach (AreaNode v in originalGraph.V) 
                 origElectSettings.Add(v.ElectorialDistrict);
 
             int end = startSeed + count;
@@ -423,11 +425,11 @@ namespace visualizer
 
             bgw.DoWork += (s, ee) =>
             {
-                SaveAsStat(System.IO.Path.Combine(folder, "base.stat"), origGraph, origElectSettings);
+                SaveAsStat(System.IO.Path.Combine(folder, "base.stat"), originalGraph, origElectSettings);
 
                 Parallel.For(startSeed, end, (i) =>
                 {
-                    var graph = ObjectCopier.Clone(origGraph);
+                    var graph = ObjectCopier.Clone(originalGraph);
                     GenerateRandomElectoralDistrictSystem(i, graph);
                     string stat = ToStat(graph, origElectSettings);
 

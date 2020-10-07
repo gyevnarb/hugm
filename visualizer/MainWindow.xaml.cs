@@ -10,10 +10,9 @@ using System.Windows.Media;
 using System.Windows.Shapes;
 using System.Text.RegularExpressions;
 using System.Windows.Media.Imaging;
-using RDotNet.NativeLibrary;
-using hugm;
-using System.Windows.Media.Effects;
 using System.Linq;
+using Microsoft.Win32;
+using System.IO;
 
 namespace visualizer
 {
@@ -35,24 +34,24 @@ namespace visualizer
 
         private Brush nodeBaseColor = Brushes.DarkOrange;
         private Brush nodeHighlightedColor = Brushes.Blue;
-        private Brush lineBaseColor = Brushes.Black;
-        private Brush selectionBorderBaseColor = Brushes.White;
+        private Brush lineBaseColor = Brushes.DarkSlateGray;
+        private Brush selectionBorderBaseColor = Brushes.Black;
 
         private Brush[] nodeBrushes =
         {
-            Brushes.Wheat,
+            Brushes.Crimson,
             Brushes.Violet,
             Brushes.DarkOrange,
             Brushes.Black,
             Brushes.Brown,
-            Brushes.AliceBlue,
-            Brushes.AntiqueWhite,
+            Brushes.Magenta,
+            Brushes.Indigo,
             Brushes.DeepPink,
             Brushes.Firebrick,
-            Brushes.Gainsboro,
+            Brushes.BurlyWood,
             Brushes.Fuchsia,
             Brushes.Gold,
-            Brushes.Silver,
+            Brushes.CadetBlue,
             Brushes.Sienna,
             Brushes.SeaGreen,
             Brushes.Tomato,
@@ -92,73 +91,8 @@ namespace visualizer
             InitKeyHandlers();
         }
 
-        public void ShowGraph()
-        {
-            Console.WriteLine("Displaying graph");
-
-            var MyGraph = graphUtil.MyGraph;
-
-            if (MyGraph == null || chkDisableui.IsChecked.Value) return;
-
-            canvas.Children.Clear();
-            associatedElems.Clear();
-            for (int i = 0; i < MyGraph.V.Count; ++i)
-            {
-                var v = MyGraph.V[i];
-                DrawVotingArea(v);
-
-                for (int j = i + 1; j < MyGraph.V.Count; ++j)
-                { 
-                    var v2 = MyGraph.V[j];
-                    if (MyGraph.Adjacent(v, v2))
-                        DrawNeighbourhood(new Edge(v, v2));
-                }
-            }
-            SelectedBorder.Visibility = Visibility.Collapsed;
-            canvas.Children.Add(SelectedBorder);
-            associatedElems.Add(new object()); // placeholder
-
-            filterDistrict.Items.Clear();
-            filterElectorialIze.Items.Clear();
-            filterDistrict.Items.Add("All");
-            filterElectorialIze.Items.Add("All");
-            availableDistricts.Add("All");
-            availableElectorials.Add("All");
-            foreach (var e in associatedElems)
-            {
-                if (!(e is AreaNode)) continue;
-                foreach (var ee in (e as AreaNode).Areas)
-                {
-                    if (!filterDistrict.Items.Contains(ee.CityDistrict.ToString()))
-                    {
-                        filterDistrict.Items.Add(ee.CityDistrict.ToString());
-                        availableDistricts.Add(ee.CityDistrict.ToString());
-                    }
-                        
-                    if (!filterElectorialIze.Items.Contains(ee.ElectoralDistrict.ToString()))
-                    {
-                        filterElectorialIze.Items.Add(ee.ElectoralDistrict.ToString());
-                        availableElectorials.Add(ee.ElectoralDistrict.ToString());
-                    }
-                        
-                }
-            }
-            filterDistrict.SelectedIndex = 0;
-            filterElectorialIze.SelectedIndex = 0;
-        }        
+        #region Input
         
-        private void DrawVotingArea(Node v)
-        {
-            canvas.Children.Add(CreateVotingArea(v.X, v.Y, (v as AreaNode).Areas[0].ElectoralDistrict));
-            associatedElems.Add(v);
-        }
-
-        private void DrawNeighbourhood(Edge e)
-        {
-            canvas.Children.Add(CreateNeighbourhood(e.N1.X, e.N1.Y, e.N2.X, e.N2.Y));
-            associatedElems.Add(e);
-        }
-
         private void InitKeyHandlers()
         {
             KeyUp += (s, e) =>
@@ -210,6 +144,130 @@ namespace visualizer
             };
         }
 
+        private void Canvas_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            var canvas = sender as Canvas;
+            if (canvas == null) return;
+            HitTestResult hitTestResult = VisualTreeHelper.HitTest(canvas, e.GetPosition(canvas));
+
+            if (e.LeftButton == MouseButtonState.Pressed)
+            {
+                SelectedElement = hitTestResult.VisualHit as UIElement;
+                if (SelectedElement == SelectedBorder) return;
+                UpdateSelection();
+            }
+            else if (e.RightButton == MouseButtonState.Pressed)
+            {
+                if (hitTestResult.VisualHit is Ellipse)
+                {
+                    if (ConnectingElement1 == null)
+                    {
+                        ConnectingElement1 = hitTestResult.VisualHit as Ellipse;
+                        ConnectingElement1.Fill = nodeHighlightedColor;
+                    }
+                    else if (ConnectingElement1 == hitTestResult.VisualHit as Ellipse)
+                    {
+                        ConnectingElement1.Fill = setDefaultColor(ConnectingElement1);
+                        ConnectingElement1 = null;
+                    }
+                    else if (ConnectingElement2 == null)
+                    {
+                        ConnectingElement1.Fill = setDefaultColor(ConnectingElement1); ;
+                        ConnectingElement2 = hitTestResult.VisualHit as Ellipse;
+                        CreateConnection(ConnectingElement1, ConnectingElement2);
+                        ConnectingElement1 = ConnectingElement2 = null;
+                    }
+                }
+            }
+            else if (e.MiddleButton == MouseButtonState.Pressed)
+            {
+                if (ConnectingElement1 != null && hitTestResult.VisualHit is Ellipse)
+                {
+                    ConnectingElement2 = hitTestResult.VisualHit as Ellipse;
+                    var n1 = associatedElems[canvas.Children.IndexOf(ConnectingElement1)] as Node;
+                    var n2 = associatedElems[canvas.Children.IndexOf(ConnectingElement2)] as Node;
+                    var index = associatedElems.IndexOf(new Edge(n1, n2));
+                    if (index >= 0)
+                    {
+                        RemoveElement(canvas.Children[index]);
+                        ConnectingElement1.Fill = setDefaultColor(ConnectingElement1); ;
+                        ConnectingElement1 = null;
+                    }
+                    ConnectingElement2 = null;
+                }
+            }
+        }
+
+        #endregion
+
+        #region Drawing
+        
+        public void ShowGraph(bool force = false)
+        {
+            if (!graphUtil.ValidGraph()) return;
+            if (!force && !autoUiRefresh.IsChecked) return;
+
+            var MyGraph = graphUtil.MyGraph;
+
+            canvas.Children.Clear();
+            associatedElems.Clear();
+            for (int i = 0; i < MyGraph.V.Count; ++i)
+            {
+                var v = MyGraph.V[i];
+                DrawVotingArea(v);
+
+                for (int j = i + 1; j < MyGraph.V.Count; ++j)
+                {
+                    var v2 = MyGraph.V[j];
+                    if (MyGraph.Adjacent(v, v2))
+                        DrawNeighbourhood(new Edge(v, v2));
+                }
+            }
+            SelectedBorder.Visibility = Visibility.Collapsed;
+            canvas.Children.Add(SelectedBorder);
+            associatedElems.Add(new object()); // placeholder
+
+            filterDistrict.Items.Clear();
+            filterElectorialIze.Items.Clear();
+            filterDistrict.Items.Add("All");
+            filterElectorialIze.Items.Add("All");
+            availableDistricts.Add("All");
+            availableElectorials.Add("All");
+            foreach (var e in associatedElems)
+            {
+                if (!(e is AreaNode)) continue;
+                foreach (var ee in (e as AreaNode).Areas)
+                {
+                    if (!filterDistrict.Items.Contains(ee.CityDistrict.ToString()))
+                    {
+                        filterDistrict.Items.Add(ee.CityDistrict.ToString());
+                        availableDistricts.Add(ee.CityDistrict.ToString());
+                    }
+
+                    if (!filterElectorialIze.Items.Contains(ee.ElectoralDistrict.ToString()))
+                    {
+                        filterElectorialIze.Items.Add(ee.ElectoralDistrict.ToString());
+                        availableElectorials.Add(ee.ElectoralDistrict.ToString());
+                    }
+
+                }
+            }
+            filterDistrict.SelectedIndex = 0;
+            filterElectorialIze.SelectedIndex = 0;
+        }
+
+        private void DrawVotingArea(Node v)
+        {
+            canvas.Children.Add(CreateVotingArea(v.X, v.Y, (v as AreaNode).Areas[0].ElectoralDistrict));
+            associatedElems.Add(v);
+        }
+
+        private void DrawNeighbourhood(Edge e)
+        {
+            canvas.Children.Add(CreateNeighbourhood(e.N1.X, e.N1.Y, e.N2.X, e.N2.Y));
+            associatedElems.Add(e);
+        }
+
         private void RemoveElement(UIElement selectedElement)
         {
             var MyGraph = graphUtil.MyGraph;
@@ -254,7 +312,7 @@ namespace visualizer
         {
             return CreateVotingArea(position.X, position.Y, electoraldistrict);
         }
-        
+
         private UIElement CreateVotingArea(double X, double Y, int electoraldistrict)
         {
             var sign = new Ellipse();
@@ -286,60 +344,6 @@ namespace visualizer
             return nh;
         }
 
-        private void Canvas_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
-        {
-            var canvas = sender as Canvas;
-            if (canvas == null) return;
-            HitTestResult hitTestResult = VisualTreeHelper.HitTest(canvas, e.GetPosition(canvas));
-            
-            if (e.LeftButton == MouseButtonState.Pressed)
-            {
-                SelectedElement = hitTestResult.VisualHit as UIElement;
-                if (SelectedElement == SelectedBorder) return;
-                UpdateSelection();
-            }
-            else if (e.RightButton == MouseButtonState.Pressed)
-            {
-                if (hitTestResult.VisualHit is Ellipse)
-                {
-                    if (ConnectingElement1 == null)
-                    {
-                        ConnectingElement1 = hitTestResult.VisualHit as Ellipse;
-                        ConnectingElement1.Fill = nodeHighlightedColor;
-                    } 
-                    else if (ConnectingElement1 == hitTestResult.VisualHit as Ellipse)
-                    {
-                        ConnectingElement1.Fill = setDefaultColor(ConnectingElement1);
-                        ConnectingElement1 = null;
-                    }
-                    else if (ConnectingElement2 == null)
-                    {
-                        ConnectingElement1.Fill = setDefaultColor(ConnectingElement1); ;
-                        ConnectingElement2 = hitTestResult.VisualHit as Ellipse;
-                        CreateConnection(ConnectingElement1, ConnectingElement2);
-                        ConnectingElement1 = ConnectingElement2 = null;
-                    }
-                }
-            }
-            else if (e.MiddleButton == MouseButtonState.Pressed)
-            {
-                if (ConnectingElement1 != null && hitTestResult.VisualHit is Ellipse)
-                {
-                    ConnectingElement2 = hitTestResult.VisualHit as Ellipse;
-                    var n1 = associatedElems[canvas.Children.IndexOf(ConnectingElement1)] as Node;
-                    var n2 = associatedElems[canvas.Children.IndexOf(ConnectingElement2)] as Node;
-                    var index = associatedElems.IndexOf(new Edge(n1, n2));
-                    if (index >= 0)
-                    {
-                        RemoveElement(canvas.Children[index]);
-                        ConnectingElement1.Fill = setDefaultColor(ConnectingElement1); ;
-                        ConnectingElement1 = null;
-                    }
-                    ConnectingElement2 = null;
-                }
-            }
-        }
-
         private void UpdateSelection()
         {
             if (SelectedElement == null)
@@ -355,7 +359,7 @@ namespace visualizer
                 SelectedBorder.Width = Math.Abs(l.X1 - l.X2 + SelectionBorderMargin * 2);
                 SelectedBorder.Height = Math.Abs(l.Y1 - l.Y2 + SelectionBorderMargin * 2);
                 SelectedBorder.Visibility = Visibility.Visible;
-            } 
+            }
             else if (SelectedElement is Ellipse)
             {
                 Canvas.SetTop(SelectedBorder, Canvas.GetTop(SelectedElement) - SelectionBorderMargin);
@@ -392,17 +396,179 @@ namespace visualizer
             }
         }
 
-        private void Button_Click(object sender, RoutedEventArgs e)
+        #endregion
+
+        #region Event Handlers
+
+        private void FileLoadHandler(object sender, RoutedEventArgs e)
         {
-            AreaUtils.Save(txbox.Text, graphUtil.MyGraph);
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.Filter = "Graph (*.bin)|*.bin";
+
+            if (Directory.Exists(Environment.CurrentDirectory + @"\data\") && File.Exists(Environment.CurrentDirectory + @"\data\map.bin"))
+            {
+                openFileDialog.InitialDirectory = Environment.CurrentDirectory + @"\data";
+                openFileDialog.FileName = "map.bin";
+            }
+
+            if (openFileDialog.ShowDialog() == true)
+            {
+                lblLoadedGraphPath.Text = openFileDialog.FileName;
+                graphUtil.Load(AreaUtils.Load(openFileDialog.FileName));
+                undoActions.Clear();
+                ShowGraph();
+            }
         }
 
-        private void Button_Click_1(object sender, RoutedEventArgs e)
+        private void FileSaveHandler(object sender, RoutedEventArgs e)
         {
-            graphUtil.Load(AreaUtils.Load(txbox.Text));
+            if (!graphUtil.ValidGraph()) return;
+
+            SaveFileDialog saveFileDialog = new SaveFileDialog();
+            saveFileDialog.Filter = "Graph (*.bin)|*.bin";
+            if (Directory.Exists(Environment.CurrentDirectory + @"\data\"))
+            {
+                saveFileDialog.InitialDirectory = Environment.CurrentDirectory + @"\data";
+            }
+            saveFileDialog.FileName = @"map.bin";
+            if (saveFileDialog.ShowDialog() == true)
+            {
+                AreaUtils.Save(saveFileDialog.FileName, graphUtil.MyGraph);
+            }
+        }
+
+        private void RunMCRedistrictingHandler(object sender, RoutedEventArgs e)
+        {
+            if (!graphUtil.ValidGraph()) return;
+
+            RSimSettings settings = new RSimSettings();
+            settings.ShowDialog();
             undoActions.Clear();
             ShowGraph();
         }
+
+        private void RunRandomDistrictGrowthHandler(object sender, RoutedEventArgs e)
+        {
+            if (!graphUtil.ValidGraph()) return;
+
+            graphUtil.GenerateRandomElectoralDistrictSystem(DateTime.Now.Ticks, graphUtil.MyGraph);
+            undoActions.Clear();
+            ShowGraph();
+        }
+
+        private void InfoStatisticsHandler(object sender, RoutedEventArgs e)
+        {
+            if (!graphUtil.ValidGraph()) return;
+
+            string stat = graphUtil.GetStatistics(graphUtil.MyGraph);
+            MessageBox.Show(stat);
+        }
+
+        private void ToolsSaveImageHandler(object sender, RoutedEventArgs e)
+        {
+            if (!graphUtil.ValidGraph()) return;
+
+            SaveFileDialog saveFileDialog = new SaveFileDialog();
+            saveFileDialog.Filter = "PNG Image (*.png)|*.png";
+            saveFileDialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
+            if (saveFileDialog.ShowDialog() == true)
+            {
+                try
+                {
+                    SaveImage(saveFileDialog.FileName);
+                }
+                catch (Exception err)
+                {
+                    MessageBox.Show(err.ToString(), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+
+        private void ToolsRefreshHandler(object sender, RoutedEventArgs e)
+        {
+            ShowGraph(true);
+        }
+
+        private void GenerationStartHandler(object sender, RoutedEventArgs e)
+        {
+            if (!graphUtil.ValidGraph()) return;
+
+            graphUtil.StartBatchedGeneration(txFolder.Text, int.Parse(txSeed.Text), int.Parse(txCount.Text), ObjectCopier.Clone(graphUtil.MyGraph),
+                (s, ee) => progressbar.Value = ee.ProgressPercentage,
+                (s, ee) => progressbar.Value = 0);
+        }
+
+        private void Button_Click_LoadStats(object sender, RoutedEventArgs e)
+        {
+            if (txStatFolder.Text == "")
+            {
+                using (var dialog = new System.Windows.Forms.FolderBrowserDialog())
+                {
+                    dialog.SelectedPath = Environment.CurrentDirectory;
+                    dialog.ShowNewFolderButton = true;
+                    if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                    {
+                        txStatFolder.Text = dialog.SelectedPath;
+                    }
+                }
+            }
+
+            graphUtil.LoadStats(txStatFolder.Text);
+            if (graphUtil.MyStats == null) return;
+
+            plotCombo.IsEnabled = true;
+            plotBtn.IsEnabled = true;
+            plotCombo.ItemsSource = Plotter.Plots;
+            plotCombo.SelectedIndex = 0;
+        }
+
+        private void btnRunRandomWalk_Click(object sender, RoutedEventArgs e)
+        {
+            if (!graphUtil.ValidGraph()) return;
+
+            int numRun = int.Parse(txtNumRuns.Text);
+            int walkLen = int.Parse(txtLenWalk.Text);
+            SamplingMethod method = (SamplingMethod)cmbMethod.SelectedItem;
+
+            RandomWalkSimulation simulation = new RandomWalkSimulation(graphUtil.MyGraph, method, walkLen, numRun);
+            simulation.Simulate();
+            RandomWalkAnalysis analysis = new RandomWalkAnalysis(simulation);
+            Console.WriteLine();
+        }
+
+        private void Button_Click_PlotGraph(object sender, RoutedEventArgs e)
+        {
+            if (graphUtil.MyStats == null) return;
+
+            var plt = new Plotter();
+            plt.Plot(plotCombo.Text, graphUtil.MyStats);
+            plt.Title = plotCombo.Text;
+            plt.ShowDialog();
+        }
+
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            cmbMethod.ItemsSource = Enum.GetValues(typeof(SamplingMethod)).Cast<SamplingMethod>();
+        }
+
+        private void FilterDistrict_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            updateFiltering();
+        }
+
+        private void FilterElectorialIze_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            updateFiltering();
+        }
+
+        private void ComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            UpdateSelectedNode(comboo.SelectedIndex);
+        }
+
+        #endregion
+
+        #region Utilites
 
         private void NumberValidationTextBox(object sender, TextCompositionEventArgs e)
         {
@@ -423,7 +589,7 @@ namespace visualizer
             using (DrawingContext dc = dv.RenderOpen())
             {
                 VisualBrush vb = new VisualBrush(canvas);
-                dc.DrawRectangle(Brushes.Green, null, new Rect(new Point(), bounds.Size));
+                dc.DrawRectangle(new SolidColorBrush(Color.FromRgb(242, 243, 244)), null, new Rect(new Point(), bounds.Size));
                 dc.DrawRectangle(vb, null, new Rect(new Point(), bounds.Size));
             }
 
@@ -438,34 +604,6 @@ namespace visualizer
             ms.Close();
 
             System.IO.File.WriteAllBytes(path, ms.ToArray());
-        }
-
-        private void Button_Click_Do(object sender, RoutedEventArgs e)
-        {
-            string stat = graphUtil.GetStatistics();
-            if (stat != null && stat != "") MessageBox.Show(stat);
-        }
-
-        private void Button_Click_Do2(object sender, RoutedEventArgs e)
-        {
-            graphUtil.GenerateRandomElectoralDistrictSystem(DateTime.Now.Ticks, graphUtil.MyGraph);
-            undoActions.Clear();
-            ShowGraph();
-        }
-
-        private void ComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            UpdateSelectedNode(comboo.SelectedIndex);
-        }
-
-        private void FilterDistrict_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            updateFiltering();
-        }
-
-        private void FilterElectorialIze_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            updateFiltering();
         }
 
         private void updateFiltering()
@@ -544,7 +682,7 @@ namespace visualizer
                         }
                     }
                     else toHide = false;
-  
+
                     if (filterElectorialIze.SelectedIndex != 0 && !toHide)
                     {
                         bool isFiltered1 = false;
@@ -584,90 +722,6 @@ namespace visualizer
             }
         }
 
-        private void ScrnBtn_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                SaveImage(scrnTxb.Text);
-                MessageBox.Show("Image saved!");
-            }
-            catch (Exception err)
-            {
-                MessageBox.Show(err.ToString(), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
-
-        private void BtnRefresh_Click(object sender, RoutedEventArgs e)
-        {
-            ShowGraph();
-        }
-
-        private void Button_Click_3(object sender, RoutedEventArgs e)
-        {
-            graphUtil.StartBatchedGeneration(txFolder.Text, int.Parse(txSeed.Text), int.Parse(txCount.Text), txbox.Text,
-                (s, ee) => progressbar.Value = ee.ProgressPercentage,
-                (s, ee) => progressbar.Value = 0);
-        }
-
-        private void Button_Click_LoadStats(object sender, RoutedEventArgs e)
-        {
-            graphUtil.LoadStats(txStatFolder.Text);
-            if (graphUtil.MyStats == null) return;
-
-            plotCombo.IsEnabled = true;
-            plotBtn.IsEnabled = true;
-            plotCombo.ItemsSource = Plotter.Plots;
-            plotCombo.SelectedIndex = 0;
-        }
-
-        private void Button_Click_SaveStat(object sender, RoutedEventArgs e)
-        {
-            graphUtil.SaveAsStat(txStatFolder.Text, graphUtil.MyGraph, graphUtil.origElectoralSettings);
-        }
-
-        private void Button_Click_PlotGraph(object sender, RoutedEventArgs e)
-        {
-            if (graphUtil.MyStats == null) return;
-
-            var plt = new Plotter();
-            plt.Plot(plotCombo.Text, graphUtil.MyStats);
-            plt.ShowDialog();
-        }
-
-        private void btnR_Click(object sender, RoutedEventArgs e)
-        {
-            if (graphUtil.MyGraph != null)
-            {
-                RSimSettings settings = new RSimSettings();
-                settings.ShowDialog();
-                ShowGraph();
-            }
-            else
-            {
-                Console.WriteLine("The current graph is empty!");
-            }
-        }
-
-        private void Window_Loaded(object sender, RoutedEventArgs e)
-        {
-            cmbMethod.ItemsSource = Enum.GetValues(typeof(SamplingMethod)).Cast<SamplingMethod>();
-        }
-
-        private void btnRunRandomWalk_Click(object sender, RoutedEventArgs e)
-        {
-            if (graphUtil.MyGraph == null) { 
-                MessageBox.Show("No graph loaded!", "No Graph", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-
-            int numRun = int.Parse(txtNumRuns.Text);
-            int walkLen = int.Parse(txtLenWalk.Text);
-            SamplingMethod method = (SamplingMethod)cmbMethod.SelectedItem;
-
-            RandomWalkSimulation simulation = new RandomWalkSimulation(graphUtil.MyGraph, method, walkLen, numRun);
-            simulation.Simulate();
-            RandomWalkAnalysis analysis = new RandomWalkAnalysis(simulation);
-            Console.WriteLine();
-        }
+        #endregion
     }
 }
