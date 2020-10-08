@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:visualizer"
         mc:Ignorable="d"
         Title="HUGM" Height="768" Width="1024" Loaded="Window_Loaded">
-    <Grid Margin="0">
+    <Grid Margin="0" >
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="49*"/>
             <ColumnDefinition Width="894*"/>
@@ -160,7 +160,7 @@
 			        </StatusBarItem>
 		        </StatusBar>
 				<Canvas Margin="5,5,5,5" DockPanel.Dock="Top" Grid.Row="2" Background="#f2f3f4"  ClipToBounds="True"  x:Name="canv">
-                    <Canvas x:Name="canvas" Background="#f2f3f4" Mouse.MouseDown="Canvas_MouseDown">
+                    <Canvas x:Name="canvas" Background="#f2f3f4" Mouse.MouseDown="Canvas_MouseDown" MouseMove="Canvas_MouseMove">
                         <Canvas.RenderTransform>
                             <TransformGroup>
                                 <ScaleTransform x:Name="canvasScale"></ScaleTransform>

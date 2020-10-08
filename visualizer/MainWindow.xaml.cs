@@ -83,7 +83,8 @@ namespace visualizer
         private double HorizontalMoveDirection = 0;
         private double VerticalMoveDirection = 0;
         private double CameraMoveSpeed = 500;
-        private bool W = false, A = false, S = false, D = false;
+        private bool W = false, A = false, S = false, D = false, MouseLeft = false;
+        private double MouseXOrig, MouseYOrig, MouseMoveSpeed = 0.1;
 
         public MainWindow()
         {
@@ -187,6 +188,34 @@ namespace visualizer
                 canvasScale.ScaleX += (double)e.Delta / ZoomScale;
                 canvasScale.ScaleY += (double)e.Delta / ZoomScale;
             };
+        }
+
+        private void Canvas_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (MouseLeft)
+            {
+                if (e.LeftButton == MouseButtonState.Released)
+                {
+                    MouseLeft = false;
+                    return;
+                }
+
+                var X = e.GetPosition(sender as Canvas).X;
+                var Y = e.GetPosition(sender as Canvas).Y;
+
+                Dispatcher.Invoke(() =>
+                {
+                    canvasTranslate.X += (X - MouseXOrig) * MouseMoveSpeed;
+                    canvasTranslate.Y += (Y - MouseYOrig) * MouseMoveSpeed;
+                });
+            }
+
+            if (!MouseLeft && e.LeftButton == MouseButtonState.Pressed)
+            {
+                MouseLeft = true;
+                MouseXOrig = e.GetPosition(canvas).X;
+                MouseYOrig = e.GetPosition(canvas).Y;
+            }
         }
 
         private void Canvas_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
@@ -605,7 +634,6 @@ namespace visualizer
         {
             updateFiltering();
         }
-
         private void ComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             UpdateSelectedNode(comboo.SelectedIndex);
