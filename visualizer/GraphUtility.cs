@@ -70,6 +70,8 @@ namespace visualizer
             }
         }
 
+        public RandomWalkAnalysis PreviousRandomWalk { get; set; }
+
         public bool ValidGraph()
         {
             return MyGraph != null;

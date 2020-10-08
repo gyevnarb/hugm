@@ -603,11 +603,12 @@ namespace visualizer
             int numRun = int.Parse(txtNumRuns.Text);
             int walkLen = int.Parse(txtLenWalk.Text);
             SamplingMethod method = (SamplingMethod)cmbMethod.SelectedItem;
+            DistCalcMethod distMethod = (DistCalcMethod)cmbDist.SelectedItem;
 
             RandomWalkSimulation simulation = new RandomWalkSimulation(graphUtil.MyGraph, method, walkLen, numRun);
             simulation.Simulate();
-            RandomWalkAnalysis analysis = new RandomWalkAnalysis(simulation);
-            Console.WriteLine();
+            RandomWalkAnalysis analysis = new RandomWalkAnalysis(simulation, distMethod);
+            graphUtil.PreviousRandomWalk = analysis;
         }
 
         private void Button_Click_PlotGraph(object sender, RoutedEventArgs e)
@@ -623,6 +624,36 @@ namespace visualizer
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             cmbMethod.ItemsSource = Enum.GetValues(typeof(SamplingMethod)).Cast<SamplingMethod>();
+            cmbMethod.SelectedItem = SamplingMethod.UNIFORM;
+            cmbDist.ItemsSource = Enum.GetValues(typeof(DistCalcMethod)).Cast<DistCalcMethod>();
+            cmbDist.SelectedItem = DistCalcMethod.OCCURENCE_CNT;
+            cmbDistrict.ItemsSource = Enum.GetValues(typeof(PlotCalculationMethod)).Cast<PlotCalculationMethod>();
+            cmbDistrict.SelectedItem = PlotCalculationMethod.EXPECTED;
+        }
+
+        private void btnPlotErrors_Click(object sender, RoutedEventArgs e)
+        {
+            PlotCalculationMethod method = (PlotCalculationMethod)cmbDistrict.SelectedItem;
+
+            var plt = new ScottPlot.Plot();
+            var districts = Enumerable.Range(1, graphUtil.PreviousRandomWalk.NumElectoralDistricts).ToList().ConvertAll(x => (double)x).ToArray();
+            switch (method)
+            {
+                case PlotCalculationMethod.EXPECTED:
+                    var errorsAndStds = graphUtil.PreviousRandomWalk.NumWrongDistrict(method);
+                    var errors = errorsAndStds.Select(err => err.Item1).ToArray();
+                    var stds = errorsAndStds.Select(err => err.Item2).ToArray();
+                    plt.PlotBar(districts, errors, stds);
+                    break;
+                case PlotCalculationMethod.MAP:
+                    var errorsAndStds1 = graphUtil.PreviousRandomWalk.NumWrongDistrict(method);
+                    var errors1 = errorsAndStds1.Select(err => err.Item1).ToArray();
+                    plt.PlotBar(districts, errors1);
+                    break;
+                default:
+                    break;
+            }
+            plt.SaveFig("errors.png");
         }
 
         private void FilterDistrict_SelectionChanged(object sender, SelectionChangedEventArgs e)

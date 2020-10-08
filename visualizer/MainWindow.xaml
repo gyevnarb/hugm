@@ -8,32 +8,33 @@
         Title="HUGM" Height="768" Width="1024" Loaded="Window_Loaded">
     <Grid Margin="0" >
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="49*"/>
-            <ColumnDefinition Width="894*"/>
+            <ColumnDefinition Width="53*"/>
+            <ColumnDefinition Width="763*"/>
+            <ColumnDefinition Width="200*"/>
         </Grid.ColumnDefinitions>
-        <DockPanel LastChildFill="True" x:Name="container" Grid.ColumnSpan="2">
-			<Menu DockPanel.Dock="Top" Background="White">
-				<MenuItem Header="_File">
-					<MenuItem Header="_Load" Click="FileLoadHandler" />
-					<MenuItem Header="_Save" Click="FileSaveHandler" />
-					<Separator />
-				</MenuItem>
-				<MenuItem Header="_Run">
-					<MenuItem Header="_Markov Chain Redistricting" Click="RunMCRedistrictingHandler" />
-					<MenuItem Header="_Random District Growth" Click="RunRandomDistrictGrowthHandler" />
-					<Separator />
-				</MenuItem>
-				<MenuItem Header="_Info">
-					<MenuItem Header="_Statistics" Click="InfoStatisticsHandler" />
-					<Separator />
-				</MenuItem>
-				<MenuItem Header="_Tools">
-					<MenuItem Header="_Save image" Click="ToolsSaveImageHandler" />
-					<MenuItem Header="_Refresh" Click="ToolsRefreshHandler" />
-					<MenuItem x:Name="autoUiRefresh" Header="_Enable Auto UI Refresh" IsCheckable="True" IsChecked="True" />
-					<Separator />
-				</MenuItem>
-			</Menu>
+        <DockPanel LastChildFill="True" x:Name="container" Grid.ColumnSpan="3">
+            <Menu DockPanel.Dock="Top" Background="White">
+                <MenuItem Header="_File">
+                    <MenuItem Header="_Load" Click="FileLoadHandler" />
+                    <MenuItem Header="_Save" Click="FileSaveHandler" />
+                    <Separator />
+                </MenuItem>
+                <MenuItem Header="_Run">
+                    <MenuItem Header="_Markov Chain Redistricting" Click="RunMCRedistrictingHandler" />
+                    <MenuItem Header="_Random District Growth" Click="RunRandomDistrictGrowthHandler" />
+                    <Separator />
+                </MenuItem>
+                <MenuItem Header="_Info">
+                    <MenuItem Header="_Statistics" Click="InfoStatisticsHandler" />
+                    <Separator />
+                </MenuItem>
+                <MenuItem Header="_Tools">
+                    <MenuItem Header="_Save image" Click="ToolsSaveImageHandler" />
+                    <MenuItem Header="_Refresh" Click="ToolsRefreshHandler" />
+                    <MenuItem x:Name="autoUiRefresh" Header="_Enable Auto UI Refresh" IsCheckable="True" IsChecked="True" />
+                    <Separator />
+                </MenuItem>
+            </Menu>
             <TabControl DockPanel.Dock="Right" HorizontalAlignment="Right" Width="162">
                 <TabItem Header="Area Info">
                     <ScrollViewer>
@@ -87,13 +88,13 @@
                         </StackPanel>
                     </ScrollViewer>
                 </TabItem>
-				<TabItem Header="Filtering">
+                <TabItem Header="Filtering">
                     <StackPanel Orientation="Vertical">
                         <DockPanel DockPanel.Dock="Right" Margin="0,5,0,0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Height="Auto" >
                             <Label>District:</Label>
                             <ComboBox SelectionChanged="FilterDistrict_SelectionChanged" x:Name="filterDistrict"/>
                         </DockPanel>
-						<DockPanel DockPanel.Dock="Right" Margin="0,5,0,0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Height="Auto" >
+                        <DockPanel DockPanel.Dock="Right" Margin="0,5,0,0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Height="Auto" >
                             <Label>Electorial:</Label>
                             <ComboBox SelectionChanged="FilterElectorialIze_SelectionChanged" x:Name="filterElectorialIze" />
                         </DockPanel>
@@ -119,21 +120,21 @@
                         </DockPanel>
                     </StackPanel>
                 </TabItem>
-				<TabItem Header="Stats">
-					<StackPanel Orientation="Vertical">
-						<DockPanel DockPanel.Dock="Right" Margin="0,5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Height="Auto" >
-							<Label>Folder:</Label>
-							<TextBox x:Name="txStatFolder" Margin="0,0,5,0" TextAlignment="Center" VerticalContentAlignment="Center"/>
-						</DockPanel>
-						<DockPanel DockPanel.Dock="Right" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Height="Auto" >
-							<Button Click="Button_Click_LoadStats" Margin="5,0">Load</Button>
-						</DockPanel>
-						<DockPanel DockPanel.Dock="Right" Margin="0,5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Height="Auto" >
-							<ComboBox IsEnabled="false" x:Name="plotCombo" Margin="5,0"></ComboBox>
-							<Button IsEnabled="false" x:Name="plotBtn" Margin="5,0" Click="Button_Click_PlotGraph">Plot</Button>
-						</DockPanel>
-					</StackPanel>
-				</TabItem>
+                <TabItem Header="Stats">
+                    <StackPanel Orientation="Vertical">
+                        <DockPanel DockPanel.Dock="Right" Margin="0,5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Height="Auto" >
+                            <Label>Folder:</Label>
+                            <TextBox x:Name="txStatFolder" Margin="0,0,5,0" TextAlignment="Center" VerticalContentAlignment="Center"/>
+                        </DockPanel>
+                        <DockPanel DockPanel.Dock="Right" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Height="Auto" >
+                            <Button Click="Button_Click_LoadStats" Margin="5,0">Load</Button>
+                        </DockPanel>
+                        <DockPanel DockPanel.Dock="Right" Margin="0,5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Height="Auto" >
+                            <ComboBox IsEnabled="false" x:Name="plotCombo" Margin="5,0"></ComboBox>
+                            <Button IsEnabled="false" x:Name="plotBtn" Margin="5,0" Click="Button_Click_PlotGraph">Plot</Button>
+                        </DockPanel>
+                    </StackPanel>
+                </TabItem>
                 <TabItem Header="Random Walk">
                     <StackPanel Orientation="Vertical">
                         <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
@@ -148,18 +149,24 @@
                             <Label Content="Sampling:"></Label>
                             <ComboBox x:Name="cmbMethod" Width="90"></ComboBox>
                         </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+                            <Label Content="Distribution:"></Label>
+                            <ComboBox x:Name="cmbDist" Width="77"></ComboBox>
+                        </StackPanel>
                         <Button x:Name="btnRunRandomWalk" Content="Run" Margin="5,5,0,0" Click="btnRunRandomWalk_Click"></Button>
-                        <Button x:Name="btnPlotRandomWalk" Content="Plot Results" Margin="5,5,0,0"></Button>
+                        <Label Content="District Selection:"></Label>
+                        <ComboBox x:Name="cmbDistrict" Margin="5, 0, 3, 0"></ComboBox>
+                        <Button x:Name="btnPlotErrors" Content="Plot # Wrong Districts" Margin="5,5,0,0" Click="btnPlotErrors_Click"></Button>
                     </StackPanel>
                 </TabItem>
             </TabControl>
-			<DockPanel DockPanel.Dock="Bottom" Grid.ColumnSpan="2">
-				<StatusBar DockPanel.Dock="Bottom" Height="auto" Background="White">
-			        <StatusBarItem>
-				        <TextBlock Name="lblLoadedGraphPath" />
-			        </StatusBarItem>
-		        </StatusBar>
-				<Canvas Margin="5,5,5,5" DockPanel.Dock="Top" Grid.Row="2" Background="#f2f3f4"  ClipToBounds="True"  x:Name="canv">
+            <DockPanel DockPanel.Dock="Bottom" Grid.ColumnSpan="2">
+                <StatusBar DockPanel.Dock="Bottom" Height="auto" Background="White">
+                    <StatusBarItem>
+                        <TextBlock Name="lblLoadedGraphPath" />
+                    </StatusBarItem>
+                </StatusBar>
+                <Canvas Margin="5,5,5,5" DockPanel.Dock="Top" Grid.Row="2" Background="#f2f3f4"  ClipToBounds="True"  x:Name="canv">
                     <Canvas x:Name="canvas" Background="#f2f3f4" Mouse.MouseDown="Canvas_MouseDown" MouseMove="Canvas_MouseMove">
                         <Canvas.RenderTransform>
                             <TransformGroup>
@@ -169,7 +176,7 @@
                         </Canvas.RenderTransform>
                     </Canvas>
                 </Canvas>
-			</DockPanel>            
+            </DockPanel>
         </DockPanel>
     </Grid>
 </Window>

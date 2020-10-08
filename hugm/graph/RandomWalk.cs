@@ -12,6 +12,7 @@ using System.Xml;
 using System.Security.Policy;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Runtime.Serialization;
 
 namespace hugm.graph
 {
@@ -23,16 +24,23 @@ namespace hugm.graph
     /// </summary>
     public enum SamplingMethod
     {
-        [Description("Uniform")]
         UNIFORM,
-        [Description("Larger Distance")]
         DIST_LARGE,
-        [Description("Smaller Distance")]
         DIST_SMALL,
-        [Description("Larger Population")]
         POP_LARGE,
-        [Description("Smaller Population")]
         POP_SMALL
+    }
+
+    public enum DistCalcMethod
+    {
+        OCCURENCE_CNT,
+        LAST_ONLY
+    }
+
+    public enum PlotCalculationMethod
+    {
+        EXPECTED,
+        MAP
     }
 
     /// <summary>
@@ -83,7 +91,7 @@ namespace hugm.graph
         /// <returns>Dictionary with keys as nodes and values as a list of RandomWalks</returns>
         public void Simulate()
         {
-            var ret = new Dictionary<Node, List<RandomWalk>>();
+            var ret = new SimulationRun();
             foreach (Node node in Graph.V)
             {
                 var walks = new List<RandomWalk>();
@@ -104,13 +112,14 @@ namespace hugm.graph
     {
         public RandomWalkSimulation Simulation { get; set; }
         public SimulationDist Distribution { get; private set; }
-
         public int NumElectoralDistricts { get; set; }
+        public DistCalcMethod DistributionCalcMethod { get; set; }
 
-        public RandomWalkAnalysis(RandomWalkSimulation sim, int numDist = 18)
+        public RandomWalkAnalysis(RandomWalkSimulation sim, DistCalcMethod method, int numDist = 18)
         {
             Simulation = sim;
             NumElectoralDistricts = numDist;
+            DistributionCalcMethod = method;
             CalculateDistribution();
         }
 
@@ -127,8 +136,20 @@ namespace hugm.graph
                 var counts = Enumerable.Repeat(0, NumElectoralDistricts).ToList<int>();
                 walks.ForEach(walk =>
                 {
-                    AreaNode last = walk.Path.Last.Value as AreaNode;
-                    counts[last.ElectorialDistrict - 1] += 1;
+                    switch (DistributionCalcMethod)
+                    {
+                        case DistCalcMethod.OCCURENCE_CNT:
+                            var visited = walk.GetDistrictCounts();
+                            foreach (var district in visited)
+                                counts[district.Key - 1] += district.Value;
+                            break;
+                        case DistCalcMethod.LAST_ONLY:
+                            AreaNode last = walk.Path.Last.Value as AreaNode;
+                            counts[last.ElectorialDistrict - 1] += 1;
+                            break;
+                        default:
+                            break;
+                    }
                 });
 
                 var dist = counts.Select(x => (double)x / counts.Sum()).ToList();
@@ -157,6 +178,7 @@ namespace hugm.graph
             }
         }
 
+        // TODO: This is incorrect. District numbers are categorical and not ordinal
         /// <summary>
         /// Calculate the expected (fractional) district of an area. Assume uniform prior for now.
         /// </summary>
@@ -179,7 +201,7 @@ namespace hugm.graph
         }      
 
         /// <summary>
-        /// Compute the standard deviation.
+        /// Compute the standard deviation of random walk predictions.
         /// </summary>
         public Dictionary<Node, double> StandardDeviationDistrict
         {
@@ -196,6 +218,37 @@ namespace hugm.graph
                 return stds;
             }
         }
+
+        public List<(double, double)> NumWrongDistrict(PlotCalculationMethod method)
+        {
+            var rtn = new List<(double, double)>();
+            switch (method)
+            {
+                case PlotCalculationMethod.EXPECTED:
+                    for (int i = 0; i < NumElectoralDistricts; i++)
+                    {
+                        // TODO: This is incorrect. District numbers are categorical and not ordinal
+                        var filterByDistrict = ExpectedDistrict.Where(kv => (kv.Key as AreaNode).ElectorialDistrict == i + 1);
+                        var districtError = filterByDistrict.Select(kv => Math.Pow(kv.Value - (i + 1), 2)).ToList();
+                        var muError = districtError.Sum() / districtError.Count;
+                        var errorStd = Math.Sqrt(districtError.Select(x => Math.Pow(x - muError, 2) / districtError.Count).Sum());
+                        rtn.Add((muError, errorStd));
+                    }
+                    break;
+                case PlotCalculationMethod.MAP:
+                    for (int i = 0; i < NumElectoralDistricts; i++)
+                    {
+                        var filterByDistrict = MAPDistrict.Where(kv => (kv.Key as AreaNode).ElectorialDistrict == i + 1).ToList();
+                        var districtError = filterByDistrict.Where(kv => kv.Value != i + 1).ToList();
+                        var vals = ((double)districtError.Count / filterByDistrict.Count, 0.0);
+                        rtn.Add(vals);
+                    }
+                    break;
+                default:
+                    break;
+            }
+            return rtn;
+        }
     }
 
     /// <summary>
@@ -209,9 +262,12 @@ namespace hugm.graph
 
         public int MaxLength { get; set; }
 
+
         public SamplingMethod Method { get; set; }
 
         public LinkedList<Node> Path { get; private set; }
+
+        public List<int> VisitedCount { get; private set; }
 
         public RandomWalk(Node start, int maxLen, SamplingMethod method)
         {
@@ -323,6 +379,24 @@ namespace hugm.graph
                 normalised = vals.Select(x => (double)x / total).ToList();
             }
             return normalised;
+        }
+
+        /// <summary>
+        /// Calculate the number of occurences for each district in the walk
+        /// </summary>
+        /// <returns>Dictionary with key as the district number and value as the number of occurences</returns>
+        public Dictionary<int, int> GetDistrictCounts()
+        {
+            var rtn = new Dictionary<int, int>();
+            foreach (var node in Path.Skip(1))
+            {
+                AreaNode an = node as AreaNode;
+                if (rtn.ContainsKey(an.ElectorialDistrict))
+                    rtn[an.ElectorialDistrict] += 1;
+                else
+                    rtn.Add(an.ElectorialDistrict, 1);
+            }
+            return rtn;
         }
 
         public override string ToString()
