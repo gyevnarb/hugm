@@ -13,6 +13,8 @@ using System.Windows.Media.Imaging;
 using System.Linq;
 using Microsoft.Win32;
 using System.IO;
+using System.Threading.Tasks;
+using System.Timers;
 
 namespace visualizer
 {
@@ -75,8 +77,13 @@ namespace visualizer
         private double SelectionBorderThickness = 2;
         private double SelectionBorderMargin = 2;
         private double NeighbourhoodLineThickness = 2;
-        private double CameraMoveSpeed = 5;
         private double ZoomScale = 10000;
+
+        private Timer movementTimer;
+        private double HorizontalMoveDirection = 0;
+        private double VerticalMoveDirection = 0;
+        private double CameraMoveSpeed = 500;
+        private bool W = false, A = false, S = false, D = false;
 
         public MainWindow()
         {
@@ -95,8 +102,41 @@ namespace visualizer
         
         private void InitKeyHandlers()
         {
+            movementTimer = new Timer(1000f / 60f);
+            movementTimer.Elapsed += (s, e) =>
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    canvasTranslate.X += HorizontalMoveDirection * CameraMoveSpeed * 1f / 60f;
+                    canvasTranslate.Y += VerticalMoveDirection * CameraMoveSpeed * 1f / 60f;
+                });
+            };
+            movementTimer.AutoReset = true;
+            movementTimer.Start();
+
             KeyUp += (s, e) =>
             {
+                if (e.Key == Key.W && W)
+                {
+                    VerticalMoveDirection -= 1.0;
+                    W = false;
+                }
+                if (e.Key == Key.A && A)
+                {
+                    HorizontalMoveDirection -= 1.0;
+                    A = false;
+                }
+                if (e.Key == Key.S && S)
+                {
+                    VerticalMoveDirection += 1.0;
+                    S = false;
+                }
+                if (e.Key == Key.D && D)
+                {
+                    HorizontalMoveDirection += 1.0;
+                    D = false;
+                }
+
                 if (e.Key == Key.Delete)
                 {
                     if (SelectedElement != null)
@@ -110,22 +150,27 @@ namespace visualizer
 
             KeyDown += (s, e) =>
             {
-                if (e.Key == Key.W)
+                if (e.Key == Key.W && !W)
                 {
-                    canvasTranslate.Y += CameraMoveSpeed;
+                    VerticalMoveDirection += 1.0;
+                    W = true;
                 }
-                if (e.Key == Key.A)
+                if (e.Key == Key.A && !A)
                 {
-                    canvasTranslate.X += CameraMoveSpeed;
+                    HorizontalMoveDirection += 1.0;
+                    A = true;
                 }
-                if (e.Key == Key.S)
+                if (e.Key == Key.S && !S)
                 {
-                    canvasTranslate.Y -= CameraMoveSpeed;
+                    VerticalMoveDirection -= 1.0;
+                    S = true;
                 }
-                if (e.Key == Key.D)
+                if (e.Key == Key.D && !D)
                 {
-                    canvasTranslate.X -= CameraMoveSpeed;
+                    HorizontalMoveDirection -= 1.0;
+                    D = true;
                 }
+
                 if (e.Key == Key.U)
                 {
                     if (undoActions.Count != 0)
