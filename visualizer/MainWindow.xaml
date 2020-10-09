@@ -154,9 +154,10 @@
                             <ComboBox x:Name="cmbDist" Width="77"></ComboBox>
                         </StackPanel>
                         <Button x:Name="btnRunRandomWalk" Content="Run" Margin="5,5,0,0" Click="btnRunRandomWalk_Click"></Button>
-                        <Label Content="District Selection:"></Label>
+                        <Label Content="Estimated District Selection:"></Label>
                         <ComboBox x:Name="cmbDistrict" Margin="5, 0, 3, 0"></ComboBox>
-                        <Button x:Name="btnPlotErrors" Content="Plot # Wrong Districts" Margin="5,5,0,0" Click="btnPlotErrors_Click"></Button>
+                        <Button x:Name="btnPlotErrors" Content="Plot Wrong Districts" Margin="5,5,0,0" Click="btnPlotErrors_Click"></Button>
+                        <Button x:Name="btnPlotDistribution" Content="Plot Distributions" Margin="5,5,0,0" Click="btnPlotDistributions_Click"></Button>
                     </StackPanel>
                 </TabItem>
             </TabControl>

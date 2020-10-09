@@ -15,6 +15,7 @@ using Microsoft.Win32;
 using System.IO;
 using System.Threading.Tasks;
 using System.Timers;
+using ScottPlot;
 
 namespace visualizer
 {
@@ -633,6 +634,9 @@ namespace visualizer
 
         private void btnPlotErrors_Click(object sender, RoutedEventArgs e)
         {
+            if (graphUtil.PreviousRandomWalk == null)
+                return;
+
             PlotCalculationMethod method = (PlotCalculationMethod)cmbDistrict.SelectedItem;
 
             var plt = new ScottPlot.Plot();
@@ -641,19 +645,48 @@ namespace visualizer
             {
                 case PlotCalculationMethod.EXPECTED:
                     var errorsAndStds = graphUtil.PreviousRandomWalk.NumWrongDistrict(method);
-                    var errors = errorsAndStds.Select(err => err.Item1).ToArray();
-                    var stds = errorsAndStds.Select(err => err.Item2).ToArray();
-                    plt.PlotBar(districts, errors, stds);
+                    var sorted = errorsAndStds.Select((x, i) => new KeyValuePair<(double, double), int>(x, i)).OrderByDescending(x => x.Key.Item1).ToList();
+                    plt.PlotBar(districts, sorted.Select(x => x.Key.Item1).ToArray(), sorted.Select(x => x.Key.Item2).ToArray());
+                    plt.Grid(enableVertical: false, lineStyle: ScottPlot.LineStyle.Dot);
+                    plt.Title("Mean Error and Standard Deviation");
+                    plt.XTicks(districts, sorted.Select(x => (x.Value + 1).ToString()).ToArray());
+                    plt.SaveFig("expected_errors.png");
                     break;
                 case PlotCalculationMethod.MAP:
                     var errorsAndStds1 = graphUtil.PreviousRandomWalk.NumWrongDistrict(method);
-                    var errors1 = errorsAndStds1.Select(err => err.Item1).ToArray();
-                    plt.PlotBar(districts, errors1);
+                    var sorted1 = errorsAndStds1.Select((x, i) => new KeyValuePair<(double, double), int>(x, i)).OrderByDescending(x => x.Key.Item1).ToList();
+                    plt.PlotBar(districts, sorted1.Select(x => x.Key.Item1).ToArray());
+                    plt.Title("MAP Error");
+                    plt.XTicks(districts, sorted1.Select(x => (x.Value + 1).ToString()).ToArray());
+                    plt.Grid(enableVertical: false, lineStyle: ScottPlot.LineStyle.Dot);
+                    plt.SaveFig("map_errors.png");
                     break;
                 default:
                     break;
             }
-            plt.SaveFig("errors.png");
+        }
+
+        private void btnPlotDistributions_Click(object sender, RoutedEventArgs e)
+        {
+            if (graphUtil.PreviousRandomWalk == null)
+                return;
+
+            var districts = Enumerable.Range(1, graphUtil.PreviousRandomWalk.NumElectoralDistricts).ToList().ConvertAll(x => (double)x).ToArray();
+
+            var mp = new MultiPlot(rows: 3, cols: 6);
+            for (int row = 0; row < 3; row++)
+            {
+                for (int col = 0; col < 6; col++)
+                {
+                    int district = 6 * row + col;
+                    var subplot = mp.GetSubplot(row, col);
+                    var meanDistribution = graphUtil.PreviousRandomWalk.AverageDistributionForDistrict(district + 1);
+                    subplot.PlotBar(districts, meanDistribution.ToArray(), horizontal: true);
+                    subplot.XTicks(Enumerable.Repeat("", 18).ToArray());
+                    mp.GetSubplot(row, col).XLabel($"District {district + 1}");
+                }
+            }
+            mp.SaveFig("dist_plot.png");
         }
 
         private void FilterDistrict_SelectionChanged(object sender, SelectionChangedEventArgs e)

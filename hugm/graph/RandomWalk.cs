@@ -3,16 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using NumSharp;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Runtime.ConstrainedExecution;
-using System.Security.Cryptography.X509Certificates;
-using System.Xml;
-using System.Security.Policy;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
-using System.Runtime.Serialization;
 
 namespace hugm.graph
 {
@@ -178,47 +168,6 @@ namespace hugm.graph
             }
         }
 
-        // TODO: This is incorrect. District numbers are categorical and not ordinal
-        /// <summary>
-        /// Calculate the expected (fractional) district of an area. Assume uniform prior for now.
-        /// </summary>
-        /// <returns></returns>
-        public Dictionary<Node, double> ExpectedDistrict
-        {
-            get
-            {
-                var districts = new Dictionary<Node, double>();
-                foreach (Node node in Distribution.Keys)
-                {
-                    var distribution = Distribution[node];
-                    double district = 0.0;
-                    for (int i = 0; i < distribution.Count; i++)
-                        district += distribution[i] * (i + 1);
-                    districts.Add(node, district);
-                }
-                return districts;
-            }
-        }      
-
-        /// <summary>
-        /// Compute the standard deviation of random walk predictions.
-        /// </summary>
-        public Dictionary<Node, double> StandardDeviationDistrict
-        {
-            get
-            {
-                var expected = ExpectedDistrict;
-                var stds = new Dictionary<Node, double>();
-                foreach (Node node in Distribution.Keys)
-                {
-                    double mu = expected[node];
-                    double std = Math.Sqrt(Distribution[node].Select((x, i) => x * Math.Pow(i + 1 - mu, 2)).Sum());
-                    stds.Add(node, std);
-                }
-                return stds;
-            }
-        }
-
         public List<(double, double)> NumWrongDistrict(PlotCalculationMethod method)
         {
             var rtn = new List<(double, double)>();
@@ -227,11 +176,12 @@ namespace hugm.graph
                 case PlotCalculationMethod.EXPECTED:
                     for (int i = 0; i < NumElectoralDistricts; i++)
                     {
-                        // TODO: This is incorrect. District numbers are categorical and not ordinal
-                        var filterByDistrict = ExpectedDistrict.Where(kv => (kv.Key as AreaNode).ElectorialDistrict == i + 1);
-                        var districtError = filterByDistrict.Select(kv => Math.Pow(kv.Value - (i + 1), 2)).ToList();
+                        // Calculate mean and std of errors 
+                        var filterByDistrict = Distribution.Where(kv => (kv.Key as AreaNode).ElectorialDistrict == i + 1);
+                        var districtError = filterByDistrict.Select(kv => 1 - kv.Value[i]).ToList();
                         var muError = districtError.Sum() / districtError.Count;
                         var errorStd = Math.Sqrt(districtError.Select(x => Math.Pow(x - muError, 2) / districtError.Count).Sum());
+                        var testerror = np.std(np.array(districtError));
                         rtn.Add((muError, errorStd));
                     }
                     break;
@@ -249,6 +199,21 @@ namespace hugm.graph
             }
             return rtn;
         }
+
+        public List<double> AverageDistributionForDistrict(int districtId)
+        {
+            var rtn = Enumerable.Repeat(0.0, NumElectoralDistricts).ToList();
+            var filterByDistrict = Distribution.Where(kv => (kv.Key as AreaNode).ElectorialDistrict == districtId).ToList();
+            foreach (var node in filterByDistrict)
+            {
+                var distForNode = node.Value;
+                for (int i = 0; i < distForNode.Count; i++)
+                {
+                    rtn[i] += distForNode[i];
+                }
+            }
+            return rtn.Select(x => x / filterByDistrict.Count).ToList();
+        }
     }
 
     /// <summary>
@@ -257,16 +222,12 @@ namespace hugm.graph
     public class RandomWalk
     {
         private static Random r = new Random(1);
+        private static Dictionary<(Node, List<Node>), List<double>> weightsCache = new Dictionary<(Node, List<Node>), List<double>>();
 
         public Node Start { get; set; }
-
         public int MaxLength { get; set; }
-
-
         public SamplingMethod Method { get; set; }
-
         public LinkedList<Node> Path { get; private set; }
-
         public List<int> VisitedCount { get; private set; }
 
         public RandomWalk(Node start, int maxLen, SamplingMethod method)
@@ -311,40 +272,34 @@ namespace hugm.graph
             double x = node.X;
             double y = node.Y;
 
-            switch (Method)
+            List<double> weights = null;
+            if (Method != SamplingMethod.UNIFORM)
             {
-                case SamplingMethod.UNIFORM:
-                    return UniformSample(adjacents);
-                case SamplingMethod.DIST_LARGE:
-                    return DistanceSample(adjacents, x, y, false);
-                case SamplingMethod.DIST_SMALL:
-                    return DistanceSample(adjacents, x, y, true);
-                case SamplingMethod.POP_LARGE:
-                    return PopulationSample(adjacents, false);
-                case SamplingMethod.POP_SMALL:
-                    return PopulationSample(adjacents, true);
-                default:
-                    break;
+                var key = (node, adjacents);
+                if (weightsCache.ContainsKey(key))
+                    weights = weightsCache[key];
+
+                if (weights == null)
+                {
+                    IEnumerable<double> vals = null;
+                    if (Method.ToString().StartsWith("DIST"))
+                        vals = adjacents.Select(n => Math.Sqrt(Math.Pow(x - n.X, 2) + Math.Pow(y - n.Y, 2)));
+                    else
+                        vals = adjacents.Select(n => (double)(n as AreaNode).Population);
+
+                    weights = Normalise(vals, Method.ToString().EndsWith("SMALL"));
+                    weightsCache.Add(key, weights);
+                }
+                return Sample<Node>(adjacents, weights);
             }
-            return node;
+            else
+            {
+                return UniformSample(adjacents);
+            }
         }
         private Node UniformSample(List<Node> adjacents)
         {
             return adjacents[r.Next(0, adjacents.Count)];
-        }
-
-        private Node DistanceSample(List<Node> adjacents, double x, double y, bool large = false)
-        {
-            var dists = adjacents.Select(node => Math.Sqrt(Math.Pow(x - node.X, 2) + Math.Pow(y - node.Y, 2)));
-            var weights = Normalise(dists, large);
-            return Sample<Node>(adjacents, weights);
-        }
-
-        private Node PopulationSample(List<Node> adjacents, bool large = false)
-        {
-            var pops = adjacents.Select(node => (double)(node as AreaNode).Population);
-            var weights = Normalise(pops, large);
-            return Sample<Node>(adjacents, weights);
         }
 
         private T Sample<T>(List<T> vals, List<double> dist)
