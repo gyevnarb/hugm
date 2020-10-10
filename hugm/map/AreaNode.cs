@@ -21,7 +21,6 @@ namespace hugm.map
         /// </summary>
         public Coord LatitudeLongitude { get { return Areas[0].LatitudeLongitude; } }
 
-
         /// <summary>
         /// Empty voting areas with ID
         /// </summary>
@@ -55,6 +54,16 @@ namespace hugm.map
             {
                 foreach (var a in Areas) a.ElectoralDistrict = value;
             }
+        }
+
+        public bool Atjelentkezes
+        {
+            get { return Areas[0].Atjelentkezes; }
+        }
+
+        public VoteResult Results
+        {
+            get { return Areas[0].Results; }
         }
 
         public override string ToJSON()

@@ -605,8 +605,17 @@ namespace visualizer
             int walkLen = int.Parse(txtLenWalk.Text);
             SamplingMethod method = (SamplingMethod)cmbMethod.SelectedItem;
             DistCalcMethod distMethod = (DistCalcMethod)cmbDist.SelectedItem;
+            Parties party = (Parties)cmbParty.SelectedItem;
+            double partyProb = double.Parse(txtPartyProb.Text);
+            bool excludeSelected = chkSelected.IsChecked.Value;
+            bool invert = chkInvert.IsChecked.Value;
 
-            RandomWalkSimulation simulation = new RandomWalkSimulation(graphUtil.MyGraph, method, walkLen, numRun);
+            RandomWalkSimulation simulation = new RandomWalkSimulation(graphUtil.MyGraph, method, walkLen, numRun, excludeSelected, invert);
+            if (method == SamplingMethod.PREFER_PARTY)
+            {
+                simulation.PartyPreference = party;
+                simulation.PartyProbability = partyProb;
+            }
             simulation.Simulate();
             RandomWalkAnalysis analysis = new RandomWalkAnalysis(simulation, distMethod);
             graphUtil.PreviousRandomWalk = analysis;
@@ -630,6 +639,8 @@ namespace visualizer
             cmbDist.SelectedItem = DistCalcMethod.OCCURENCE_CNT;
             cmbDistrict.ItemsSource = Enum.GetValues(typeof(PlotCalculationMethod)).Cast<PlotCalculationMethod>();
             cmbDistrict.SelectedItem = PlotCalculationMethod.EXPECTED;
+            cmbParty.ItemsSource = Enum.GetValues(typeof(Parties)).Cast<Parties>();
+            cmbParty.SelectedItem = Parties.FIDESZ;
         }
 
         private void btnPlotErrors_Click(object sender, RoutedEventArgs e)
@@ -687,6 +698,12 @@ namespace visualizer
                 }
             }
             mp.SaveFig("dist_plot.png");
+        }
+
+        private void cmbMethod_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if ((SamplingMethod)cmbMethod.SelectedItem == SamplingMethod.PREFER_PARTY)
+                stkParty.Visibility = Visibility.Visible;
         }
 
         private void FilterDistrict_SelectionChanged(object sender, SelectionChangedEventArgs e)

@@ -1,11 +1,21 @@
 ﻿using System;
+using System.CodeDom;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace hugm.map
 {
+    public enum Parties
+    {
+        FIDESZ,
+        OSSZEFOGAS,
+        JOBBIK,
+        LMP
+    }
+
     [Serializable()]
     public class VoteResult
     {
@@ -70,6 +80,26 @@ namespace hugm.map
                 Megjelent = this.Megjelent,
                 Osszes = this.Osszes,
             };
+        }
+
+        public List<int> ResultList()
+        {
+            return new List<int> { FideszKDNP, Osszefogas, Jobbik, LMP };
+        }
+
+        public Dictionary<Parties, int> PartiesVotes()
+        {
+            return new Dictionary<Parties, int> {
+                { Parties.FIDESZ, FideszKDNP },
+                { Parties.OSSZEFOGAS, Osszefogas },
+                { Parties.JOBBIK, Jobbik },
+                { Parties.LMP, LMP }
+            };
+        }
+
+        public KeyValuePair<Parties, int> Max()
+        {
+            return PartiesVotes().OrderBy(kv => kv.Key).First();
         }
     }
 }

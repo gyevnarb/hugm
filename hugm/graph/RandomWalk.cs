@@ -15,10 +15,10 @@ namespace hugm.graph
     public enum SamplingMethod
     {
         UNIFORM,
-        DIST_LARGE,
-        DIST_SMALL,
-        POP_LARGE,
-        POP_SMALL
+        DISTANCE,
+        POPULATION,
+        PREFER_PARTY,
+        PREFER_OWN
     }
 
     public enum DistCalcMethod
@@ -57,6 +57,26 @@ namespace hugm.graph
         /// The simulation run.
         /// </summary>
         public SimulationRun Simulation { get; set; }
+        
+        /// <summary>
+        /// Which to favour during sampling
+        /// </summary>
+        public Parties PartyPreference { get; set; }
+
+        /// <summary>
+        /// The probability of selecting a node with dominant party given by PartyPreference
+        /// </summary>
+        public double PartyProbability { get; set; }
+
+        /// <summary>
+        /// Whether to exclude atjelentkezo nodes from simulation
+        /// </summary>
+        public bool ExcludeSelected { get; set; }
+
+        /// <summary>
+        /// Whether to invert the distribution of the sampling method
+        /// </summary>
+        public bool InvertSamplingDistribution { get; set; }
 
         public Graph Graph { get; set; }
 
@@ -67,12 +87,14 @@ namespace hugm.graph
         /// <param name="method">The sampling method to use at each walk</param>
         /// <param name="maxLen">The maximum length of a walk</param>
         /// <param name="maxRuns">The maximum number of walks to perform at each node</param>
-        public RandomWalkSimulation(Graph graph, SamplingMethod method, int maxLen, int maxRuns)
+        public RandomWalkSimulation(Graph graph, SamplingMethod method, int maxLen, int maxRuns, bool excludeSelected, bool invert)
         {
             Graph = graph;
             Method = method;
             MaxWalkLength = maxLen;
             MaxRuns = maxRuns;
+            ExcludeSelected = excludeSelected;
+            InvertSamplingDistribution = invert;
         }
 
         /// <summary>
@@ -87,7 +109,11 @@ namespace hugm.graph
                 var walks = new List<RandomWalk>();
                 for (int i = 0; i < MaxRuns; i++)
                 {
-                    RandomWalk newWalk = new RandomWalk(node, MaxWalkLength, Method);
+                    RandomWalk newWalk = null;
+                    if (Method == SamplingMethod.PREFER_PARTY)
+                        newWalk = new RandomWalk(node, MaxWalkLength, Method, ExcludeSelected, InvertSamplingDistribution, PartyPreference, PartyProbability);
+                    else
+                        newWalk = new RandomWalk(node, MaxWalkLength, Method, ExcludeSelected, InvertSamplingDistribution);
                     newWalk.Walk();
                     walks.Add(newWalk);
                 }
@@ -223,18 +249,38 @@ namespace hugm.graph
     {
         private static Random r = new Random(1);
         private static Dictionary<(Node, List<Node>), List<double>> weightsCache = new Dictionary<(Node, List<Node>), List<double>>();
+        private static SamplingMethod previousMethod;
 
         public Node Start { get; set; }
         public int MaxLength { get; set; }
         public SamplingMethod Method { get; set; }
         public LinkedList<Node> Path { get; private set; }
         public List<int> VisitedCount { get; private set; }
+        public bool ExcludeSelected { get; set; }
+        public bool Invert { get; set; }
+        public Parties Party { get; set; }
+        public double PartyProbability { get; set; }
 
-        public RandomWalk(Node start, int maxLen, SamplingMethod method)
+        public RandomWalk(Node start, int maxLen, SamplingMethod method, bool excludeSelected, bool invert)
         {
             Start = start;
             MaxLength = maxLen;
             Method = method;
+            ExcludeSelected = excludeSelected;
+            Invert = invert;
+
+            Path = new LinkedList<Node>();
+        }
+
+        public RandomWalk(Node start, int maxLen, SamplingMethod method, bool excludeSelected, bool invert, Parties party, double partyProb)
+        {
+            Start = start;
+            MaxLength = maxLen;
+            Method = method;
+            ExcludeSelected = excludeSelected;
+            Invert = invert;
+            Party = party;
+            PartyProbability = partyProb;
 
             Path = new LinkedList<Node>();
         }
@@ -262,8 +308,13 @@ namespace hugm.graph
 
         public Node Sample(Node node, Node previous = Node.EmptyNode)
         {
+            AreaNode currentNode = node as AreaNode;
+            AreaNode previousNode = previous as AreaNode;
+
             var adjacents = new List<Node>(node.Adjacents);
             adjacents.Remove(previous);
+            if (ExcludeSelected)
+                adjacents = adjacents.Where(n => !(n as AreaNode).Atjelentkezes).ToList();
             if (adjacents.Count == 0)
                 throw new Exception($"No valid node is available for {node} with previous {previous}!");
             else if (adjacents.Count == 1)
@@ -271,31 +322,55 @@ namespace hugm.graph
 
             double x = node.X;
             double y = node.Y;
+            
+            // Assign probability to selected party and distribute the rest equally
+            var w = new List<double> { 0, 0, 0, 0 };
+            w[(int)Party] = PartyProbability;
+            for (int i = 0; i < 4; i++)
+                if (i != (int)Party)
+                    w[i] = (1 - PartyProbability) / 3.0;
+
+            if (previousMethod != Method)
+                weightsCache.Clear();
+            previousMethod = Method;
 
             List<double> weights = null;
-            if (Method != SamplingMethod.UNIFORM)
-            {
-                var key = (node, adjacents);
-                if (weightsCache.ContainsKey(key))
-                    weights = weightsCache[key];
+            var key = (node, adjacents);
+            if (weightsCache.ContainsKey(key))
+                weights = weightsCache[key];
 
-                if (weights == null)
+            if (weights == null)
+            {
+                IEnumerable<double> vals = null;
+                switch (Method)
                 {
-                    IEnumerable<double> vals = null;
-                    if (Method.ToString().StartsWith("DIST"))
+                    case SamplingMethod.UNIFORM:
+                        return UniformSample(adjacents);
+                    case SamplingMethod.DISTANCE:
                         vals = adjacents.Select(n => Math.Sqrt(Math.Pow(x - n.X, 2) + Math.Pow(y - n.Y, 2)));
-                    else
+                        break;
+                    case SamplingMethod.POPULATION:
                         vals = adjacents.Select(n => (double)(n as AreaNode).Population);
-
-                    weights = Normalise(vals, Method.ToString().EndsWith("SMALL"));
-                    weightsCache.Add(key, weights);
+                        break;
+                    case SamplingMethod.PREFER_PARTY:
+                        var partiesVotes = adjacents.Select(n => (n as AreaNode).Results.PartiesVotes());
+                        var partyPriors = partiesVotes.Select(dict => Normalise(dict.Select(kv => kv.Value)));
+                        if (partyPriors.ToList()[0][0] < partyPriors.ToList()[0][1])
+                            Console.WriteLine();
+                        var posterior = partyPriors.Select(adj => Normalise(adj.Select((z, i) => z * w[i])));
+                        vals = posterior.Select(adj => adj[(int)Party]);
+                        break;
+                    case SamplingMethod.PREFER_OWN:
+                        var largest = currentNode.Results.Max();
+                        vals = adjacents.Select(n => (n as AreaNode).Results.PartiesVotes()).Select(kv => (double)kv[largest.Key]);
+                        break;
+                    default:
+                        break;
                 }
-                return Sample<Node>(adjacents, weights);
+                weights = Normalise(vals, Invert);
+                weightsCache.Add(key, weights);
             }
-            else
-            {
-                return UniformSample(adjacents);
-            }
+            return Sample(adjacents, weights);
         }
         private Node UniformSample(List<Node> adjacents)
         {
@@ -310,13 +385,24 @@ namespace hugm.graph
                 dist.Insert(0, 0.0);
 
             double crit = r.NextDouble();
+            var cumDist = CumSum(dist);
             for (int i = 0; i < vals.Count; i++)
             {
-                if (dist[i] <= crit && crit < dist[i + 1])
+                if (cumDist[i] <= crit && crit < cumDist[i + 1])
                     return vals[i];
             }
             throw new Exception("Couldn't sample from adjacents with population criteria!");
 
+        }
+        private List<double> Normalise(IEnumerable<int> vals, bool invert = false)
+        {
+            return Normalise(vals.Select(x => (double)x), invert);
+        }
+
+        private List<double> CumSum(IEnumerable<double> vals)
+        {
+            double sum = 0;
+            return vals.Select(w => sum += w).ToList();
         }
 
         private List<double> Normalise(IEnumerable<double> vals, bool invert = false)

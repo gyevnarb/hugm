@@ -147,12 +147,19 @@
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
                             <Label Content="Sampling:"></Label>
-                            <ComboBox x:Name="cmbMethod" Width="90"></ComboBox>
+                            <ComboBox x:Name="cmbMethod" Width="90" SelectionChanged="cmbMethod_SelectionChanged"></ComboBox>
+                        </StackPanel>
+                        <StackPanel x:Name="stkParty" Orientation="Horizontal" Margin="0,5,0,0" Visibility="Collapsed">
+                            <Label Content="Party (p):"></Label>
+                            <ComboBox x:Name="cmbParty" Width="53" Margin="0,0,5,0"></ComboBox>
+                            <TextBox x:Name="txtPartyProb" Width="37" Text="0.5"></TextBox>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
                             <Label Content="Distribution:"></Label>
                             <ComboBox x:Name="cmbDist" Width="77"></ComboBox>
                         </StackPanel>
+                        <CheckBox x:Name="chkInvert" IsChecked="False" Content="Invert Sampling Dist." Margin="5,5,0,0"></CheckBox>
+                        <CheckBox x:Name="chkSelected" IsChecked="True" Content="Exclude Atjelentkezes" Margin="5,5,0,0"></CheckBox>
                         <Button x:Name="btnRunRandomWalk" Content="Run" Margin="5,5,0,0" Click="btnRunRandomWalk_Click"></Button>
                         <Label Content="Estimated District Selection:"></Label>
                         <ComboBox x:Name="cmbDistrict" Margin="5, 0, 3, 0"></ComboBox>
