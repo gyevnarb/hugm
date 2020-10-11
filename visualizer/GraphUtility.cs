@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Media.Converters;
 
 namespace visualizer
 {
@@ -27,6 +28,7 @@ namespace visualizer
     {
         public double[] results;
         public int winner;
+        public double wrongDistrictPercentage;
     }
 
     public class GenerationResult
@@ -277,10 +279,11 @@ namespace visualizer
                     for (int i = 0; i < 18; ++i)
                     {
                         var eres = new ElectDistrictResult();
-                        eres.results = new double[4] {  double.Parse(splitted[offset + stride * i + 1]),
-                                                        double.Parse(splitted[offset + stride * i + 2]),
+                        eres.wrongDistrictPercentage = double.Parse(splitted[offset + stride * i + 1]);
+                        eres.results = new double[4] {  double.Parse(splitted[offset + stride * i + 2]),
                                                         double.Parse(splitted[offset + stride * i + 3]),
-                                                        double.Parse(splitted[offset + stride * i + 4])};
+                                                        double.Parse(splitted[offset + stride * i + 4]),
+                                                        double.Parse(splitted[offset + stride * i + 5])};
                         eres.winner = 0; // maximum index a winnerbe
                         for (int j = 0; j < eres.results.Length; ++j)
                         {
@@ -344,8 +347,19 @@ namespace visualizer
             float jobbik = results.Count(x => x.Gyoztes == "Jobbik");
             float lmp = results.Count(x => x.Gyoztes == "LMP");
 
-            string text = $"0.2;{_seed};{valid15};{valid20};{fideszkdnp};{osszefogas};{jobbik};{lmp};{similarity}";
-            foreach (var se in results) text += $";{se.Gyoztes};{(float)se.FideszKDNP / (float)se.Megjelent};{(float)se.Osszefogas / (float)se.Megjelent};{(float)se.Jobbik / (float)se.Megjelent};{(float)se.LMP / (float)se.Megjelent}";
+            var rr = new RandomWalkSimulation(graph, SamplingMethod.UNIFORM, 5, 1000, true, false);
+            rr.Simulate();
+            var ra = new RandomWalkAnalysis(rr, DistCalcMethod.OCCURENCE_CNT, 18);
+            var wrongDistrictNum = ra.NumWrongDistrict(PlotCalculationMethod.MAP);
+
+            string text = $"0.3;{_seed};{valid15};{valid20};{fideszkdnp};{osszefogas};{jobbik};{lmp};{similarity}";
+            for (int i = 0; i < 18; ++i)
+            {
+                var se = results[i];
+                var vn = wrongDistrictNum[i].Item1;
+
+                text += $";{se.Gyoztes};{vn};{(float)se.FideszKDNP / (float)se.Megjelent};{(float)se.Osszefogas / (float)se.Megjelent};{(float)se.Jobbik / (float)se.Megjelent};{(float)se.LMP / (float)se.Megjelent}";
+            }
             return text;
         }
 

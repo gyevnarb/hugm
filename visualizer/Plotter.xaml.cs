@@ -22,7 +22,8 @@ namespace visualizer
             {"WinnerRates", (plot, stat) => plot.PlotWinnerRates(stat) },
             {"AvgWinnerRate", (plot, stat) => plot.PlotAverageWinnerRate(stat) },
             {"WinnerWins", (plot, stat) => plot.PlotWinnerWins(stat) },
-            {"FideszWins", (plot, stat) => plot.PlotFideszWins(stat) }
+            {"FideszWins", (plot, stat) => plot.PlotFideszWins(stat) },
+            {"AvgWrongAreaRate", (plot, stat) => plot.PlotAverageWrongPlaces(stat) }
         };
 
         public static List<string> Plots
@@ -59,6 +60,27 @@ namespace visualizer
         public void PlotAverageWinnerRate(Stats stats)
         {
             var yaxis = stats.generationResults.Select(r => r.result.Average(x => x.results[r.winner])).OrderByDescending(x => x).ToArray();
+            var xaxis = Enumerable.Range(1, yaxis.Length).Select(x => (double)x).ToArray();
+
+            plot1.plt.PlotScatter(xaxis, yaxis);
+
+            var hs = stats.baseResult.result.Average(x => x.results[stats.baseResult.winner]);
+
+            for (int i = 0; i < yaxis.Length; ++i)
+            {
+                if (hs > yaxis[i])
+                {
+                    plot1.plt.PlotPoint(i + 1, hs, color: System.Drawing.Color.Red, markerSize: 8);
+                    break;
+                }
+            }
+
+            plot1.Render();
+        }
+
+        public void PlotAverageWrongPlaces(Stats stats)
+        {
+            var yaxis = stats.generationResults.Select(r => r.result.Average(x => x.wrongDistrictPercentage)).OrderByDescending(x => x).ToArray();
             var xaxis = Enumerable.Range(1, yaxis.Length).Select(x => (double)x).ToArray();
 
             plot1.plt.PlotScatter(xaxis, yaxis);
