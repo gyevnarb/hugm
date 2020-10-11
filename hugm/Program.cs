@@ -15,16 +15,19 @@ namespace hugm
         {
             CultureInfo.CurrentCulture = new CultureInfo("en-US");
 
-            //Graph g = AreaUtils.Load("map.bin");
-            //File.WriteAllText("graph.json", g.ToJSON());
-            //RandomWalkSimulation simulation = new RandomWalkSimulation(g, SamplingMethod.UNIFORM, 5, 1000);
-            //simulation.Simulate();
-            //RandomWalkAnalysis analysis = new RandomWalkAnalysis(simulation);
+            Graph g = AreaUtils.Load("data/map.bin");
+            RandomWalkSimulation simulation = new RandomWalkSimulation(g, SamplingMethod.UNIFORM, 5, 100, false, false);
+            var watch = System.Diagnostics.Stopwatch.StartNew();
+            simulation.Simulate();
+            watch.Stop();
+            var elapsedMs = watch.ElapsedMilliseconds;
+            Console.WriteLine($"Code run in {elapsedMs}");
+            RandomWalkAnalysis analysis = new RandomWalkAnalysis(simulation, DistCalcMethod.OCCURENCE_CNT);
             //File.WriteAllText("dist.json", analysis.Distribution.DistributionToJSON());
             //File.WriteAllText("MAP.json", analysis.MAPDistrict.ToJSON());
             //File.WriteAllText("expected.json", analysis.ExpectedDistrict.ToJSON());
             //File.WriteAllText("std.json", analysis.StandardDeviationDistrict.ToJSON());
-            //Console.ReadLine();
+            Console.ReadLine();
         }
 
         private static void MergeDistricts()
