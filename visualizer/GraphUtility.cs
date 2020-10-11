@@ -55,6 +55,11 @@ namespace visualizer
         public bool invert;
     }
 
+    public class BatchedGenerationProgress
+    {
+        public int done, all;
+    }
+
     public class GraphUtility
     {
 
@@ -472,11 +477,11 @@ namespace visualizer
                     Interlocked.Increment(ref cc);
                     if (cc % 1 == 0)
                     {
-                        bgw.ReportProgress((int)((double)(cc) / (double)(count) * 100));
+                        bgw.ReportProgress((int)((double)(cc) / (double)(count) * 100), new BatchedGenerationProgress() { done = cc, all = count });
                     }
                 });
 
-                File.WriteAllLines(System.IO.Path.Combine(folder, "generated.stat"), perThreadStat.Values.Select(x => x.ToString()));
+                File.WriteAllText(System.IO.Path.Combine(folder, "generated.stat"), perThreadStat.Values.Select(x => x.ToString()).Aggregate((partialPhrase, word) => $"{partialPhrase} {word}"));
             };
             bgw.RunWorkerAsync();
         }

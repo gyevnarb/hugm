@@ -279,7 +279,16 @@ namespace visualizer
         
         public void ShowGraph(bool force = false)
         {
-            if (!graphUtil.ValidGraph()) return;
+            if (!graphUtil.ValidGraph())
+            {
+                FileLoadHandler(this, null);
+
+                if (!graphUtil.ValidGraph())
+                {
+                    lblLoadedGraphPath.Text = "Graph is not loaded. Please load a graph through the file menu.";
+                    return;
+                }
+            }
             if (!force && !autoUiRefresh.IsChecked) return;
 
             var MyGraph = graphUtil.MyGraph;
@@ -497,7 +506,16 @@ namespace visualizer
 
         private void FileSaveHandler(object sender, RoutedEventArgs e)
         {
-            if (!graphUtil.ValidGraph()) return;
+            if (!graphUtil.ValidGraph())
+            {
+                FileLoadHandler(this, null);
+
+                if (!graphUtil.ValidGraph())
+                {
+                    lblLoadedGraphPath.Text = "Graph is not loaded. Please load a graph through the file menu.";
+                    return;
+                }
+            }
 
             SaveFileDialog saveFileDialog = new SaveFileDialog();
             saveFileDialog.Filter = "Graph (*.bin)|*.bin";
@@ -514,7 +532,16 @@ namespace visualizer
 
         private void RunMCRedistrictingHandler(object sender, RoutedEventArgs e)
         {
-            if (!graphUtil.ValidGraph()) return;
+            if (!graphUtil.ValidGraph())
+            {
+                FileLoadHandler(this, null);
+
+                if (!graphUtil.ValidGraph())
+                {
+                    lblLoadedGraphPath.Text = "Graph is not loaded. Please load a graph through the file menu.";
+                    return;
+                }
+            }
 
             RSimSettings settings = new RSimSettings();
             settings.ShowDialog();
@@ -524,7 +551,16 @@ namespace visualizer
 
         private void RunRandomDistrictGrowthHandler(object sender, RoutedEventArgs e)
         {
-            if (!graphUtil.ValidGraph()) return;
+            if (!graphUtil.ValidGraph())
+            {
+                FileLoadHandler(this, null);
+
+                if (!graphUtil.ValidGraph())
+                {
+                    lblLoadedGraphPath.Text = "Graph is not loaded. Please load a graph through the file menu.";
+                    return;
+                }
+            }
 
             graphUtil.GenerateRandomElectoralDistrictSystem(DateTime.Now.Ticks, graphUtil.MyGraph);
             undoActions.Clear();
@@ -533,7 +569,16 @@ namespace visualizer
 
         private void InfoStatisticsHandler(object sender, RoutedEventArgs e)
         {
-            if (!graphUtil.ValidGraph()) return;
+            if (!graphUtil.ValidGraph())
+            {
+                FileLoadHandler(this, null);
+
+                if (!graphUtil.ValidGraph())
+                {
+                    lblLoadedGraphPath.Text = "Graph is not loaded. Please load a graph through the file menu.";
+                    return;
+                }
+            }
 
             string stat = graphUtil.GetStatistics(graphUtil.MyGraph);
             MessageBox.Show(stat);
@@ -541,7 +586,16 @@ namespace visualizer
 
         private void ToolsSaveImageHandler(object sender, RoutedEventArgs e)
         {
-            if (!graphUtil.ValidGraph()) return;
+            if (!graphUtil.ValidGraph())
+            {
+                FileLoadHandler(this, null);
+
+                if (!graphUtil.ValidGraph())
+                {
+                    lblLoadedGraphPath.Text = "Graph is not loaded. Please load a graph through the file menu.";
+                    return;
+                }
+            }
 
             SaveFileDialog saveFileDialog = new SaveFileDialog();
             saveFileDialog.Filter = "PNG Image (*.png)|*.png";
@@ -566,7 +620,16 @@ namespace visualizer
 
         private void GenerationStartHandler(object sender, RoutedEventArgs e)
         {
-            if (!graphUtil.ValidGraph()) return;
+            if (!graphUtil.ValidGraph())
+            {
+                FileLoadHandler(this, null);
+
+                if (!graphUtil.ValidGraph())
+                {
+                    lblLoadedGraphPath.Text = "Graph is not loaded. Please load a graph through the file menu.";
+                    return;
+                }
+            }
 
             var rwp = new RandomWalkParams();
             rwp.numRun = int.Parse(txtNumRuns.Text);
@@ -577,9 +640,21 @@ namespace visualizer
             rwp.excludeSelected = chkSelected.IsChecked.Value;
             rwp.invert = chkInvert.IsChecked.Value;
 
-            graphUtil.StartBatchedGeneration(txFolder.Text, int.Parse(txSeed.Text), int.Parse(txCount.Text), ObjectCopier.Clone(graphUtil.MyGraph), rwp,
-                (s, ee) => progressbar.Value = ee.ProgressPercentage,
-                (s, ee) => progressbar.Value = 0);
+            int count = int.Parse(txCount.Text);
+
+            graphUtil.StartBatchedGeneration(txFolder.Text, int.Parse(txSeed.Text), count, ObjectCopier.Clone(graphUtil.MyGraph), rwp,
+                (s, ee) =>
+                {
+                    progressbar.Value = ee.ProgressPercentage;
+                    var prg = ee.UserState as BatchedGenerationProgress;
+                    lblLoadedGraphPath.Text = $"Completed {prg.done}/{prg.all} generations.";
+                },
+                (s, ee) => 
+                {
+                    progressbar.Value = 0;
+                    lblLoadedGraphPath.Text = $"Finished {count} generations.";
+                });
+            lblLoadedGraphPath.Text = $"Started {count} generations.";
         }
 
         private void Button_Click_LoadStats(object sender, RoutedEventArgs e)
@@ -598,7 +673,11 @@ namespace visualizer
             }
 
             graphUtil.LoadStats(txStatFolder.Text);
-            if (graphUtil.MyStats == null) return;
+            if (graphUtil.MyStats == null)
+            {
+                lblLoadedGraphPath.Text = $"Could not load stats from {txStatFolder.Text}. Maybe it does not exist or it is not correct relative to your working directory.";
+                return;
+            }
 
             plotCombo.IsEnabled = true;
             plotBtn.IsEnabled = true;
@@ -608,7 +687,16 @@ namespace visualizer
 
         private void btnRunRandomWalk_Click(object sender, RoutedEventArgs e)
         {
-            if (!graphUtil.ValidGraph()) return;
+            if (!graphUtil.ValidGraph())
+            {
+                FileLoadHandler(this, null);
+
+                if (!graphUtil.ValidGraph())
+                {
+                    lblLoadedGraphPath.Text = "Graph is not loaded. Please load a graph through the file menu.";
+                    return;
+                }
+            }
 
             int numRun = int.Parse(txtNumRuns.Text);
             int walkLen = int.Parse(txtLenWalk.Text);
