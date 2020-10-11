@@ -207,7 +207,6 @@ namespace hugm.graph
                         var districtError = filterByDistrict.Select(kv => 1 - kv.Value[i]).ToList();
                         var muError = districtError.Sum() / districtError.Count;
                         var errorStd = Math.Sqrt(districtError.Select(x => Math.Pow(x - muError, 2) / districtError.Count).Sum());
-                        var testerror = np.std(np.array(districtError));
                         rtn.Add((muError, errorStd));
                     }
                     break;
@@ -292,17 +291,10 @@ namespace hugm.graph
             {
                 Node current = Path.Last.Value;
                 Node previous = Path.Last == Path.First ? Node.EmptyNode : Path.Last.Previous.Value;
-
-                try
-                {
-                    Node next = Sample(current, previous);
-                    Path.AddLast(next);
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e.Message);
+                Node next = Sample(current, previous);
+                if (next == Node.EmptyNode)
                     break;
-                }
+                Path.AddLast(next);
             }
         }
 
@@ -316,13 +308,16 @@ namespace hugm.graph
             if (ExcludeSelected)
                 adjacents = adjacents.Where(n => !(n as AreaNode).Atjelentkezes).ToList();
             if (adjacents.Count == 0)
-                throw new Exception($"No valid node is available for {node} with previous {previous}!");
+                return Node.EmptyNode;
             else if (adjacents.Count == 1)
                 return adjacents[0];
 
             double x = node.X;
             double y = node.Y;
             
+            if (Method == SamplingMethod.UNIFORM)
+                return UniformSample(adjacents);
+
             // Assign probability to selected party and distribute the rest equally
             var w = new List<double> { 0, 0, 0, 0 };
             w[(int)Party] = PartyProbability;
@@ -344,8 +339,6 @@ namespace hugm.graph
                 IEnumerable<double> vals = null;
                 switch (Method)
                 {
-                    case SamplingMethod.UNIFORM:
-                        return UniformSample(adjacents);
                     case SamplingMethod.DISTANCE:
                         vals = adjacents.Select(n => Math.Sqrt(Math.Pow(x - n.X, 2) + Math.Pow(y - n.Y, 2)));
                         break;
