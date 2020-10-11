@@ -568,7 +568,16 @@ namespace visualizer
         {
             if (!graphUtil.ValidGraph()) return;
 
-            graphUtil.StartBatchedGeneration(txFolder.Text, int.Parse(txSeed.Text), int.Parse(txCount.Text), ObjectCopier.Clone(graphUtil.MyGraph),
+            var rwp = new RandomWalkParams();
+            rwp.numRun = int.Parse(txtNumRuns.Text);
+            rwp.walkLen = int.Parse(txtLenWalk.Text);
+            rwp.method = (SamplingMethod)cmbMethod.SelectedItem;
+            rwp.party = (Parties)cmbParty.SelectedItem;
+            rwp.partyProb = double.Parse(txtPartyProb.Text);
+            rwp.excludeSelected = chkSelected.IsChecked.Value;
+            rwp.invert = chkInvert.IsChecked.Value;
+
+            graphUtil.StartBatchedGeneration(txFolder.Text, int.Parse(txSeed.Text), int.Parse(txCount.Text), ObjectCopier.Clone(graphUtil.MyGraph), rwp,
                 (s, ee) => progressbar.Value = ee.ProgressPercentage,
                 (s, ee) => progressbar.Value = 0);
         }

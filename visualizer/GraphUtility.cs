@@ -44,6 +44,17 @@ namespace visualizer
         public List<GenerationResult> generationResults = new List<GenerationResult>();
     }
 
+    public struct RandomWalkParams
+    {
+        public int numRun;
+        public int walkLen;
+        public SamplingMethod method;
+        public Parties party;
+        public double partyProb;
+        public bool excludeSelected;
+        public bool invert;
+    }
+
     public class GraphUtility
     {
 
@@ -275,7 +286,7 @@ namespace visualizer
                     else if (lmp >= fidesz && lmp >= jobbik && lmp >= osszefogas)
                         result.winner = 3;
 
-                    int offset = 9, stride = 5;
+                    int offset = 9, stride = 6;
                     for (int i = 0; i < 18; ++i)
                     {
                         var eres = new ElectDistrictResult();
@@ -308,7 +319,7 @@ namespace visualizer
             MyStats = s;
         }
 
-        public string ToStat(Graph graph, List<int> origElectSettings)
+        public string ToStat(Graph graph, List<int> origElectSettings, RandomWalkParams rwp)
         {
             if (graph == null) return "";
 
@@ -347,7 +358,13 @@ namespace visualizer
             float jobbik = results.Count(x => x.Gyoztes == "Jobbik");
             float lmp = results.Count(x => x.Gyoztes == "LMP");
 
-            var rr = new RandomWalkSimulation(graph, SamplingMethod.UNIFORM, 5, 1000, true, false);
+            // random walk
+            var rr = new RandomWalkSimulation(graph, rwp.method, rwp.walkLen, rwp.numRun, rwp.excludeSelected, rwp.invert);
+            if (rwp.method == SamplingMethod.PREFER_PARTY)
+            {
+                rr.PartyPreference = rwp.party;
+                rr.PartyProbability = rwp.partyProb;
+            }
             rr.Simulate();
             var ra = new RandomWalkAnalysis(rr, DistCalcMethod.OCCURENCE_CNT, 18);
             var wrongDistrictNum = ra.NumWrongDistrict(PlotCalculationMethod.MAP);
@@ -363,9 +380,9 @@ namespace visualizer
             return text;
         }
 
-        public void SaveAsStat(string filename, Graph graph, List<int> origElectSettings)
+        public void SaveAsStat(string filename, Graph graph, List<int> origElectSettings, RandomWalkParams rwp)
         {
-            System.IO.File.WriteAllText(filename, ToStat(graph, origElectSettings));
+            System.IO.File.WriteAllText(filename, ToStat(graph, origElectSettings, rwp));
         }
 
         public string GetStatistics(Graph graph)
@@ -419,7 +436,7 @@ namespace visualizer
             return sss;
         }
 
-        public void StartBatchedGeneration(string folder, int startSeed, int count, Graph originalGraph, ProgressChangedEventHandler workHandler, RunWorkerCompletedEventHandler completeHandler)
+        public void StartBatchedGeneration(string folder, int startSeed, int count, Graph originalGraph, RandomWalkParams rwp, ProgressChangedEventHandler workHandler, RunWorkerCompletedEventHandler completeHandler)
         {
             bgw = new BackgroundWorker();
             bgw.WorkerReportsProgress = true;
@@ -441,19 +458,19 @@ namespace visualizer
 
             bgw.DoWork += (s, ee) =>
             {
-                SaveAsStat(System.IO.Path.Combine(folder, "base.stat"), originalGraph, origElectSettings);
+                SaveAsStat(System.IO.Path.Combine(folder, "base.stat"), originalGraph, origElectSettings, rwp);
 
                 Parallel.For(startSeed, end, (i) =>
                 {
                     var graph = ObjectCopier.Clone(originalGraph);
                     GenerateRandomElectoralDistrictSystem(i, graph);
-                    string stat = ToStat(graph, origElectSettings);
+                    string stat = ToStat(graph, origElectSettings, rwp);
 
                     if (!perThreadStat.IsValueCreated) perThreadStat.Value = new StringBuilder();
                     perThreadStat.Value.AppendLine(stat);
 
                     Interlocked.Increment(ref cc);
-                    if (cc % 100 == 0)
+                    if (cc % 1 == 0)
                     {
                         bgw.ReportProgress((int)((double)(cc) / (double)(count) * 100));
                     }

@@ -35,139 +35,143 @@
                     <Separator />
                 </MenuItem>
             </Menu>
-            <TabControl DockPanel.Dock="Right" HorizontalAlignment="Right" Width="162">
-                <TabItem Header="Area Info">
-                    <ScrollViewer>
+            <DockPanel DockPanel.Dock="Right" HorizontalAlignment="Right" Width="200">
+                <TabControl DockPanel.Dock="Top">
+                    <TabItem Header="Area Info">
+                        <ScrollViewer>
+                            <StackPanel Orientation="Vertical">
+                                <ComboBox x:Name="comboo" SelectionChanged="ComboBox_SelectionChanged"></ComboBox>
+                                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                    <Label>Fidesz-KDNP:</Label>
+                                    <Label x:Name="fideszKdnp" ></Label>
+                                </StackPanel>
+                                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                    <Label>Osszefogas:</Label>
+                                    <Label x:Name="osszefogas"></Label>
+                                </StackPanel>
+                                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                    <Label>Jobbik:</Label>
+                                    <Label x:Name="jobbik"></Label>
+                                </StackPanel>
+                                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                    <Label>LMP:</Label>
+                                    <Label x:Name="lmp"></Label>
+                                </StackPanel>
+                                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                    <Label>Megjelent:</Label>
+                                    <Label x:Name="megjelent"></Label>
+                                </StackPanel>
+                                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                    <Label>Osszes:</Label>
+                                    <Label x:Name="osszes"></Label>
+                                </StackPanel>
+                                <Separator></Separator>
+                                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                    <Label>Electoral District:</Label>
+                                    <Label x:Name="electDistrict"></Label>
+                                </StackPanel>
+                                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                    <Label>City District:</Label>
+                                    <Label x:Name="cityDistrict"></Label>
+                                </StackPanel>
+                                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                    <Label>Area Number:</Label>
+                                    <Label x:Name="areaNumber"></Label>
+                                </StackPanel>
+                                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                    <Label>Address:</Label>
+                                    <Label x:Name="adress"></Label>
+                                </StackPanel>
+                                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                    <Label>Atjelentkezes:</Label>
+                                    <CheckBox x:Name="atjelentkezes" VerticalAlignment="Center" IsEnabled="False"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </TabItem>
+                    <TabItem Header="Filtering">
                         <StackPanel Orientation="Vertical">
-                            <ComboBox x:Name="comboo" SelectionChanged="ComboBox_SelectionChanged"></ComboBox>
-                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                                <Label>Fidesz-KDNP:</Label>
-                                <Label x:Name="fideszKdnp" ></Label>
-                            </StackPanel>
-                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                                <Label>Osszefogas:</Label>
-                                <Label x:Name="osszefogas"></Label>
-                            </StackPanel>
-                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                                <Label>Jobbik:</Label>
-                                <Label x:Name="jobbik"></Label>
-                            </StackPanel>
-                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                                <Label>LMP:</Label>
-                                <Label x:Name="lmp"></Label>
-                            </StackPanel>
-                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                                <Label>Megjelent:</Label>
-                                <Label x:Name="megjelent"></Label>
-                            </StackPanel>
-                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                                <Label>Osszes:</Label>
-                                <Label x:Name="osszes"></Label>
-                            </StackPanel>
-                            <Separator></Separator>
-                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                                <Label>Electoral District:</Label>
-                                <Label x:Name="electDistrict"></Label>
-                            </StackPanel>
-                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                                <Label>City District:</Label>
-                                <Label x:Name="cityDistrict"></Label>
-                            </StackPanel>
-                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                                <Label>Area Number:</Label>
-                                <Label x:Name="areaNumber"></Label>
-                            </StackPanel>
-                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                                <Label>Address:</Label>
-                                <Label x:Name="adress"></Label>
-                            </StackPanel>
-                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                                <Label>Atjelentkezes:</Label>
-                                <CheckBox x:Name="atjelentkezes" VerticalAlignment="Center" IsEnabled="False"/>
-                            </StackPanel>
+                            <DockPanel DockPanel.Dock="Right" Margin="0,5,0,0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Height="Auto" >
+                                <Label>District:</Label>
+                                <ComboBox SelectionChanged="FilterDistrict_SelectionChanged" x:Name="filterDistrict"/>
+                            </DockPanel>
+                            <DockPanel DockPanel.Dock="Right" Margin="0,5,0,0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Height="Auto" >
+                                <Label>Electorial:</Label>
+                                <ComboBox SelectionChanged="FilterElectorialIze_SelectionChanged" x:Name="filterElectorialIze" />
+                            </DockPanel>
                         </StackPanel>
-                    </ScrollViewer>
-                </TabItem>
-                <TabItem Header="Filtering">
-                    <StackPanel Orientation="Vertical">
-                        <DockPanel DockPanel.Dock="Right" Margin="0,5,0,0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Height="Auto" >
-                            <Label>District:</Label>
-                            <ComboBox SelectionChanged="FilterDistrict_SelectionChanged" x:Name="filterDistrict"/>
-                        </DockPanel>
-                        <DockPanel DockPanel.Dock="Right" Margin="0,5,0,0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Height="Auto" >
-                            <Label>Electorial:</Label>
-                            <ComboBox SelectionChanged="FilterElectorialIze_SelectionChanged" x:Name="filterElectorialIze" />
-                        </DockPanel>
-                    </StackPanel>
-                </TabItem>
-                <TabItem Header="Generation">
-                    <StackPanel Orientation="Vertical">
-                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Margin="0,5">
-                            <Label>Start seed:</Label>
-                            <TextBox x:Name="txSeed" PreviewTextInput="NumberValidationTextBox" Margin="0,0,5,0" Width="85" TextAlignment="Center" VerticalContentAlignment="Center"/>
+                    </TabItem>
+                    <TabItem Header="Generation">
+                        <StackPanel Orientation="Vertical">
+                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Margin="0,5">
+                                <Label>Start seed:</Label>
+                                <TextBox x:Name="txSeed" PreviewTextInput="NumberValidationTextBox" Margin="0,0,5,0" Width="85" TextAlignment="Center" VerticalContentAlignment="Center"/>
+                            </StackPanel>
+                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Margin="0,0,0,5">
+                                <Label Content="Count:"/>
+                                <TextBox x:Name="txCount" PreviewTextInput="NumberValidationTextBox" Width="100" Margin="5,0,0,0" TextAlignment="Center" VerticalContentAlignment="Center"/>
+                            </StackPanel>
+                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Margin="0,0,0,5">
+                                <Label>Folder:</Label>
+                                <TextBox x:Name="txFolder" Width="99" Margin="5,0,0,0" TextAlignment="Center" VerticalContentAlignment="Center" />
+                            </StackPanel>
+                            <DockPanel DockPanel.Dock="Right" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Height="Auto" >
+                                <Button Click="GenerationStartHandler" Width="50">Start</Button>
+                                <ProgressBar x:Name="progressbar" Margin="5,0" />
+                            </DockPanel>
                         </StackPanel>
-                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Margin="0,0,0,5">
-                            <Label Content="Count:"/>
-                            <TextBox x:Name="txCount" PreviewTextInput="NumberValidationTextBox" Width="100" Margin="5,0,0,0" TextAlignment="Center" VerticalContentAlignment="Center"/>
+                    </TabItem>
+                    <TabItem Header="Stats">
+                        <StackPanel Orientation="Vertical">
+                            <DockPanel DockPanel.Dock="Right" Margin="0,5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Height="Auto" >
+                                <Label>Folder:</Label>
+                                <TextBox x:Name="txStatFolder" Margin="0,0,5,0" TextAlignment="Center" VerticalContentAlignment="Center"/>
+                            </DockPanel>
+                            <DockPanel DockPanel.Dock="Right" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Height="Auto" >
+                                <Button Click="Button_Click_LoadStats" Margin="5,0">Load</Button>
+                            </DockPanel>
+                            <DockPanel DockPanel.Dock="Right" Margin="0,5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Height="Auto" >
+                                <ComboBox IsEnabled="false" x:Name="plotCombo" Margin="5,0"></ComboBox>
+                                <Button IsEnabled="false" x:Name="plotBtn" Margin="5,0" Click="Button_Click_PlotGraph">Plot</Button>
+                            </DockPanel>
                         </StackPanel>
-                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Margin="0,0,0,5">
-                            <Label>Folder:</Label>
-                            <TextBox x:Name="txFolder" Width="99" Margin="5,0,0,0" TextAlignment="Center" VerticalContentAlignment="Center" />
+                    </TabItem>
+                </TabControl>
+                <TabControl DockPanel.Dock="Bottom">
+                    <TabItem Header="Random Walk">
+                        <StackPanel Orientation="Vertical">
+                            <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+                                <Label Content="Runs:"></Label>
+                                <TextBox x:Name="txtNumRuns" Width="115" Text="1000" TextAlignment="Center" VerticalContentAlignment="Center"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+                                <Label Content="Length:"></Label>
+                                <TextBox x:Name="txtLenWalk" Width="104" Text="5" TextAlignment="Center" VerticalContentAlignment="Center" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+                                <Label Content="Sampling:"></Label>
+                                <ComboBox x:Name="cmbMethod" Width="90" SelectionChanged="cmbMethod_SelectionChanged"></ComboBox>
+                            </StackPanel>
+                            <StackPanel x:Name="stkParty" Orientation="Horizontal" Margin="0,5,0,0" Visibility="Collapsed">
+                                <Label Content="Party (p):"></Label>
+                                <ComboBox x:Name="cmbParty" Width="53" Margin="0,0,5,0"></ComboBox>
+                                <TextBox x:Name="txtPartyProb" Width="37" Text="0.5"></TextBox>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+                                <Label Content="Distribution:"></Label>
+                                <ComboBox x:Name="cmbDist" Width="77"></ComboBox>
+                            </StackPanel>
+                            <CheckBox x:Name="chkInvert" IsChecked="False" Content="Invert Sampling Dist." Margin="5,5,0,0"></CheckBox>
+                            <CheckBox x:Name="chkSelected" IsChecked="True" Content="Exclude Atjelentkezes" Margin="5,5,0,0"></CheckBox>
+                            <Button x:Name="btnRunRandomWalk" Content="Run" Margin="5,5,0,0" Click="btnRunRandomWalk_Click"></Button>
+                            <Label Content="Estimated District Selection:"></Label>
+                            <ComboBox x:Name="cmbDistrict" Margin="5, 0, 3, 0"></ComboBox>
+                            <Button x:Name="btnPlotErrors" Content="Plot Wrong Districts" Margin="5,5,0,0" Click="btnPlotErrors_Click"></Button>
+                            <Button x:Name="btnPlotDistribution" Content="Plot Distributions" Margin="5,5,0,0" Click="btnPlotDistributions_Click"></Button>
                         </StackPanel>
-                        <DockPanel DockPanel.Dock="Right" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Height="Auto" >
-                            <Button Click="GenerationStartHandler" Width="50">Start</Button>
-                            <ProgressBar x:Name="progressbar" Margin="5,0" />
-                        </DockPanel>
-                    </StackPanel>
-                </TabItem>
-                <TabItem Header="Stats">
-                    <StackPanel Orientation="Vertical">
-                        <DockPanel DockPanel.Dock="Right" Margin="0,5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Height="Auto" >
-                            <Label>Folder:</Label>
-                            <TextBox x:Name="txStatFolder" Margin="0,0,5,0" TextAlignment="Center" VerticalContentAlignment="Center"/>
-                        </DockPanel>
-                        <DockPanel DockPanel.Dock="Right" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Height="Auto" >
-                            <Button Click="Button_Click_LoadStats" Margin="5,0">Load</Button>
-                        </DockPanel>
-                        <DockPanel DockPanel.Dock="Right" Margin="0,5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Height="Auto" >
-                            <ComboBox IsEnabled="false" x:Name="plotCombo" Margin="5,0"></ComboBox>
-                            <Button IsEnabled="false" x:Name="plotBtn" Margin="5,0" Click="Button_Click_PlotGraph">Plot</Button>
-                        </DockPanel>
-                    </StackPanel>
-                </TabItem>
-                <TabItem Header="Random Walk">
-                    <StackPanel Orientation="Vertical">
-                        <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
-                            <Label Content="Runs:"></Label>
-                            <TextBox x:Name="txtNumRuns" Width="115" Text="1000" TextAlignment="Center" VerticalContentAlignment="Center"/>
-                        </StackPanel>
-                        <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
-                            <Label Content="Length:"></Label>
-                            <TextBox x:Name="txtLenWalk" Width="104" Text="5" TextAlignment="Center" VerticalContentAlignment="Center" />
-                        </StackPanel>
-                        <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
-                            <Label Content="Sampling:"></Label>
-                            <ComboBox x:Name="cmbMethod" Width="90" SelectionChanged="cmbMethod_SelectionChanged"></ComboBox>
-                        </StackPanel>
-                        <StackPanel x:Name="stkParty" Orientation="Horizontal" Margin="0,5,0,0" Visibility="Collapsed">
-                            <Label Content="Party (p):"></Label>
-                            <ComboBox x:Name="cmbParty" Width="53" Margin="0,0,5,0"></ComboBox>
-                            <TextBox x:Name="txtPartyProb" Width="37" Text="0.5"></TextBox>
-                        </StackPanel>
-                        <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
-                            <Label Content="Distribution:"></Label>
-                            <ComboBox x:Name="cmbDist" Width="77"></ComboBox>
-                        </StackPanel>
-                        <CheckBox x:Name="chkInvert" IsChecked="False" Content="Invert Sampling Dist." Margin="5,5,0,0"></CheckBox>
-                        <CheckBox x:Name="chkSelected" IsChecked="True" Content="Exclude Atjelentkezes" Margin="5,5,0,0"></CheckBox>
-                        <Button x:Name="btnRunRandomWalk" Content="Run" Margin="5,5,0,0" Click="btnRunRandomWalk_Click"></Button>
-                        <Label Content="Estimated District Selection:"></Label>
-                        <ComboBox x:Name="cmbDistrict" Margin="5, 0, 3, 0"></ComboBox>
-                        <Button x:Name="btnPlotErrors" Content="Plot Wrong Districts" Margin="5,5,0,0" Click="btnPlotErrors_Click"></Button>
-                        <Button x:Name="btnPlotDistribution" Content="Plot Distributions" Margin="5,5,0,0" Click="btnPlotDistributions_Click"></Button>
-                    </StackPanel>
-                </TabItem>
-            </TabControl>
+                    </TabItem>
+                </TabControl>
+            </DockPanel>
             <DockPanel DockPanel.Dock="Bottom" Grid.ColumnSpan="2">
                 <StatusBar DockPanel.Dock="Bottom" Height="auto" Background="White">
                     <StatusBarItem>

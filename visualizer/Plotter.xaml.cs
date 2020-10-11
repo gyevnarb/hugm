@@ -85,7 +85,7 @@ namespace visualizer
 
             plot1.plt.PlotScatter(xaxis, yaxis);
 
-            var hs = stats.baseResult.result.Average(x => x.results[stats.baseResult.winner]);
+            var hs = stats.baseResult.result.Average(x => x.wrongDistrictPercentage);
 
             for (int i = 0; i < yaxis.Length; ++i)
             {
