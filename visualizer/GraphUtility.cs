@@ -97,7 +97,7 @@ namespace visualizer
 
         public Stats MyStats { get; set; }
 
-        public void GenerateRandomElectoralDistrictSystem(long seed, Graph graph)
+        public async Task GenerateRandomElectoralDistrictSystem(long seed, Graph graph, Func<AreaNode, Task> nodeUpdatedHandler)
         {
             // 1. 18 Random node kivalasztasa, minden keruletbol egyet
             // 2. Novesztes egyelore nepesseg korlat betartasa nelkul
@@ -132,9 +132,11 @@ namespace visualizer
                     pop = p.Population,
                     id = p.ElectorialDistrict
                 });
+
+                await nodeUpdatedHandler?.Invoke(p);
             }
 
-            // TODO: +-20 at is figylemebe lehetne venni, akkora hiba meg torveny szeirnt belefer
+            // TODO: +-20 at is figylemebe lehetne venni, akkora hiba torveny szerint meg belefer
             int z = 0;
             while (z < graph.V.Count - 18)
             {
@@ -153,6 +155,8 @@ namespace visualizer
                         ujlista[i].pop += chosenNode.Population;
                         chosenNode.ElectorialDistrict = ujlista[i].id;
                         z++;
+
+                        await nodeUpdatedHandler?.Invoke(chosenNode);
                     }
                 }
             }
@@ -194,6 +198,8 @@ namespace visualizer
                             ujlista[j].pop -= n.Population;
                             n.ElectorialDistrict = ujlista[i].id;
                             done = true;
+
+                            await nodeUpdatedHandler?.Invoke(n);
                         }
                         l++;
                     }
@@ -239,6 +245,8 @@ namespace visualizer
 
                             n.ElectorialDistrict = ujlista[j].id;
                             done = true;
+
+                            await nodeUpdatedHandler?.Invoke(n);
                         }
                         l++;
                     }
@@ -468,7 +476,7 @@ namespace visualizer
                 Parallel.For(startSeed, end, (i) =>
                 {
                     var graph = ObjectCopier.Clone(originalGraph);
-                    GenerateRandomElectoralDistrictSystem(i, graph);
+                    GenerateRandomElectoralDistrictSystem(i, graph, null).Wait();
                     string stat = ToStat(graph, origElectSettings, rwp);
 
                     if (!perThreadStat.IsValueCreated) perThreadStat.Value = new StringBuilder();

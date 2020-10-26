@@ -14,7 +14,6 @@ using System.Linq;
 using Microsoft.Win32;
 using System.IO;
 using System.Threading.Tasks;
-using System.Timers;
 using ScottPlot;
 
 namespace visualizer
@@ -39,6 +38,8 @@ namespace visualizer
         private Brush nodeHighlightedColor = Brushes.Blue;
         private Brush lineBaseColor = Brushes.DarkSlateGray;
         private Brush selectionBorderBaseColor = Brushes.Black;
+        private Brush unassignedNodeColor = Brushes.Ivory;
+        private Brush nodeBorderColor = Brushes.Black;
 
         private Brush[] nodeBrushes =
         {
@@ -74,13 +75,15 @@ namespace visualizer
 
         #endregion        
 
+        private double oldVotingAreaRadius = 10;
         private double VotingAreaRadius = 10;
         private double SelectionBorderThickness = 2;
         private double SelectionBorderMargin = 2;
         private double NeighbourhoodLineThickness = 2;
         private double ZoomScale = 10000;
+        private double AnimationSpeed = 50;
 
-        private Timer movementTimer;
+        private System.Timers.Timer movementTimer;
         private double HorizontalMoveDirection = 0;
         private double VerticalMoveDirection = 0;
         private double CameraMoveSpeed = 500;
@@ -104,7 +107,7 @@ namespace visualizer
         
         private void InitKeyHandlers()
         {
-            movementTimer = new Timer(1000f / 60f);
+            movementTimer = new System.Timers.Timer(1000f / 60f);
             movementTimer.Elapsed += (s, e) =>
             {
                 Dispatcher.Invoke(() =>
@@ -115,6 +118,7 @@ namespace visualizer
             };
             movementTimer.AutoReset = true;
             movementTimer.Start();
+            Closing += (s, e) => movementTimer.Stop();
 
             KeyUp += (s, e) =>
             {
@@ -295,6 +299,17 @@ namespace visualizer
 
             canvas.Children.Clear();
             associatedElems.Clear();
+
+            var img = new System.Windows.Controls.Image();
+            img.Source = new BitmapImage(new Uri(Environment.CurrentDirectory + @"\budapest.png"));
+            img.Width = 1200 * 6;
+            img.Height = 1132 * 6;
+            Canvas.SetTop(img, -2900);
+            Canvas.SetLeft(img, -1750);
+
+            canvas.Children.Add(img);
+            associatedElems.Add(new object()); // placeholder
+
             for (int i = 0; i < MyGraph.V.Count; ++i)
             {
                 var v = MyGraph.V[i];
@@ -402,6 +417,7 @@ namespace visualizer
             var sign = new Ellipse();
             sign.Width = VotingAreaRadius * 2;
             sign.Height = VotingAreaRadius * 2;
+            sign.Stroke = nodeBorderColor;
             Canvas.SetTop(sign, Y - VotingAreaRadius);
             Canvas.SetLeft(sign, X - VotingAreaRadius);
             Canvas.SetZIndex(sign, 2);
@@ -421,7 +437,7 @@ namespace visualizer
             nh.X2 = X2;
             nh.Y1 = Y1;
             nh.Y2 = Y2;
-            nh.Visibility = Visibility.Visible;
+            nh.Visibility = chShowConnections.IsChecked.Value ? Visibility.Visible : Visibility.Hidden;
             nh.Stroke = lineBaseColor;
             nh.StrokeThickness = NeighbourhoodLineThickness;
             Canvas.SetZIndex(nh, 1);
@@ -549,7 +565,7 @@ namespace visualizer
             ShowGraph();
         }
 
-        private void RunRandomDistrictGrowthHandler(object sender, RoutedEventArgs e)
+        private async void RunRandomDistrictGrowthHandler(object sender, RoutedEventArgs e)
         {
             if (!graphUtil.ValidGraph())
             {
@@ -562,9 +578,20 @@ namespace visualizer
                 }
             }
 
-            graphUtil.GenerateRandomElectoralDistrictSystem(DateTime.Now.Ticks, graphUtil.MyGraph);
+            foreach (var ss in canvas.Children)
+            {
+                if (ss is Ellipse) (ss as Ellipse).Fill = unassignedNodeColor;
+            }
+
+            lblLoadedGraphPath.Text = "Random generation started.";
+            if (!autoUiRefresh.IsChecked) await graphUtil.GenerateRandomElectoralDistrictSystem(DateTime.Now.Ticks, graphUtil.MyGraph, null);
+            else await graphUtil.GenerateRandomElectoralDistrictSystem(DateTime.Now.Ticks, graphUtil.MyGraph, async (x) =>
+            {
+                (canvas.Children[associatedElems.FindIndex(o => o == x)] as Ellipse).Fill = getColor(x.ElectorialDistrict);
+                await Task.Delay((int)AnimationSpeed);
+            });
+            lblLoadedGraphPath.Text = "Random generation completed succesfully.";
             undoActions.Clear();
-            ShowGraph();
         }
 
         private void InfoStatisticsHandler(object sender, RoutedEventArgs e)
@@ -803,6 +830,22 @@ namespace visualizer
                 stkParty.Visibility = Visibility.Visible;
         }
 
+        private void slAnimationSpeed_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            AnimationSpeed = 101 - e.NewValue;
+        }
+
+        private void slAreaSize_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            oldVotingAreaRadius = VotingAreaRadius;
+            VotingAreaRadius = e.NewValue;
+            updateNodes();
+        }
+
+        private void chShowConnections_Checked(object sender, RoutedEventArgs e)
+        {
+            updateFiltering();
+        }
         private void FilterDistrict_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             updateFiltering();
@@ -857,13 +900,40 @@ namespace visualizer
             System.IO.File.WriteAllBytes(path, ms.ToArray());
         }
 
+        private void updateNodes()
+        {
+            if (canvas == null) return;
+
+            foreach (var g in canvas.Children)
+            {
+                if (g is Ellipse)
+                {
+                    var e = g as Ellipse;
+                    e.Width = VotingAreaRadius * 2;
+                    e.Height = VotingAreaRadius * 2;
+
+                    var top = Canvas.GetTop(e);
+                    var left = Canvas.GetLeft(e);
+
+                    Canvas.SetTop(e, top + oldVotingAreaRadius - VotingAreaRadius);
+                    Canvas.SetLeft(e, left + oldVotingAreaRadius - VotingAreaRadius);
+                }
+            }
+        }
+
         private void updateFiltering()
         {
+            if (canvas == null) return;
+
             if (filterElectorialIze.SelectedIndex == 0 && filterDistrict.SelectedIndex == 0)
             {
                 foreach (var c in canvas.Children)
                 {
-                    if (c is Shape)
+                    if (c is Line)
+                    {
+                        (c as Line).Visibility = chShowConnections.IsChecked.Value ? Visibility.Visible : Visibility.Hidden;
+                    }
+                    else if (c is Shape)
                     {
                         (c as Shape).Visibility = Visibility.Visible;
                     }
@@ -959,16 +1029,14 @@ namespace visualizer
                             toHide = true;
                         }
                     }
+
+                    if (!chShowConnections.IsChecked.Value) toHide = true;
                 }
+
                 if (canvas.Children[i] is Shape)
                 {
                     if (toHide) (canvas.Children[i] as Shape).Visibility = Visibility.Hidden;
                     else (canvas.Children[i] as Shape).Visibility = Visibility.Visible;
-
-                    if (!toHide)
-                    {
-
-                    }
                 }
             }
         }

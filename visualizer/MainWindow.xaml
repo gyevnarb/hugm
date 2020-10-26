@@ -95,7 +95,7 @@
                                 </StackPanel>
                             </ScrollViewer>
                         </TabItem>
-                        <TabItem Header="Filtering">
+                        <TabItem Header="View">
                             <StackPanel Orientation="Vertical">
                                 <DockPanel DockPanel.Dock="Right" Margin="0,5,0,0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Height="Auto" >
                                     <Label>District:</Label>
@@ -104,6 +104,15 @@
                                 <DockPanel DockPanel.Dock="Right" Margin="0,5,0,0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Height="Auto" >
                                     <Label>Electorial:</Label>
                                     <ComboBox SelectionChanged="FilterElectorialIze_SelectionChanged" x:Name="filterElectorialIze" />
+                                </DockPanel>
+                                <CheckBox x:Name="chShowConnections" Margin="5,5,0,0" IsChecked="True" Checked="chShowConnections_Checked" Unchecked="chShowConnections_Checked">Show Connections</CheckBox>
+                                <DockPanel DockPanel.Dock="Right" Margin="0,5,0,0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Height="Auto" >
+                                    <Label>Area size:</Label>
+                                    <Slider x:Name="slAreaSize" VerticalAlignment="Center" Minimum="1" Maximum="40" Value="10" ValueChanged="slAreaSize_ValueChanged"></Slider>
+                                </DockPanel>
+                                <DockPanel DockPanel.Dock="Right" Margin="0,5,0,0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Height="Auto" >
+                                    <Label>Animation speed:</Label>
+                                    <Slider x:Name="slAnimationSpeed" VerticalAlignment="Center" Minimum="1" Maximum="100" Value="51" ValueChanged="slAnimationSpeed_ValueChanged"></Slider>
                                 </DockPanel>
                             </StackPanel>
                         </TabItem>
