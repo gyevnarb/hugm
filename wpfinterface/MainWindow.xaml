@@ -1,0 +1,211 @@
+﻿<Window x:Class="wpfinterface.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:wpfinterface"
+        mc:Ignorable="d"
+        Title="HUGM" Height="768" Width="1024" Loaded="Window_Loaded">
+    <Grid Margin="0" >
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="53*"/>
+            <ColumnDefinition Width="763*"/>
+            <ColumnDefinition Width="200*"/>
+        </Grid.ColumnDefinitions>
+        <DockPanel LastChildFill="True" x:Name="container" Grid.ColumnSpan="3">
+            <Menu DockPanel.Dock="Top" Background="White">
+                <MenuItem Header="_File">
+                    <MenuItem Header="_Load" Click="FileLoadHandler" />
+                    <MenuItem Header="_Save" Click="FileSaveHandler" />
+                    <Separator />
+                </MenuItem>
+                <MenuItem Header="_Run">
+                    <MenuItem Header="_Markov Chain Redistricting" Click="RunMCRedistrictingHandler" />
+                    <MenuItem Header="_Random District Growth" Click="RunRandomDistrictGrowthHandler" />
+                    <Separator />
+                </MenuItem>
+                <MenuItem Header="_Info">
+                    <MenuItem Header="_Statistics" Click="InfoStatisticsHandler" />
+                    <Separator />
+                </MenuItem>
+                <MenuItem Header="_Tools">
+                    <MenuItem Header="_Save image" Click="ToolsSaveImageHandler" />
+                    <MenuItem Header="_Refresh" Click="ToolsRefreshHandler" />
+                    <MenuItem x:Name="autoUiRefresh" Header="_Enable Auto UI Refresh" IsCheckable="True" IsChecked="True" />
+                    <Separator />
+                </MenuItem>
+            </Menu>
+            <Grid DockPanel.Dock="Left">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="5" />
+                    <ColumnDefinition Width="auto" />
+                </Grid.ColumnDefinitions>
+                <DockPanel Grid.Column="2" HorizontalAlignment="Stretch">
+                    <TabControl DockPanel.Dock="Top">
+                        <TabItem Header="Area Info">
+                            <ScrollViewer>
+                                <StackPanel Orientation="Vertical">
+                                    <ComboBox x:Name="comboo" SelectionChanged="ComboBox_SelectionChanged"></ComboBox>
+                                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                        <Label>Fidesz-KDNP:</Label>
+                                        <Label x:Name="fideszKdnp" ></Label>
+                                    </StackPanel>
+                                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                        <Label>Osszefogas:</Label>
+                                        <Label x:Name="osszefogas"></Label>
+                                    </StackPanel>
+                                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                        <Label>Jobbik:</Label>
+                                        <Label x:Name="jobbik"></Label>
+                                    </StackPanel>
+                                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                        <Label>LMP:</Label>
+                                        <Label x:Name="lmp"></Label>
+                                    </StackPanel>
+                                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                        <Label>Megjelent:</Label>
+                                        <Label x:Name="megjelent"></Label>
+                                    </StackPanel>
+                                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                        <Label>Osszes:</Label>
+                                        <Label x:Name="osszes"></Label>
+                                    </StackPanel>
+                                    <Separator></Separator>
+                                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                        <Label>Electoral District:</Label>
+                                        <Label x:Name="electDistrict"></Label>
+                                    </StackPanel>
+                                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                        <Label>City District:</Label>
+                                        <Label x:Name="cityDistrict"></Label>
+                                    </StackPanel>
+                                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                        <Label>Area Number:</Label>
+                                        <Label x:Name="areaNumber"></Label>
+                                    </StackPanel>
+                                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                        <Label>Address:</Label>
+                                        <Label x:Name="adress"></Label>
+                                    </StackPanel>
+                                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                        <Label>Atjelentkezes:</Label>
+                                        <CheckBox x:Name="atjelentkezes" VerticalAlignment="Center" IsEnabled="False"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </ScrollViewer>
+                        </TabItem>
+                        <TabItem Header="View">
+                            <StackPanel Orientation="Vertical">
+                                <DockPanel DockPanel.Dock="Right" Margin="0,5,0,0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Height="Auto" >
+                                    <Label>District:</Label>
+                                    <ComboBox SelectionChanged="FilterDistrict_SelectionChanged" x:Name="filterDistrict"/>
+                                </DockPanel>
+                                <DockPanel DockPanel.Dock="Right" Margin="0,5,0,0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Height="Auto" >
+                                    <Label>Electorial:</Label>
+                                    <ComboBox SelectionChanged="FilterElectorialIze_SelectionChanged" x:Name="filterElectorialIze" />
+                                </DockPanel>
+                                <CheckBox x:Name="chShowConnections" Margin="5,5,0,0" IsChecked="True" Checked="chShowConnections_Checked" Unchecked="chShowConnections_Checked">Show Connections</CheckBox>
+                                <DockPanel DockPanel.Dock="Right" Margin="0,5,0,0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Height="Auto" >
+                                    <Label>Area size:</Label>
+                                    <Slider x:Name="slAreaSize" VerticalAlignment="Center" Minimum="1" Maximum="40" Value="10" ValueChanged="slAreaSize_ValueChanged"></Slider>
+                                </DockPanel>
+                                <DockPanel DockPanel.Dock="Right" Margin="0,5,0,0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Height="Auto" >
+                                    <Label>Animation speed:</Label>
+                                    <Slider x:Name="slAnimationSpeed" VerticalAlignment="Center" Minimum="1" Maximum="100" Value="51" ValueChanged="slAnimationSpeed_ValueChanged"></Slider>
+                                </DockPanel>
+                            </StackPanel>
+                        </TabItem>
+                        <TabItem Header="Generation">
+                            <StackPanel Orientation="Vertical">
+                                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Margin="0,5">
+                                    <Label>Start seed:</Label>
+                                    <TextBox x:Name="txSeed" PreviewTextInput="NumberValidationTextBox" Margin="0,0,5,0" Width="85" TextAlignment="Center" VerticalContentAlignment="Center"/>
+                                </StackPanel>
+                                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Margin="0,0,0,5">
+                                    <Label Content="Count:"/>
+                                    <TextBox x:Name="txCount" PreviewTextInput="NumberValidationTextBox" Width="100" Margin="5,0,0,0" TextAlignment="Center" VerticalContentAlignment="Center"/>
+                                </StackPanel>
+                                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Margin="0,0,0,5">
+                                    <Label>Folder:</Label>
+                                    <TextBox x:Name="txFolder" Width="99" Margin="5,0,0,0" TextAlignment="Center" VerticalContentAlignment="Center" />
+                                </StackPanel>
+                                <DockPanel DockPanel.Dock="Right" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Height="Auto" >
+                                    <Button Click="GenerationStartHandler" Width="50">Start</Button>
+                                    <ProgressBar x:Name="progressbar" Margin="5,0" />
+                                </DockPanel>
+                            </StackPanel>
+                        </TabItem>
+                        <TabItem Header="Stats">
+                            <StackPanel Orientation="Vertical">
+                                <DockPanel DockPanel.Dock="Right" Margin="0,5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Height="Auto" >
+                                    <Label>Folder:</Label>
+                                    <TextBox x:Name="txStatFolder" Margin="0,0,5,0" TextAlignment="Center" VerticalContentAlignment="Center"/>
+                                </DockPanel>
+                                <DockPanel DockPanel.Dock="Right" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Height="Auto" >
+                                    <Button Click="Button_Click_LoadStats" Margin="5,0">Load</Button>
+                                </DockPanel>
+                                <DockPanel DockPanel.Dock="Right" Margin="0,5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Height="Auto" >
+                                    <ComboBox IsEnabled="false" x:Name="plotCombo" Margin="5,0"></ComboBox>
+                                    <Button IsEnabled="false" x:Name="plotBtn" Margin="5,0" Click="Button_Click_PlotGraph">Plot</Button>
+                                </DockPanel>
+                            </StackPanel>
+                        </TabItem>
+                    </TabControl>
+                    <TabControl DockPanel.Dock="Bottom">
+                        <TabItem Header="Random Walk">
+                            <StackPanel Orientation="Vertical">
+                                <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+                                    <Label Content="Runs:"></Label>
+                                    <TextBox x:Name="txtNumRuns" Width="115" Text="1000" TextAlignment="Center" VerticalContentAlignment="Center"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+                                    <Label Content="Length:"></Label>
+                                    <TextBox x:Name="txtLenWalk" Width="104" Text="5" TextAlignment="Center" VerticalContentAlignment="Center" />
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+                                    <Label Content="Sampling:"></Label>
+                                    <ComboBox x:Name="cmbMethod" Width="90" SelectionChanged="cmbMethod_SelectionChanged"></ComboBox>
+                                </StackPanel>
+                                <StackPanel x:Name="stkParty" Orientation="Horizontal" Margin="0,5,0,0" Visibility="Collapsed">
+                                    <Label Content="Party (p):"></Label>
+                                    <ComboBox x:Name="cmbParty" Width="53" Margin="0,0,5,0"></ComboBox>
+                                    <TextBox x:Name="txtPartyProb" Width="37" Text="0.5"></TextBox>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+                                    <Label Content="Distribution:"></Label>
+                                    <ComboBox x:Name="cmbDist" Width="77"></ComboBox>
+                                </StackPanel>
+                                <CheckBox x:Name="chkInvert" IsChecked="False" Content="Invert Sampling Dist." Margin="5,5,0,0"></CheckBox>
+                                <CheckBox x:Name="chkSelected" IsChecked="True" Content="Exclude Atjelentkezes" Margin="5,5,0,0"></CheckBox>
+                                <Button x:Name="btnRunRandomWalk" Content="Run" Margin="5,5,0,0" Click="btnRunRandomWalk_Click"></Button>
+                                <Label Content="Estimated District Selection:"></Label>
+                                <ComboBox x:Name="cmbDistrict" Margin="5, 0, 3, 0"></ComboBox>
+                                <Button x:Name="btnPlotErrors" Content="Plot Wrong Districts" Margin="5,5,0,0" Click="btnPlotErrors_Click"></Button>
+                                <Button x:Name="btnPlotDistribution" Content="Plot Distributions" Margin="5,5,0,0" Click="btnPlotDistributions_Click"></Button>
+                            </StackPanel>
+                        </TabItem>
+                    </TabControl>
+                </DockPanel>
+                <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch" Background="White" />
+                <DockPanel Grid.Column="0" HorizontalAlignment="Stretch">
+                    <StatusBar DockPanel.Dock="Bottom" Height="auto" Background="White">
+                        <StatusBarItem>
+                            <TextBlock Name="lblLoadedGraphPath" />
+                        </StatusBarItem>
+                    </StatusBar>
+                    <Canvas Margin="5,5,0,5" DockPanel.Dock="Top" Grid.Row="2" Background="#f2f3f4"  ClipToBounds="True"  x:Name="canv">
+                        <Canvas x:Name="canvas" Background="#f2f3f4" Mouse.MouseDown="Canvas_MouseDown" MouseMove="Canvas_MouseMove">
+                            <Canvas.RenderTransform>
+                                <TransformGroup>
+                                    <ScaleTransform x:Name="canvasScale"></ScaleTransform>
+                                    <TranslateTransform x:Name="canvasTranslate"></TranslateTransform>
+                                </TransformGroup>
+                            </Canvas.RenderTransform>
+                        </Canvas>
+                    </Canvas>
+                </DockPanel>
+            </Grid>
+        </DockPanel>
+    </Grid>
+</Window>
