@@ -131,8 +131,8 @@ namespace core
                     pop = p.Population,
                     id = p.ElectorialDistrict
                 });
-
-                await nodeUpdatedHandler?.Invoke(p);
+                if (nodeUpdatedHandler != null)
+                    await nodeUpdatedHandler?.Invoke(p);
             }
 
             // TODO: +-20 at is figylemebe lehetne venni, akkora hiba torveny szerint meg belefer
@@ -155,7 +155,8 @@ namespace core
                         chosenNode.ElectorialDistrict = ujlista[i].id;
                         z++;
 
-                        await nodeUpdatedHandler?.Invoke(chosenNode);
+                        if (nodeUpdatedHandler != null)
+                            await nodeUpdatedHandler?.Invoke(chosenNode);
                     }
                 }
             }
@@ -198,7 +199,8 @@ namespace core
                             n.ElectorialDistrict = ujlista[i].id;
                             done = true;
 
-                            await nodeUpdatedHandler?.Invoke(n);
+                            if (nodeUpdatedHandler != null)
+                                await nodeUpdatedHandler?.Invoke(n);
                         }
                         l++;
                     }
@@ -245,7 +247,8 @@ namespace core
                             n.ElectorialDistrict = ujlista[j].id;
                             done = true;
 
-                            await nodeUpdatedHandler?.Invoke(n);
+                            if (nodeUpdatedHandler != null)
+                                await nodeUpdatedHandler?.Invoke(n);
                         }
                         l++;
                     }

@@ -1,4 +1,5 @@
-﻿using core.graph;
+﻿using core;
+using core.graph;
 using core.map;
 using System;
 using System.Globalization;
@@ -12,19 +13,29 @@ namespace consoleinterface
         {
             CultureInfo.CurrentCulture = new CultureInfo("en-US");
 
-            Graph g = AreaUtils.Load("data/map.bin");
-            RandomWalkSimulation simulation = new RandomWalkSimulation(g, SamplingMethod.UNIFORM, 5, 100, false, false);
-            var watch = System.Diagnostics.Stopwatch.StartNew();
-            simulation.Simulate();
-            watch.Stop();
-            var elapsedMs = watch.ElapsedMilliseconds;
-            Console.WriteLine($"Code run in {elapsedMs}");
-            RandomWalkAnalysis analysis = new RandomWalkAnalysis(simulation, DistCalcMethod.OCCURENCE_CNT);
-            //File.WriteAllText("dist.json", analysis.Distribution.DistributionToJSON());
-            //File.WriteAllText("MAP.json", analysis.MAPDistrict.ToJSON());
-            //File.WriteAllText("expected.json", analysis.ExpectedDistrict.ToJSON());
-            //File.WriteAllText("std.json", analysis.StandardDeviationDistrict.ToJSON());
-            Console.ReadLine();
+            RunTestGen();
+
+            return;
+        }
+
+        private static void RunTestGen()
+        {
+            var gu = new GraphUtility();
+
+            bool done = false;
+            gu.StartBatchedGeneration("out", 1, 1000, AreaUtils.Load("data/map.bin"), new RandomWalkParams()
+            {
+                excludeSelected = false,
+                invert = false,
+                method = SamplingMethod.UNIFORM,
+                numRun = 1000,
+                party = Parties.FIDESZ,
+                partyProb = 0,
+                walkLen = 5
+            }, (s, e) => Console.WriteLine(e.ProgressPercentage), (s, e) => done = true);
+
+            while (!done) ;
+            Console.WriteLine("Done");
         }
 
         private static void MergeDistricts()
@@ -69,6 +80,23 @@ namespace consoleinterface
         private static double GetDistance(Node n1, Node n2)
         {
             return Math.Pow(n1.X - n2.X, 2) + Math.Pow(n1.Y - n2.Y, 2);
+        }
+
+        private static void RandomWalkTest()
+        {
+            Graph g = AreaUtils.Load("data/map.bin");
+            RandomWalkSimulation simulation = new RandomWalkSimulation(g, SamplingMethod.UNIFORM, 5, 100, false, false);
+            var watch = System.Diagnostics.Stopwatch.StartNew();
+            simulation.Simulate();
+            watch.Stop();
+            var elapsedMs = watch.ElapsedMilliseconds;
+            Console.WriteLine($"Code run in {elapsedMs}");
+            RandomWalkAnalysis analysis = new RandomWalkAnalysis(simulation, DistCalcMethod.OCCURENCE_CNT);
+            //File.WriteAllText("dist.json", analysis.Distribution.DistributionToJSON());
+            //File.WriteAllText("MAP.json", analysis.MAPDistrict.ToJSON());
+            //File.WriteAllText("expected.json", analysis.ExpectedDistrict.ToJSON());
+            //File.WriteAllText("std.json", analysis.StandardDeviationDistrict.ToJSON());
+            Console.ReadLine();
         }
     }
 }
