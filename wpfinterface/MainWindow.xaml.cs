@@ -670,7 +670,7 @@ namespace wpfinterface
 
             int count = int.Parse(txCount.Text);
 
-            graphUtil.StartBatchedGeneration(txFolder.Text, int.Parse(txSeed.Text), count, ObjectCopier.Clone(graphUtil.MyGraph), rwp,
+            graphUtil.StartBatchedGeneration(txFolder.Text, int.Parse(txSeed.Text), count, ObjectCopier.Clone(graphUtil.MyGraph), rwp, 4,
                 (s, ee) =>
                 {
                     progressbar.Value = ee.ProgressPercentage;

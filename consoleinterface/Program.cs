@@ -4,6 +4,7 @@ using core.map;
 using System;
 using System.Globalization;
 using System.Linq;
+using System.Threading;
 
 namespace consoleinterface
 {
@@ -22,19 +23,19 @@ namespace consoleinterface
         {
             var gu = new GraphUtility();
 
-            bool done = false;
+            var doneEvent = new ManualResetEvent(false);
             gu.StartBatchedGeneration("out", 1, 1000, AreaUtils.Load("data/map.bin"), new RandomWalkParams()
             {
                 excludeSelected = false,
                 invert = false,
                 method = SamplingMethod.UNIFORM,
-                numRun = 1000,
+                numRun = 100,
                 party = Parties.FIDESZ,
                 partyProb = 0,
                 walkLen = 5
-            }, (s, e) => Console.WriteLine(e.ProgressPercentage), (s, e) => done = true);
+            }, 4, (s, e) => Console.WriteLine(e.ProgressPercentage), (s, e) => doneEvent.Set());
 
-            while (!done) ;
+            doneEvent.WaitOne();
             Console.WriteLine("Done");
         }
 

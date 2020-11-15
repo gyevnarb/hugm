@@ -608,7 +608,7 @@ namespace core
             return sss;
         }
 
-        public void StartBatchedGeneration(string folder, int startSeed, int count, Graph originalGraph, RandomWalkParams rwp, ProgressChangedEventHandler workHandler, RunWorkerCompletedEventHandler completeHandler)
+        public void StartBatchedGeneration(string folder, int startSeed, int count, Graph originalGraph, RandomWalkParams rwp, int maxParalell, ProgressChangedEventHandler workHandler, RunWorkerCompletedEventHandler completeHandler)
         {
             bgw = new BackgroundWorker();
             bgw.WorkerReportsProgress = true;
@@ -632,7 +632,7 @@ namespace core
             {
                 SaveAsStat(System.IO.Path.Combine(folder, "base.stat"), originalGraph, origElectSettings, rwp);
 
-                Parallel.For(startSeed, end, (i) =>
+                Parallel.For(startSeed, end, new ParallelOptions() { MaxDegreeOfParallelism = maxParalell }, (i) =>
                 {
                     var graph = ObjectCopier.Clone(originalGraph);
                     GenerateRandomElectoralDistrictSystem(i, graph, null).Wait();

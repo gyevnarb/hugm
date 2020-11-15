@@ -159,7 +159,7 @@ namespace core.graph
                                 counts[district.Key - 1] += district.Value;
                             break;
                         case DistCalcMethod.LAST_ONLY:
-                            AreaNode last = walk.Path.Last.Value as AreaNode;
+                            AreaNode last = walk.Path.Last() as AreaNode;
                             counts[last.ElectorialDistrict - 1] += 1;
                             break;
                         default:
@@ -252,7 +252,7 @@ namespace core.graph
         public Node Start { get; set; }
         public int MaxLength { get; set; }
         public SamplingMethod Method { get; set; }
-        public LinkedList<Node> Path { get; private set; }
+        public List<Node> Path { get; private set; }
         public List<int> VisitedCount { get; private set; }
         public bool ExcludeSelected { get; set; }
         public bool Invert { get; set; }
@@ -267,7 +267,7 @@ namespace core.graph
             ExcludeSelected = excludeSelected;
             Invert = invert;
 
-            Path = new LinkedList<Node>();
+            Path = new List<Node>();
         }
 
         public RandomWalk(Node start, int maxLen, SamplingMethod method, bool excludeSelected, bool invert, Parties party, double partyProb)
@@ -280,20 +280,20 @@ namespace core.graph
             Party = party;
             PartyProbability = partyProb;
 
-            Path = new LinkedList<Node>();
+            Path = new List<Node>();
         }
 
         public void Walk()
         {
-            Path.AddLast(Start);
+            Path.Add(Start);
             while (Path.Count < MaxLength)
             {
-                Node current = Path.Last.Value;
-                Node previous = Path.Last == Path.First ? Node.EmptyNode : Path.Last.Previous.Value;
+                Node current = Path.Last();
+                Node previous = Path.Count == 1 ? Node.EmptyNode : Path[Path.Count - 2];
                 Node next = Sample(current, previous);
                 if (next == Node.EmptyNode)
                     break;
-                Path.AddLast(next);
+                Path.Add(next);
             }
         }
 
