@@ -91,6 +91,10 @@ namespace wpfinterface
             var yaxis2 = stats.baseResult.result.Select(x => x.results[stats.baseResult.winner]).OrderByDescending(x => x).ToArray();
             plot1.plt.PlotScatterHighlight(xaxis2, yaxis2, lineWidth: 6, color: System.Drawing.Color.Red);
             plot1.plt.PlotScatter(xaxis2, avgList.ToArray(), errorY: stdList.ToArray(), errorLineWidth: 5, lineWidth: 4, color: System.Drawing.Color.Blue);
+            var labels = new List<string> { "" };
+            var xlabel = stats.baseResult.result.Zip(Enumerable.Range(1, 18)).OrderBy(x => x.First.results[stats.baseResult.winner]).Select(x => x.Second.ToString()).ToList();
+            labels.AddRange(xlabel);
+            plot1.plt.XTicks(labels.ToArray());
         }
 
         public void PlotWinnerRates(Stats stats)
