@@ -24,6 +24,7 @@ namespace wpfinterface
             {"AvgWinnerRate", (plot, stat) => plot.PlotAverageWinnerRate(stat) },
             {"WinnerWins", (plot, stat) => plot.PlotWinnerWins(stat) },
             {"FideszWins", (plot, stat) => plot.PlotFideszWins(stat) },
+            {"ColouredFideszWins", (plot, stat) => plot.PlotColouredFideszWins(stat) },
             {"AvgWrongAreaRate", (plot, stat) => plot.PlotAverageWrongPlaces(stat) }
         };
 
@@ -170,7 +171,7 @@ namespace wpfinterface
 
             var xaxis = Enumerable.Range(0, 19).Select(x => (double)x).ToArray();
 
-            plot1.plt.PlotBar(xaxis, yaxis.ToArray());
+            plot1.plt.PlotBar(xaxis, yaxis.ToArray(), showValues: true);
             plot1.plt.PlotPoint(stats.baseResult.result.Count(y => y.results.ToList().FindIndex(z => z == y.results.Max()) == stats.baseResult.winner), 0, markerSize: 15);
         }
 
@@ -187,7 +188,41 @@ namespace wpfinterface
             
             var xaxis = Enumerable.Range(0, 19).Select(x => (double)x).ToArray();
 
-            plot1.plt.PlotBar(xaxis, yaxis.ToArray());
+            plot1.plt.PlotBar(xaxis, yaxis.ToArray(), showValues: true);
+            plot1.plt.PlotPoint(stats.baseResult.result.Count(y => y.results.ToList().FindIndex(z => z == y.results.Max()) == stats.baseResult.winner), 0, markerSize: 15);
+        }
+
+        public void PlotColouredFideszWins(Stats stats)
+        {
+            var yfull = new List<double>() { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+            var yaxis = new List<List<double>>();
+            yaxis.Add(new List<double>() { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 });
+            yaxis.Add(new List<double>() { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 });
+            yaxis.Add(new List<double>() { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 });
+            yaxis.Add(new List<double>() { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 });
+
+            foreach (var x in stats.generationResults)
+            {
+                var c = x.result.Count(y => y.results.ToList().FindIndex(z => z == y.results.Max()) == 0);
+                yaxis[x.winner][c] += 1.0;
+                yfull[c] += 1.0;
+            }
+
+            var xaxis = Enumerable.Range(0, 19).Select(x => (double)x).ToArray();
+
+            var colors = new List<System.Drawing.Color>() { System.Drawing.Color.Orange, System.Drawing.Color.Red, System.Drawing.Color.Blue, System.Drawing.Color.Green };
+            plot1.plt.PlotBar(xaxis, yfull.ToArray(), showValues: true);
+            var yoffset = new List<double>();
+            yoffset.AddRange(new List<double>() { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 });
+            for (int i = 0; i < 4; ++i)
+            {
+                plot1.plt.PlotBar(xaxis, yaxis[i].ToArray(), showValues: false, yOffsets: yoffset.ToArray(), fillColor: colors[i]);
+                for (int j = 0; j < 18; ++j)
+                {
+                    yoffset[j] += yaxis[i][j];
+                }
+            }
+            
             plot1.plt.PlotPoint(stats.baseResult.result.Count(y => y.results.ToList().FindIndex(z => z == y.results.Max()) == stats.baseResult.winner), 0, markerSize: 15);
         }
     }
