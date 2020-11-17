@@ -589,7 +589,7 @@ namespace wpfinterface
             else await graphUtil.GenerateRandomElectoralDistrictSystem(DateTime.Now.Ticks, graphUtil.MyGraph, async (x) =>
             {
                 (canvas.Children[associatedElems.FindIndex(o => o == x)] as Ellipse).Fill = getColor(x.ElectorialDistrict);
-                await Task.Delay((int)AnimationSpeed);
+                if (chDoAnimation.IsChecked.Value) await Task.Delay((int)AnimationSpeed);
             });
             lblLoadedGraphPath.Text = "Random generation completed succesfully.";
             undoActions.Clear();

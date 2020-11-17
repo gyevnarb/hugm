@@ -110,6 +110,7 @@
                                     <Label>Area size:</Label>
                                     <Slider x:Name="slAreaSize" VerticalAlignment="Center" Minimum="1" Maximum="40" Value="10" ValueChanged="slAreaSize_ValueChanged"></Slider>
                                 </DockPanel>
+                                <CheckBox x:Name="chDoAnimation" Margin="5,5,0,0" IsChecked="True">Do Animation</CheckBox>
                                 <DockPanel DockPanel.Dock="Right" Margin="0,5,0,0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Height="Auto" >
                                     <Label>Animation speed:</Label>
                                     <Slider x:Name="slAnimationSpeed" VerticalAlignment="Center" Minimum="1" Maximum="100" Value="51" ValueChanged="slAnimationSpeed_ValueChanged"></Slider>
