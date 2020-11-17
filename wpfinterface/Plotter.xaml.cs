@@ -20,6 +20,7 @@ namespace wpfinterface
         private static Dictionary<string, Action<Plotter, Stats>> plots = new Dictionary<string, Action<Plotter, Stats>>()
         {
             {"WinnerRates", (plot, stat) => plot.PlotWinnerRates(stat) },
+            {"DistrictWinnerRates", (plot, stat) => plot.PlotDistrictWinnerRates(stat) },
             {"AvgWinnerRate", (plot, stat) => plot.PlotAverageWinnerRate(stat) },
             {"WinnerWins", (plot, stat) => plot.PlotWinnerWins(stat) },
             {"FideszWins", (plot, stat) => plot.PlotFideszWins(stat) },
@@ -37,6 +38,59 @@ namespace wpfinterface
         public void Plot(string plot, Stats stat)
         {
             plots[plot](this, stat);
+        }
+        private double CalculateStandardDeviation(IEnumerable<double> values)
+        {
+            double standardDeviation = 0;
+
+            if (values.Any())
+            {
+                // Compute the average.     
+                double avg = values.Average();
+
+                // Perform the Sum of (value-avg)_2_2.      
+                double sum = values.Sum(d => Math.Pow(d - avg, 2));
+
+                // Put it all together.      
+                standardDeviation = Math.Sqrt((sum) / (values.Count() - 1));
+            }
+
+            return standardDeviation;
+        }
+
+        public void PlotDistrictWinnerRates(Stats stats)
+        {
+            var districtList = new List<List<double>>();
+            for (int i = 0; i < stats.baseResult.result.Count; ++i) districtList.Add(new List<double>());
+            foreach (var s in stats.generationResults)
+            {
+                var ordered = s.result.OrderByDescending(x => x.results[s.winner]).ToList();
+                for (int i = 0; i < ordered.Count; ++i)
+                {
+                    districtList[i].Add(ordered[i].results[s.winner]);
+                }
+            }
+
+            var avgList = new List<double>();
+            var stdList = new List<double>();
+
+            for (int i = 0; i < districtList.Count; ++i)
+            {
+                var d = districtList[i];
+                var avg = d.Average();
+                avgList.Add(avg);
+                var max = d.Max();
+                var min = d.Min();
+                var std = CalculateStandardDeviation(d);
+                stdList.Add(std);
+
+                plot1.plt.PlotLine(i + 1, min, i + 1, max, color: System.Drawing.Color.Black, lineWidth: 4);
+            }
+
+            var xaxis2 = Enumerable.Range(1, 18).Select(x => (double)x).ToArray();
+            var yaxis2 = stats.baseResult.result.Select(x => x.results[stats.baseResult.winner]).OrderByDescending(x => x).ToArray();
+            plot1.plt.PlotScatterHighlight(xaxis2, yaxis2, lineWidth: 6, color: System.Drawing.Color.Red);
+            plot1.plt.PlotScatter(xaxis2, avgList.ToArray(), errorY: stdList.ToArray(), errorLineWidth: 5, lineWidth: 4, color: System.Drawing.Color.Blue);
         }
 
         public void PlotWinnerRates(Stats stats)
