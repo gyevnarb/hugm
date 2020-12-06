@@ -23,6 +23,7 @@ namespace wpfinterface
             {"FideszVoteRatesCompact", (plot, stat) => plot.PlotFideszVoteRatesCompact(stat) },
             {"FideszDistrictCount", (plot, stat) => plot.PlotFideszDistrictCount(stat) },
             {"DissimilarityIndex", (plot, stat) => plot.PlotDissimilarityIndex(stat) },
+            {"Entropy", (plot, stat) => plot.PlotEntropy(stat) },
             {"AvgWrongAreaRate", (plot, stat) => plot.PlotAverageWrongPlaces(stat) }
 
          //  {"AvgWinnerRate", (plot, stat) => plot.PlotAverageWinnerRate(stat) },
@@ -203,6 +204,40 @@ namespace wpfinterface
             }
 
             plot1.plt.YLabel("Index of Dissimilarity");
+            plot1.plt.XLabel("Generációk");
+        }
+
+        double CalculateEntropy(GenerationResult s)
+        {
+            // return s.result.Average(x => -1 * x.results.Sum(y => y * Math.Log(y)));
+            return s.result.Average(x => -1 * (x.results[0] * Math.Log(x.results[0]) + (1 - x.results[0]) * Math.Log(1 - x.results[0])));
+        }
+
+        public void PlotEntropy(Stats stats)
+        {
+            var yaxis = stats.generationResults.Select(s => CalculateEntropy(s)).OrderByDescending(x => x).ToArray();
+            var xaxis = Enumerable.Range(1, yaxis.Length).Select(x => (double)x).ToArray();
+
+            plot1.plt.PlotScatter(xaxis, yaxis);
+
+            var hs = CalculateEntropy(stats.baseResult);
+
+            bool found = false;
+            for (int i = 0; i < yaxis.Length; ++i)
+            {
+                if (hs > yaxis[i])
+                {
+                    plot1.plt.PlotPoint(i + 1, hs, color: System.Drawing.Color.Red, markerSize: 8);
+                    found = true;
+                    break;
+                }
+            }
+            if (!found)
+            {
+                plot1.plt.PlotPoint(yaxis.Length + 1, hs, color: System.Drawing.Color.Red, markerSize: 8);
+            }
+
+            plot1.plt.YLabel("Entropy");
             plot1.plt.XLabel("Generációk");
         }
 
