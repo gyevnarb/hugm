@@ -21,7 +21,8 @@ namespace wpfinterface
         {
             {"FideszVoteRates", (plot, stat) => plot.PlotFideszVoteRates(stat) },
             {"FideszVoteRatesCompact", (plot, stat) => plot.PlotFideszVoteRatesCompact(stat) },
-            {"FideszDistrictCount", (plot, stat) => plot.PlotFideszDistrictCount(stat) },           
+            {"FideszDistrictCount", (plot, stat) => plot.PlotFideszDistrictCount(stat) },
+            {"DissimilarityIndex", (plot, stat) => plot.PlotDissimilarityIndex(stat) },
             {"AvgWrongAreaRate", (plot, stat) => plot.PlotAverageWrongPlaces(stat) }
 
          //  {"AvgWinnerRate", (plot, stat) => plot.PlotAverageWinnerRate(stat) },
@@ -165,6 +166,46 @@ namespace wpfinterface
             plot1.plt.XLabel("Választó kerületek");
         }
 
+        double CalculateIndexOfDissimilarity(GenerationResult s)
+        {
+            double fideszSum = 0, restSum = 0;
+            foreach (var r in s.result)
+            {
+                fideszSum += r.results[0];
+                restSum += 1 - r.results[0];
+            }
+
+            double sum = 0;
+            foreach (var r in s.result)
+            {
+                sum += Math.Abs(r.results[0] / fideszSum - (1 - r.results[0]) / restSum);
+            }
+
+            return sum / 2;
+        }
+
+        public void PlotDissimilarityIndex(Stats stats)
+        {
+            var yaxis = stats.generationResults.Select(s => CalculateIndexOfDissimilarity(s)).OrderByDescending(x => x).ToArray();
+            var xaxis = Enumerable.Range(1, yaxis.Length).Select(x => (double)x).ToArray();
+
+            plot1.plt.PlotScatter(xaxis, yaxis);
+
+            var hs = CalculateIndexOfDissimilarity(stats.baseResult);
+
+            for (int i = 0; i < yaxis.Length; ++i)
+            {
+                if (hs > yaxis[i])
+                {
+                    plot1.plt.PlotPoint(i + 1, hs, color: System.Drawing.Color.Red, markerSize: 8);
+                    break;
+                }
+            }
+
+            plot1.plt.YLabel("Index of Dissimilarity");
+            plot1.plt.XLabel("Generációk");
+        }
+
         public void PlotAverageWrongPlaces(Stats stats)
         {
             var yaxis = stats.generationResults.Select(r => r.result.Average(x => x.wrongDistrictPercentage)).OrderByDescending(x => x).ToArray();
@@ -208,12 +249,12 @@ namespace wpfinterface
         }
         public void PlotAverageWinnerRate(Stats stats)
         {
-            var yaxis = stats.generationResults.Select(r => r.result.Average(x => x.results[r.winner])).OrderByDescending(x => x).ToArray();
+            var yaxis = stats.generationResults.Select(r => r.result.Average(x => x.results[r.budapestWinner])).OrderByDescending(x => x).ToArray();
             var xaxis = Enumerable.Range(1, yaxis.Length).Select(x => (double)x).ToArray();
 
             plot1.plt.PlotScatter(xaxis, yaxis);
 
-            var hs = stats.baseResult.result.Average(x => x.results[stats.baseResult.winner]);
+            var hs = stats.baseResult.result.Average(x => x.results[stats.baseResult.budapestWinner]);
 
             for (int i = 0; i < yaxis.Length; ++i)
             {
@@ -234,14 +275,14 @@ namespace wpfinterface
 
             foreach (var x in stats.generationResults)
             {
-                var c = x.result.Count(y => y.results.ToList().FindIndex(z => z == y.results.Max()) == x.winner);
+                var c = x.result.Count(y => y.results.ToList().FindIndex(z => z == y.results.Max()) == x.budapestWinner);
                 yaxis[c] += 1.0;
             }
             
             var xaxis = Enumerable.Range(0, 19).Select(x => (double)x).ToArray();
 
             plot1.plt.PlotBar(xaxis, yaxis.ToArray(), showValues: true);
-            plot1.plt.PlotPoint(stats.baseResult.result.Count(y => y.results.ToList().FindIndex(z => z == y.results.Max()) == stats.baseResult.winner), 0, markerSize: 15);
+            plot1.plt.PlotPoint(stats.baseResult.result.Count(y => y.results.ToList().FindIndex(z => z == y.results.Max()) == stats.baseResult.budapestWinner), 0, markerSize: 15);
         }
 
         public void PlotColouredFideszWins(Stats stats)
@@ -256,7 +297,7 @@ namespace wpfinterface
             foreach (var x in stats.generationResults)
             {
                 var c = x.result.Count(y => y.results.ToList().FindIndex(z => z == y.results.Max()) == 0);
-                yaxis[x.winner][c] += 1.0;
+                yaxis[x.budapestWinner][c] += 1.0;
                 yfull[c] += 1.0;
             }
 
@@ -275,7 +316,7 @@ namespace wpfinterface
                 }
             }
             
-            plot1.plt.PlotPoint(stats.baseResult.result.Count(y => y.results.ToList().FindIndex(z => z == y.results.Max()) == stats.baseResult.winner), 0, markerSize: 15);
+            plot1.plt.PlotPoint(stats.baseResult.result.Count(y => y.results.ToList().FindIndex(z => z == y.results.Max()) == stats.baseResult.budapestWinner), 0, markerSize: 15);
         }
 
         public void PlotWinnerRates(Stats stats)
@@ -283,13 +324,13 @@ namespace wpfinterface
             foreach (var s in stats.generationResults)
             {
                 var xaxis = Enumerable.Range(1, 18).Select(x => (double)x).ToArray();
-                var yaxis = s.result.Select(x => x.results[s.winner]).OrderByDescending(x => x).ToArray();
+                var yaxis = s.result.Select(x => x.results[s.budapestWinner]).OrderByDescending(x => x).ToArray();
 
                 plot1.plt.PlotScatter(xaxis, yaxis);
             }
 
             var xaxis2 = Enumerable.Range(1, 18).Select(x => (double)x).ToArray();
-            var yaxis2 = stats.baseResult.result.Select(x => x.results[stats.baseResult.winner]).OrderByDescending(x => x).ToArray();
+            var yaxis2 = stats.baseResult.result.Select(x => x.results[stats.baseResult.budapestWinner]).OrderByDescending(x => x).ToArray();
 
             plot1.plt.PlotScatterHighlight(xaxis2, yaxis2, lineWidth: 6, color: System.Drawing.Color.Red);
 

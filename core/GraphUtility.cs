@@ -33,7 +33,7 @@ namespace core
     public class GenerationResult
     {
         public List<ElectDistrictResult> result = new List<ElectDistrictResult>();
-        public int winner;
+        public int budapestWinner;
         public int seed;
     }
 
@@ -425,7 +425,7 @@ namespace core
             }
         }
 
-        public void LoadStats(string folder)
+        public void LoadStats(string folder, bool useValid)
         {
             if (!Directory.Exists(folder)) return;
 
@@ -443,6 +443,10 @@ namespace core
 
                     result.seed = int.Parse(splitted[1]);
 
+                    bool valid15 = int.Parse(splitted[2]) == 1;
+                    bool valid20 = int.Parse(splitted[3]) == 1;
+                    if (useValid && (!valid15 || !valid20)) continue;
+
                     var fidesz = double.Parse(splitted[4]);
                     var osszefogas = double.Parse(splitted[5]);
                     var jobbik = double.Parse(splitted[6]);
@@ -450,13 +454,13 @@ namespace core
 
                     // TODO: egyenloseg?
                     if (fidesz >= osszefogas && fidesz >= jobbik && fidesz >= lmp)
-                        result.winner = 0;
+                        result.budapestWinner = 0;
                     else if (osszefogas >= fidesz && osszefogas >= jobbik && osszefogas >= lmp)
-                        result.winner = 1;
+                        result.budapestWinner = 1;
                     else if (jobbik >= fidesz && jobbik >= osszefogas && jobbik >= lmp)
-                        result.winner = 2;
+                        result.budapestWinner = 2;
                     else if (lmp >= fidesz && lmp >= jobbik && lmp >= osszefogas)
-                        result.winner = 3;
+                        result.budapestWinner = 3;
 
                     int offset = 9, stride = 6;
                     for (int i = 0; i < 18; ++i)

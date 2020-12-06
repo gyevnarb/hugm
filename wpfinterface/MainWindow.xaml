@@ -144,6 +144,9 @@
                                     <TextBox x:Name="txStatFolder" Margin="0,0,5,0" TextAlignment="Center" VerticalContentAlignment="Center"/>
                                 </DockPanel>
                                 <DockPanel DockPanel.Dock="Right" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Height="Auto" >
+                                    <CheckBox x:Name="chPopValid" IsChecked="true" Margin="5,0">Use population validity (15%)</CheckBox>
+                                </DockPanel>
+                                <DockPanel DockPanel.Dock="Right" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Height="Auto" >
                                     <Button Click="Button_Click_LoadStats" Margin="5,0">Load</Button>
                                 </DockPanel>
                                 <DockPanel DockPanel.Dock="Right" Margin="0,5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Height="Auto" >

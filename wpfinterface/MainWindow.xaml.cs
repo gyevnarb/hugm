@@ -700,7 +700,7 @@ namespace wpfinterface
                 }
             }
 
-            graphUtil.LoadStats(txStatFolder.Text);
+            graphUtil.LoadStats(txStatFolder.Text, chPopValid.IsChecked.Value);
             if (graphUtil.MyStats == null)
             {
                 lblLoadedGraphPath.Text = $"Could not load stats from {txStatFolder.Text}. Maybe it does not exist or it is not correct relative to your working directory.";
