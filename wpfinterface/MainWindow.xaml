@@ -148,6 +148,9 @@
                                 </DockPanel>
                                 <DockPanel DockPanel.Dock="Right" Margin="0,5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Height="Auto" >
                                     <ComboBox IsEnabled="false" x:Name="plotCombo" Margin="5,0"></ComboBox>
+                                    <ComboBox IsEnabled="false" x:Name="plotFilterCombo" Margin="5,0"></ComboBox>
+                                    <ComboBox IsEnabled="false" x:Name="plotPredCombo" Margin="5,0"></ComboBox>
+                                    <TextBox x:Name="txPlotThreshold" Margin="0,0,5,0" Width="40" TextAlignment="Center" VerticalContentAlignment="Center"/>
                                     <Button IsEnabled="false" x:Name="plotBtn" Margin="5,0" Click="Button_Click_PlotGraph">Plot</Button>
                                 </DockPanel>
                             </StackPanel>

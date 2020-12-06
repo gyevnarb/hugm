@@ -708,9 +708,16 @@ namespace wpfinterface
             }
 
             plotCombo.IsEnabled = true;
+            plotFilterCombo.IsEnabled = true;
+            txPlotThreshold.IsEnabled = true;
+            plotPredCombo.IsEnabled = true;
             plotBtn.IsEnabled = true;
             plotCombo.ItemsSource = Plotter.Plots;
             plotCombo.SelectedIndex = 0;
+            plotFilterCombo.ItemsSource = Plotter.Filters;
+            plotFilterCombo.SelectedIndex = 0;
+            plotPredCombo.ItemsSource = new List<string>() { "<=", ">=" };
+            plotPredCombo.SelectedIndex = 0;
         }
 
         private void btnRunRandomWalk_Click(object sender, RoutedEventArgs e)
@@ -749,11 +756,21 @@ namespace wpfinterface
         private void Button_Click_PlotGraph(object sender, RoutedEventArgs e)
         {
             if (graphUtil.MyStats == null) return;
+            if (!Double.TryParse(txPlotThreshold.Text, out var threshold)) threshold = 0;
+            Predicate<double> pred = null;
+            if (plotPredCombo.SelectedIndex == 0)
+            {
+                pred = x => x <= threshold;
+            }
+            else
+            {
+                pred = x => x >= threshold;
+            }
 
             var plt = new Plotter();
-            plt.Plot(plotCombo.Text, graphUtil.MyStats);
+            plt.Plot(plotCombo.Text, plotFilterCombo.Text, pred, graphUtil.MyStats);
             plt.Title = plotCombo.Text;
-            plt.ShowDialog();
+            plt.Show();
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
