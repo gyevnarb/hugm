@@ -25,7 +25,10 @@ namespace core
 
     public struct ElectDistrictResult
     {
-        public double[] results;
+        public int[] numVoters;
+        public double[] fResults;
+        public int megjelent;
+        public int osszes;
         public int winner;
         public double wrongDistrictPercentage;
     }
@@ -35,6 +38,7 @@ namespace core
         public List<ElectDistrictResult> result = new List<ElectDistrictResult>();
         public int budapestWinner;
         public int seed;
+        public double similarity;
     }
 
     public class Stats
@@ -65,6 +69,7 @@ namespace core
         BackgroundWorker bgw;
 
         private static float atlag = 76818; // 2011
+        private static readonly double STAT_VERSION = 0.4;
 
         private int _seed;
         private Graph myGraph;
@@ -432,6 +437,7 @@ namespace core
             Stats s = new Stats();
             foreach (var file in Directory.GetFiles(folder))
             {
+                if (!file.EndsWith(".stat")) continue;
                 var fileStream =new System.IO.StreamReader(file);
                 string text;
                 while ((text = fileStream.ReadLine()) != null)
@@ -440,6 +446,9 @@ namespace core
 
                     var result = new GenerationResult();
                     var splitted = text.Split(';');
+
+                    var ver = splitted[0];
+                    if (double.Parse(ver) != STAT_VERSION) throw new Exception($"bad stats version, expected {STAT_VERSION}, received {ver}");
 
                     result.seed = int.Parse(splitted[1]);
 
@@ -452,6 +461,8 @@ namespace core
                     var jobbik = double.Parse(splitted[6]);
                     var lmp = double.Parse(splitted[7]);
 
+                    result.similarity = double.Parse(splitted[8]);
+
                     // TODO: egyenloseg?
                     if (fidesz >= osszefogas && fidesz >= jobbik && fidesz >= lmp)
                         result.budapestWinner = 0;
@@ -462,19 +473,28 @@ namespace core
                     else if (lmp >= fidesz && lmp >= jobbik && lmp >= osszefogas)
                         result.budapestWinner = 3;
 
-                    int offset = 9, stride = 6;
+                    int offset = 9, stride = 8;
                     for (int i = 0; i < 18; ++i)
                     {
                         var eres = new ElectDistrictResult();
                         eres.wrongDistrictPercentage = double.Parse(splitted[offset + stride * i + 1]);
-                        eres.results = new double[4] {  double.Parse(splitted[offset + stride * i + 2]),
-                                                        double.Parse(splitted[offset + stride * i + 3]),
-                                                        double.Parse(splitted[offset + stride * i + 4]),
-                                                        double.Parse(splitted[offset + stride * i + 5])};
+                        eres.numVoters = new int[4] {  int.Parse(splitted[offset + stride * i + 2]),
+                                                        int.Parse(splitted[offset + stride * i + 3]),
+                                                        int.Parse(splitted[offset + stride * i + 4]),
+                                                        int.Parse(splitted[offset + stride * i + 5])};
+                        eres.megjelent = int.Parse(splitted[offset + stride * i + 6]);
+                        eres.osszes = int.Parse(splitted[offset + stride * i + 7]);
+
+                        eres.fResults = new double[4] {  (double)eres.numVoters[0] / eres.megjelent,
+                                                         (double)eres.numVoters[1] / eres.megjelent,
+                                                         (double)eres.numVoters[2] / eres.megjelent,
+                                                         (double)eres.numVoters[3] / eres.megjelent};
+
+
                         eres.winner = 0; // maximum index a winnerbe
-                        for (int j = 0; j < eres.results.Length; ++j)
+                        for (int j = 0; j < eres.fResults.Length; ++j)
                         {
-                            if (eres.results[j] > eres.results[eres.winner])
+                            if (eres.fResults[j] > eres.fResults[eres.winner])
                             {
                                 eres.winner = j;
                             }
@@ -545,13 +565,13 @@ namespace core
             var ra = new RandomWalkAnalysis(rr, DistCalcMethod.OCCURENCE_CNT, 18);
             var wrongDistrictNum = ra.NumWrongDistrict(PlotCalculationMethod.MAP);
 
-            string text = $"0.3;{_seed};{valid15};{valid20};{fideszkdnp};{osszefogas};{jobbik};{lmp};{similarity}";
+            string text = $"{STAT_VERSION};{_seed};{valid15};{valid20};{fideszkdnp};{osszefogas};{jobbik};{lmp};{similarity}";
             for (int i = 0; i < 18; ++i)
             {
                 var se = results[i];
                 var vn = wrongDistrictNum[i].Item1;
 
-                text += $";{se.Gyoztes};{vn};{(float)se.FideszKDNP / (float)se.Megjelent};{(float)se.Osszefogas / (float)se.Megjelent};{(float)se.Jobbik / (float)se.Megjelent};{(float)se.LMP / (float)se.Megjelent}";
+                text += $";{se.Gyoztes};{vn};{se.FideszKDNP};{se.Osszefogas};{se.Jobbik};{se.LMP};{se.Megjelent};{se.Osszes}";
             }
             return text;
         }
