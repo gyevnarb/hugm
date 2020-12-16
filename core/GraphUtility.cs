@@ -11,6 +11,38 @@ using System.Threading.Tasks;
 
 namespace core
 {
+    public static class EXT
+    {
+        public static T MaxObject<T, U>(this IEnumerable<T> source, Func<T, U> selector)
+            where U : IComparable<U>
+        {
+            if (source == null) throw new ArgumentNullException("source");
+            bool first = true;
+            T maxObj = default(T);
+            U maxKey = default(U);
+            foreach (var item in source)
+            {
+                if (first)
+                {
+                    maxObj = item;
+                    maxKey = selector(maxObj);
+                    first = false;
+                }
+                else
+                {
+                    U currentKey = selector(item);
+                    if (currentKey.CompareTo(maxKey) > 0)
+                    {
+                        maxKey = currentKey;
+                        maxObj = item;
+                    }
+                }
+            }
+            if (first) throw new InvalidOperationException("Sequence is empty.");
+            return maxObj;
+        }
+    }
+
     public delegate void DrawGraphEventHandler(object sender, DrawGraphEventArgs e);
 
     public class DrawGraphEventArgs : EventArgs { }
@@ -272,22 +304,23 @@ namespace core
 
             _seed = (int)(seed % int.MaxValue);
             var rng = new Random(_seed);
+
             foreach (var v in graph.V) v.Marked = false;
+
             List<AreaNode> points = new List<AreaNode>();
+            List<bool> alreadyMoved = new List<bool>(); alreadyMoved.AddRange(Enumerable.Repeat(false, graph.V.Count));
+            List<bool> alreadySelected = new List<bool>(); alreadySelected.AddRange(Enumerable.Repeat(false, graph.V.Count));
+            var ujlista = new List<ElectoralDistrict>();
+
             for (int i = 1; i <= 18; ++i)
             {
                 var ns = graph.V.Where(x =>
                 {
                     return (x as AreaNode).Areas[0].ElectoralDistrict == i;
                 }).ToList();
-                var p = ns[rng.Next(ns.Count)];
-                points.Add(p as AreaNode);
-            }
+                var p = ns[rng.Next(ns.Count)] as AreaNode;
 
-            var ujlista = new List<ElectoralDistrict>();
-            foreach (var p in points)
-            {
-                p.Marked = true;
+                alreadySelected[p.ID] = true;
                 p.ElectorialDistrict = p.Areas[0].ElectoralDistrict;
                 ujlista.Add(new ElectoralDistrict
                 {
@@ -297,126 +330,83 @@ namespace core
                     id = p.ElectorialDistrict
                 });
 
+                alreadyMoved[p.ID] = true;
+
+                points.Add(p);
+
                 await nodeUpdatedHandler?.Invoke(p);
             }
 
-            // TODO: +-20 at is figylemebe lehetne venni, akkora hiba torveny szerint meg belefer
-            int z = 0;
-            while (z < graph.V.Count - 18)
-            {
-                for (int i = 0; i < 18; ++i)
-                {
-                    var adnonamrked0 = ujlista[i].availableNodes.Where(x => !x.Marked).ToList();
-                    if (adnonamrked0.Count != 0)
-                    {
-                        int j = rng.Next(adnonamrked0.Count);
-                        var chosenNode = adnonamrked0[j];
-
-                        chosenNode.Marked = true;
-                        ujlista[i].availableNodes.UnionWith(chosenNode.Adjacents.Select(x => x as AreaNode));
-                        ujlista[i].availableNodes.Remove(chosenNode);
-                        ujlista[i].nodes.Add(chosenNode);
-                        ujlista[i].pop += chosenNode.Population;
-                        chosenNode.ElectorialDistrict = ujlista[i].id;
-                        z++;
-
-                        await nodeUpdatedHandler?.Invoke(chosenNode);
-                    }
-                }
-            }
-
-            int l = 0;
-            int h = 0;
             ujlista.Sort((a, b) => a.pop - b.pop);
-            for (int k = 0; k < 18; ++k) if (ujlista[k].pop > atlag * 0.85) { h = k; break; }
-            while (ujlista[0].pop < atlag * 0.85 && l < MAX_STEP)
+            int z = 0, w = 0;
+            while (z < graph.V.Count - 18 || ((ujlista.First().pop < 0.85 * atlag || ujlista.Last().pop > 1.15 * atlag) && w < MAX_STEP))
             {
-                bool done = false;
-                for (int i = 0; i < h && !done; ++i)
+                var s = ujlista[0];
+
+                var adnonamrked0 = s.availableNodes.Where(x => !alreadySelected[x.ID]).ToList();
+                if (adnonamrked0.Count != 0) // van meg szabad area
                 {
-                    for (int j = 17; j >= h && !done; --j)
-                    {
-                        int id = ujlista[j].id;
-                        AreaNode n = null;
-                        foreach (var v in ujlista[i].availableNodes)
-                        {
-                            if (v.ElectorialDistrict == id && !graph.IsCuttingNode(v))
-                            {
-                                n = v;
-                                break;
-                            }
-                        }
-                        if (n != null)
-                        {
-                            ujlista[i].availableNodes.UnionWith(n.Adjacents.Select(x => x as AreaNode));
-                            ujlista[i].availableNodes.Remove(n);
+                    int j = rng.Next(adnonamrked0.Count);
+                    var chosenNode = adnonamrked0[j];
 
-                            ujlista[j].availableNodes.Clear();
-                            ujlista[j].nodes.Remove(n);
-                            foreach (var v in ujlista[j].nodes)
-                            {
-                                ujlista[j].availableNodes.UnionWith(v.Adjacents.Select(x => x as AreaNode));
-                            }
-                            ujlista[i].nodes.Add(n);
-                            ujlista[i].pop += n.Population;
-                            ujlista[j].pop -= n.Population;
-                            n.ElectorialDistrict = ujlista[i].id;
-                            done = true;
+                    alreadySelected[chosenNode.ID] = true;
+                    s.availableNodes.UnionWith(chosenNode.Adjacents.Select(x => x as AreaNode));
+                    s.availableNodes.Remove(chosenNode);
+                    s.nodes.Add(chosenNode);
+                    s.pop += chosenNode.Population;
+                    chosenNode.ElectorialDistrict = s.id;
+                    z++;
 
-                            await nodeUpdatedHandler?.Invoke(n);
-                        }
-                        l++;
-                    }
+                    await nodeUpdatedHandler?.Invoke(chosenNode);
                 }
+                else // elfogytak a szabad area-k -> elvesszuk masoket
+                {
+                    // ezek amiket meg nem mozgattunk és nem rontjak el az osszefuggoseget ha athelyezzuk
+                    var admarked = s.availableNodes.Where(x => !alreadyMoved[x.ID] && !graph.IsCuttingNode(x)).ToList();
+                    if (admarked.Count == 0)
+                    {
+                        w = MAX_STEP;
+                        continue;
+                    }
+
+                    // TODO: ezt lehetne veletlenszeruen, vagy "szepseg" figyelembe vetelevel
+                    int besti = 0;
+                    for (int i = 1; i < admarked.Count; ++i)
+                    {
+                        var best = admarked[besti];
+                        var act = admarked[i];
+
+                        if (ujlista.First(x => x.id == act.ElectorialDistrict).pop > ujlista.First(x => x.id == best.ElectorialDistrict).pop) besti = i;
+                        else if (ujlista.First(x => x.id == act.ElectorialDistrict).pop == ujlista.First(x => x.id == best.ElectorialDistrict).pop)
+                        {
+                            if (act.Population > best.Population) besti = i;
+                        }
+                    }
+
+                    var chosenNode = admarked[besti];
+                    var t = ujlista.First(x => x.id == chosenNode.ElectorialDistrict);
+
+                    s.availableNodes.UnionWith(chosenNode.Adjacents.Select(x => x as AreaNode));
+                    s.availableNodes.Remove(chosenNode);
+
+                    t.availableNodes.Clear();
+                    t.nodes.Remove(chosenNode);
+                    foreach (var v in t.nodes)
+                    {
+                        t.availableNodes.UnionWith(v.Adjacents.Select(x => x as AreaNode));
+                    }
+                    s.nodes.Add(chosenNode);
+                    s.pop += chosenNode.Population;
+                    t.pop -= chosenNode.Population;
+                    chosenNode.ElectorialDistrict = s.id;
+
+                    alreadyMoved[chosenNode.ID] = true;
+                    w++;
+
+                    await nodeUpdatedHandler?.Invoke(chosenNode);
+                }
+
                 ujlista.Sort((a, b) => a.pop - b.pop);
-                for (int k = 0; k < 18; ++k) if (ujlista[k].pop > atlag * 0.85) { h = k; break; }
-            }
-
-            l = 0;
-            ujlista.Sort((a, b) => b.pop - a.pop);
-            for (int k = 0; k < 18; ++k) if (ujlista[k].pop < atlag * 1.15) { h = k; break; }
-            while (ujlista[0].pop > atlag * 1.15 && l < MAX_STEP)
-            {
-                bool done = false;
-                for (int i = 0; i < h && !done; ++i)
-                {
-                    for (int j = 17; j >= h && !done; --j)
-                    {
-                        int id = ujlista[i].id;
-                        AreaNode n = null;
-                        foreach (var v in ujlista[j].availableNodes)
-                        {
-                            if (v.ElectorialDistrict == id && !graph.IsCuttingNode(v))
-                            {
-                                n = v;
-                                break;
-                            }
-                        }
-                        if (n != null)
-                        {
-                            ujlista[j].nodes.Add(n);
-                            ujlista[j].availableNodes.UnionWith(n.Adjacents.Select(x => x as AreaNode));
-                            ujlista[j].availableNodes.Remove(n);
-                            ujlista[j].pop += n.Population;
-
-                            ujlista[i].availableNodes.Clear();
-                            ujlista[i].nodes.Remove(n);
-                            foreach (var v in ujlista[i].nodes)
-                            {
-                                ujlista[i].availableNodes.UnionWith(v.Adjacents.Select(x => x as AreaNode));
-                            }
-                            ujlista[i].pop -= n.Population;
-
-                            n.ElectorialDistrict = ujlista[j].id;
-                            done = true;
-
-                            await nodeUpdatedHandler?.Invoke(n);
-                        }
-                        l++;
-                    }
-                }
-                ujlista.Sort((a, b) => b.pop - a.pop);
-                for (int k = 0; k < 18; ++k) if (ujlista[k].pop < atlag * 1.15) { h = k; break; }
             }
         }
 
