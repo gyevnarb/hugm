@@ -146,12 +146,12 @@ namespace wpfinterface
 
                 if (e.Key == Key.Delete)
                 {
-                    if (SelectedElement != null)
+                    /*if (SelectedElement != null)
                     {
                         RemoveElement(SelectedElement);
                         SelectedElement = null;
                         UpdateSelection();
-                    }
+                    }*/
                 }
             };
 
@@ -494,6 +494,8 @@ namespace wpfinterface
                 lmp.Content = SelectedNode.Areas[i].Results.LMP.ToString();
                 megjelent.Content = SelectedNode.Areas[i].Results.Megjelent.ToString();
                 osszes.Content = SelectedNode.Areas[i].Results.Osszes.ToString();
+                txtCoordX.Text = SelectedNode.X.ToString();
+                txtCoordY.Text = SelectedNode.Y.ToString();
             }
         }
 
@@ -874,9 +876,38 @@ namespace wpfinterface
         {
             updateFiltering();
         }
+
         private void FilterDistrict_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             updateFiltering();
+        }
+
+        private void txtCoordX_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (SelectedNode != null)
+            {
+                if (double.TryParse(txtCoordX.Text, out var res1))
+                {
+                    SelectedNode.X = res1;
+                }
+                else lblLoadedGraphPath.Text = "Bad X coord format";
+
+                Canvas.SetLeft(SelectedElement, SelectedNode.X - VotingAreaRadius);
+            }
+        }
+
+        private void txtCoordY_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (SelectedNode != null)
+            {
+                if (double.TryParse(txtCoordY.Text, out var res2))
+                {
+                    SelectedNode.Y = res2;
+                }
+                else lblLoadedGraphPath.Text = "Bad Y coord format";
+
+                Canvas.SetTop(SelectedElement, SelectedNode.Y - VotingAreaRadius);
+            }
         }
 
         private void FilterElectorialIze_SelectionChanged(object sender, SelectionChangedEventArgs e)

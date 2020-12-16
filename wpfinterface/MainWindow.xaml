@@ -92,6 +92,11 @@
                                         <Label>Atjelentkezes:</Label>
                                         <CheckBox x:Name="atjelentkezes" VerticalAlignment="Center" IsEnabled="False"/>
                                     </StackPanel>
+                                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                        <Label>Koord:</Label>
+                                        <TextBox x:Name="txtCoordX" Width="40" TextChanged="txtCoordX_TextChanged" TextAlignment="Center" VerticalContentAlignment="Center" Margin="0,0,5,0"/>
+                                        <TextBox x:Name="txtCoordY" Width="40" TextChanged="txtCoordY_TextChanged" TextAlignment="Center" VerticalContentAlignment="Center"/>
+                                    </StackPanel>
                                 </StackPanel>
                             </ScrollViewer>
                         </TabItem>
