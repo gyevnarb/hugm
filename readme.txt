@@ -1,7 +1,7 @@
 .stat fájl:
 minden sor egy generalas, ;-vel tagolt értékek
 
-VERSION;SEED;VALID15;VALID20;VALIDMID15;VALIDMID20;FIDESZ_COUNT;OSSZEFOGAS_COUNT;JOBBIK_COUNT;LMP_COUNT;SIMILARITY
+VERSION;SEED;VALID15;VALID20;REORG_COUNT;FIDESZ_COUNT;OSSZEFOGAS_COUNT;JOBBIK_COUNT;LMP_COUNT;SIMILARITY
 18 x { // minden választoi kerulethez adatok
 	;GYOZTES;WRONG_AREA_CHANCE;FIDESZ_SZAVAZOK;OSSZEFOGAS_SZAVAZOK;JOBBIK_SZAVAZOK;LMP_SZAVAZOK;MEGJELENT;OSSZES
 }
@@ -10,8 +10,7 @@ VERSION: azonositja a statisztika verziojat verziojat (double)
 SEED: az adott generalast azonosito veletlen kezdoertek (int)
 VALID15: a generalas teljesiti-e a 15%-os populacios kovetelmenyt (0 vagy 1)
 VALID20: a generalas teljesiti-e a 20%-os populacios kovetelmenyt (0 vagy 1)
-VALID15: a generalas teljesiti-e a 15%-os populacios kovetelmenyt (0 vagy 1)
-VALID20: a generalas teljesiti-e a 20%-os populacios kovetelmenyt (0 vagy 1)
+REORG_COUNT: hany determinisztikus athelyezesre volt szukseg (int)
 FIDESZ_COUNT: Fidesz által nyert keruletek szama (int)
 OSSZEFOGAS_COUNT:  Osszefogas által nyert keruletek szama (int)
 JOBBIK_COUNT: Jobbik által nyert keruletek szama (int)
