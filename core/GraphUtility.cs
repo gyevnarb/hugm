@@ -647,7 +647,7 @@ namespace core
             Directory.CreateDirectory(folder);
 
             List<int> origElectSettings = new List<int>();
-            foreach (AreaNode v in originalGraph.V) 
+            foreach (AreaNode v in originalGraph.V)
                 origElectSettings.Add(v.ElectorialDistrict);
 
             int end = startSeed + count;
@@ -655,51 +655,51 @@ namespace core
 
             ThreadLocal<StringBuilder> perThreadStat = new ThreadLocal<StringBuilder>(true);
 
+            SaveAsStat(System.IO.Path.Combine(folder, "base.stat"), originalGraph, origElectSettings, rwp, 0);
+
             if (generation_type == "random")
             {
-                SaveAsStat(System.IO.Path.Combine(folder, "base.stat"), originalGraph, origElectSettings, rwp, 0);
 
-                    Parallel.For(startSeed, end, new ParallelOptions() { MaxDegreeOfParallelism = maxParalell }, (i) =>
+                Parallel.For(startSeed, end, new ParallelOptions() { MaxDegreeOfParallelism = maxParalell }, (i) =>
+                {
+                    var graph = ObjectCopier.Clone(originalGraph);
+                    var t = GenerateRandomElectoralDistrictSystem(i, graph, null);
+                    t.Wait();
+
+                    string stat = ToStat(graph, origElectSettings, rwp, t.Result);
+
+                    if (!perThreadStat.IsValueCreated) perThreadStat.Value = new StringBuilder();
+                    perThreadStat.Value.AppendLine(stat);
+
+                    Interlocked.Increment(ref cc);
+                    if (cc % 1 == 0)
                     {
-                        var graph = ObjectCopier.Clone(originalGraph);
+                        bgw.ReportProgress((int)((double)(cc) / (double)(count) * 100), new BatchedGenerationProgress() { done = cc, all = count });
+                    }
+                });
 
-                        if (generation_type == "random")
-                            GenerateRandomElectoralDistrictSystem(i, graph, null).Wait();
-
-                        string stat = ToStat(graph, origElectSettings, rwp);
-
-                        if (!perThreadStat.IsValueCreated) perThreadStat.Value = new StringBuilder();
-                        perThreadStat.Value.AppendLine(stat);
-
-                        Interlocked.Increment(ref cc);
-                        if (cc % 1 == 0)
-                        {
-                            bgw.ReportProgress((int)((double)(cc) / (double)(count) * 100), new BatchedGenerationProgress() { done = cc, all = count });
-                        }
-                    });
-
-                    File.WriteAllText(Path.Combine(folder, "generated.stat"), 
-                        perThreadStat.Values.Select(x => x.ToString()).Aggregate((partialPhrase, word) => $"{partialPhrase} {word}"));
-                };
+                File.WriteAllText(Path.Combine(folder, "generated.stat"),
+                    perThreadStat.Values.Select(x => x.ToString()).Aggregate((partialPhrase, word) => $"{partialPhrase} {word}"));
                 bgw.RunWorkerAsync();
             }
             else if (generation_type == "mcmc")
             {
                 var statBuilder = new StringBuilder();
-                for (int i = 0; i < end; i++)
+                for (int i = startSeed; i < end; i++)
                 {
-                    var graph = ObjectCopier.Clone(originalGraph);
-                    var t = GenerateRandomElectoralDistrictSystem(i, graph, null);
-                    t.Wait();
-                    string stat = ToStat(graph, origElectSettings, rwp, t.Result);
+                    var graphTask = rutil.GenerateMarkovAnalysis(originalGraph, "last", 100, 18, 0.15, i, 1, 0.0, 0.05, 2.0);
+                    graphTask.Wait();
+                    var graph = graphTask.Result;
 
                     if (graph == null) continue;
 
-                    string stat = ToStat(graph, origElectSettings, rwp);
+                    _seed = i;
+                    string stat = ToStat(graph, origElectSettings, rwp, 0);
                     statBuilder.AppendLine(stat);
                     Console.WriteLine($"{i + 1}/{end}");
                 }
                 File.WriteAllText(Path.Combine(folder, "generated.stat"), statBuilder.ToString());
+                bgw.Dispose();
             }
 
         }

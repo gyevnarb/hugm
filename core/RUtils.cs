@@ -40,7 +40,7 @@ namespace core
             int nloop = 1, double beta = 2500.0, double eprob = 0.01, double lambda = 0.0, string savePath = "partitions.csv")
         {
             string graphPath = savePath.Contains('/') ? savePath.Substring(0, savePath.LastIndexOf('/')) : "";
-            graphPath += "/map_rsim.bin";
+            graphPath += "map_rsim.bin";
 
             await Task.Run(() =>
             {

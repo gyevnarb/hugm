@@ -29,7 +29,7 @@ namespace consoleinterface
             var gu = new GraphUtility();
 
             var doneEvent = new ManualResetEvent(false);
-            gu.StartBatchedGeneration("out", generation_type, 1, 5, AreaUtils.Load("data/map.bin"), new RandomWalkParams()
+            gu.StartBatchedGeneration("out", generation_type, 1, 100, AreaUtils.Load("data/map.bin"), new RandomWalkParams()
             {
                 excludeSelected = false,
                 invert = false,
@@ -40,7 +40,7 @@ namespace consoleinterface
                 walkLen = 5
             }, 4, (s, e) => Console.WriteLine(e.ProgressPercentage), (s, e) => doneEvent.Set());
 
-            doneEvent.WaitOne();
+            if (generation_type != "mcmc") doneEvent.WaitOne();
             Console.WriteLine("Done");
         }
 
