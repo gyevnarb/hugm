@@ -14,17 +14,22 @@ namespace consoleinterface
         {
             CultureInfo.CurrentCulture = new CultureInfo("en-US");
 
-            RunTestGen();
+            Console.WriteLine($"The arguments passed were:\n{string.Join(',', args)}");
+
+            string generation_type = "mcmc";
+            if (args.Length > 0) generation_type = args[0];
+
+            RunTestGen(generation_type);
 
             return;
         }
 
-        private static void RunTestGen()
+        private static void RunTestGen(string generation_type)
         {
             var gu = new GraphUtility();
 
             var doneEvent = new ManualResetEvent(false);
-            gu.StartBatchedGeneration("out", 1, 1000, AreaUtils.Load("data/map.bin"), new RandomWalkParams()
+            gu.StartBatchedGeneration("out", generation_type, 1, 5, AreaUtils.Load("data/map.bin"), new RandomWalkParams()
             {
                 excludeSelected = false,
                 invert = false,
@@ -93,10 +98,6 @@ namespace consoleinterface
             var elapsedMs = watch.ElapsedMilliseconds;
             Console.WriteLine($"Code run in {elapsedMs}");
             RandomWalkAnalysis analysis = new RandomWalkAnalysis(simulation, DistCalcMethod.OCCURENCE_CNT);
-            //File.WriteAllText("dist.json", analysis.Distribution.DistributionToJSON());
-            //File.WriteAllText("MAP.json", analysis.MAPDistrict.ToJSON());
-            //File.WriteAllText("expected.json", analysis.ExpectedDistrict.ToJSON());
-            //File.WriteAllText("std.json", analysis.StandardDeviationDistrict.ToJSON());
             Console.ReadLine();
         }
     }

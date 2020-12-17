@@ -36,9 +36,9 @@ find_params <- function(nsims=10000, ndists=18) {
 }
 
 run_simulation <- function(nsims=100, ndists=18, popcons=0.15,
-  seed=1, nloop=1, beta=2500, eprob=0.01, lambda=10, savename="partitions.csv") {
+  seed=1, nloop=1, beta=0.01, eprob=0.05, lambda=2, savename="partitions.csv") {
 
-  load("budapest.RData")
+  load("data/budapest.RData")
   set.seed(seed)
 
   bud_out <- redist.mcmc(
@@ -53,17 +53,17 @@ run_simulation <- function(nsims=100, ndists=18, popcons=0.15,
     ssdmat=bud$ssdist,
     beta=beta,
     lambda=lambda,
-    constraint="compact",
-    temper="parallel",
-    savename="bud"
+    savename="r_gen",
+    rngseed=seed
   )
 
   if (nloop > 1) {
     bud_out <- redist.combine(
-      savename="bud",
+      savename="r_gen",
       nsims=nsims,
       nloop=nloop,
       nthin=10,
+      temper=TRUE,
       nunits=length(bud$adjobj)
     )
   }
@@ -72,7 +72,7 @@ run_simulation <- function(nsims=100, ndists=18, popcons=0.15,
 }
 
 run_analysis <- function(savename="bud", nsims=10000, nloop=10) {
-  load("budapest.RData")
+  load("data/budapest.RData")
 
   bud_out <- redist.combine(
     savename=savename,
@@ -93,4 +93,6 @@ run_analysis <- function(savename="bud", nsims=10000, nloop=10) {
   #redist.diagplot(bud_dmi, plot = "mean")
 }
 
-run_simulation(nloop=5)
+
+
+

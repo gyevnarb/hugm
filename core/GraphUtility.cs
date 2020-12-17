@@ -126,6 +126,8 @@ namespace core
 
         public RandomWalkAnalysis PreviousRandomWalk { get; set; }
 
+        public RUtils rutil = new RUtils();
+
         public bool ValidGraph()
         {
             return MyGraph != null;
@@ -622,7 +624,7 @@ namespace core
             return sss;
         }
 
-        public void StartBatchedGeneration(string folder, int startSeed, int count, Graph originalGraph, RandomWalkParams rwp, int maxParalell, ProgressChangedEventHandler workHandler, RunWorkerCompletedEventHandler completeHandler)
+        public void StartBatchedGeneration(string folder, string generation_type, int startSeed, int count, Graph originalGraph, RandomWalkParams rwp, int maxParalell, ProgressChangedEventHandler workHandler, RunWorkerCompletedEventHandler completeHandler)
         {
             bgw = new BackgroundWorker();
             bgw.WorkerReportsProgress = true;
@@ -631,7 +633,7 @@ namespace core
 
             var now = DateTime.Now;
             if (folder.Length == 0) folder = $"{now.Year}_{now.Month}_{now.Day}_{now.Minute}_{now.Second}";
-            System.IO.Directory.CreateDirectory(folder);
+            Directory.CreateDirectory(folder);
 
             List<int> origElectSettings = new List<int>();
             foreach (AreaNode v in originalGraph.V) 
@@ -642,29 +644,54 @@ namespace core
 
             ThreadLocal<StringBuilder> perThreadStat = new ThreadLocal<StringBuilder>(true);
 
-            bgw.DoWork += (s, ee) =>
+            if (generation_type == "random")
             {
-                SaveAsStat(System.IO.Path.Combine(folder, "base.stat"), originalGraph, origElectSettings, rwp);
-
-                Parallel.For(startSeed, end, new ParallelOptions() { MaxDegreeOfParallelism = maxParalell }, (i) =>
+                bgw.DoWork += (s, ee) =>
                 {
-                    var graph = ObjectCopier.Clone(originalGraph);
-                    GenerateRandomElectoralDistrictSystem(i, graph, null).Wait();
-                    string stat = ToStat(graph, origElectSettings, rwp);
+                    SaveAsStat(Path.Combine(folder, "base.stat"), originalGraph, origElectSettings, rwp);
 
-                    if (!perThreadStat.IsValueCreated) perThreadStat.Value = new StringBuilder();
-                    perThreadStat.Value.AppendLine(stat);
-
-                    Interlocked.Increment(ref cc);
-                    if (cc % 1 == 0)
+                    Parallel.For(startSeed, end, new ParallelOptions() { MaxDegreeOfParallelism = maxParalell }, (i) =>
                     {
-                        bgw.ReportProgress((int)((double)(cc) / (double)(count) * 100), new BatchedGenerationProgress() { done = cc, all = count });
-                    }
-                });
+                        var graph = ObjectCopier.Clone(originalGraph);
 
-                File.WriteAllText(System.IO.Path.Combine(folder, "generated.stat"), perThreadStat.Values.Select(x => x.ToString()).Aggregate((partialPhrase, word) => $"{partialPhrase} {word}"));
-            };
-            bgw.RunWorkerAsync();
+                        if (generation_type == "random")
+                            GenerateRandomElectoralDistrictSystem(i, graph, null).Wait();
+
+                        string stat = ToStat(graph, origElectSettings, rwp);
+
+                        if (!perThreadStat.IsValueCreated) perThreadStat.Value = new StringBuilder();
+                        perThreadStat.Value.AppendLine(stat);
+
+                        Interlocked.Increment(ref cc);
+                        if (cc % 1 == 0)
+                        {
+                            bgw.ReportProgress((int)((double)(cc) / (double)(count) * 100), new BatchedGenerationProgress() { done = cc, all = count });
+                        }
+                    });
+
+                    File.WriteAllText(Path.Combine(folder, "generated.stat"), 
+                        perThreadStat.Values.Select(x => x.ToString()).Aggregate((partialPhrase, word) => $"{partialPhrase} {word}"));
+                };
+                bgw.RunWorkerAsync();
+            }
+            else if (generation_type == "mcmc")
+            {
+                var statBuilder = new StringBuilder();
+                for (int i = 0; i < end; i++)
+                {
+                    var graphTask = rutil.GenerateMarkovAnalysis(originalGraph, "last", 100, 18, 0.15, i, 1, 0.01, 0.05, 2.0);
+                    graphTask.Wait();
+                    var graph = graphTask.Result;
+
+                    if (graph == null) continue;
+
+                    string stat = ToStat(graph, origElectSettings, rwp);
+                    statBuilder.AppendLine(stat);
+                    Console.WriteLine($"{i + 1}/{end}");
+                }
+                File.WriteAllText(Path.Combine(folder, "generated.stat"), statBuilder.ToString());
+            }
+
         }
     }
 }

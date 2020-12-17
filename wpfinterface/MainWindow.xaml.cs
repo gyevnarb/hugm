@@ -672,14 +672,14 @@ namespace wpfinterface
 
             int count = int.Parse(txCount.Text);
 
-            graphUtil.StartBatchedGeneration(txFolder.Text, int.Parse(txSeed.Text), count, ObjectCopier.Clone(graphUtil.MyGraph), rwp, 4,
+            graphUtil.StartBatchedGeneration(txFolder.Text, "random", int.Parse(txSeed.Text), count, ObjectCopier.Clone(graphUtil.MyGraph), rwp, 4,
                 (s, ee) =>
                 {
                     progressbar.Value = ee.ProgressPercentage;
                     var prg = ee.UserState as BatchedGenerationProgress;
                     lblLoadedGraphPath.Text = $"Completed {prg.done}/{prg.all} generations.";
                 },
-                (s, ee) => 
+                (s, ee) =>
                 {
                     progressbar.Value = 0;
                     lblLoadedGraphPath.Text = $"Finished {count} generations.";
