@@ -71,6 +71,7 @@ namespace core
         public int budapestWinner;
         public int seed;
         public double similarity;
+        public bool validMid15, validMid20;
     }
 
     public class Stats
@@ -101,7 +102,7 @@ namespace core
         BackgroundWorker bgw;
 
         private static float atlag = 76818; // 2011
-        private static readonly double STAT_VERSION = 0.4;
+        private static readonly double STAT_VERSION = 0.5;
 
         private int _seed;
         private Graph myGraph;
@@ -133,13 +134,13 @@ namespace core
 
         public Stats MyStats { get; set; }
 
-        public async Task GenerateRandomElectoralDistrictSystem(long seed, Graph graph, Func<AreaNode, Task> nodeUpdatedHandler)
+        public async Task<Tuple<bool, bool>> GenerateRandomElectoralDistrictSystem(long seed, Graph graph, Func<AreaNode, Task> nodeUpdatedHandler)
         {
             // 1. 18 Random node kivalasztasa, minden keruletbol egyet
             // 2. Novesztes egyelore nepesseg korlat betartasa nelkul
             // 3. Tul kicsiket felnoveljuk hogy elerjek a hatart
             // 4. Túl nagyokat meg lecsokkentjuk
-            if (graph == null) return;
+            if (graph == null) return new Tuple<bool, bool>(false, false);
             int MAX_STEP = 10000; // Ha 3. vagy 4. lepes egyenként tul lepne a max step-et akkor megallitjuk
 
             _seed = (int)(seed % int.MaxValue);
@@ -196,6 +197,17 @@ namespace core
                             await nodeUpdatedHandler?.Invoke(chosenNode);
                     }
                 }
+            }
+
+            // Nezzuk meg, most valid-e csak a random resz alapjan
+            bool valid15 = true;
+            bool valid20 = true;
+            foreach (var se in ujlista)
+            {
+                if (se.pop > atlag * 1.15 || se.pop < atlag * 0.85)
+                    valid15 = false;
+                if (se.pop > atlag * 1.2 || se.pop < atlag * 0.8)
+                    valid20 = false;
             }
 
             int l = 0;
@@ -293,6 +305,8 @@ namespace core
                 ujlista.Sort((a, b) => b.pop - a.pop);
                 for (int k = 0; k < 18; ++k) if (ujlista[k].pop < atlag * 1.15) { h = k; break; }
             }
+
+            return new Tuple<bool, bool>(valid15, valid20);
         }
 
         public async Task GenerateRandomElectoralDistrictSystem2(long seed, Graph graph, Func<AreaNode, Task> nodeUpdatedHandler)
@@ -428,7 +442,7 @@ namespace core
             foreach (var file in Directory.GetFiles(folder))
             {
                 if (!file.EndsWith(".stat")) continue;
-                var fileStream =new System.IO.StreamReader(file);
+                var fileStream = new System.IO.StreamReader(file);
                 string text;
                 while ((text = fileStream.ReadLine()) != null)
                 {
@@ -446,12 +460,15 @@ namespace core
                     bool valid20 = int.Parse(splitted[3]) == 1;
                     if (useValid && (!valid15 || !valid20)) continue;
 
-                    var fidesz = double.Parse(splitted[4]);
-                    var osszefogas = double.Parse(splitted[5]);
-                    var jobbik = double.Parse(splitted[6]);
-                    var lmp = double.Parse(splitted[7]);
+                    result.validMid15 = int.Parse(splitted[4]) == 1;
+                    result.validMid20 = int.Parse(splitted[5]) == 1;
 
-                    result.similarity = double.Parse(splitted[8]);
+                    var fidesz = double.Parse(splitted[6]);
+                    var osszefogas = double.Parse(splitted[7]);
+                    var jobbik = double.Parse(splitted[8]);
+                    var lmp = double.Parse(splitted[9]);
+
+                    result.similarity = double.Parse(splitted[10]);
 
                     // TODO: egyenloseg?
                     if (fidesz >= osszefogas && fidesz >= jobbik && fidesz >= lmp)
@@ -463,7 +480,7 @@ namespace core
                     else if (lmp >= fidesz && lmp >= jobbik && lmp >= osszefogas)
                         result.budapestWinner = 3;
 
-                    int offset = 9, stride = 8;
+                    int offset = 11, stride = 8;
                     for (int i = 0; i < 18; ++i)
                     {
                         var eres = new ElectDistrictResult();
@@ -505,7 +522,7 @@ namespace core
             MyStats = s;
         }
 
-        public string ToStat(Graph graph, List<int> origElectSettings, RandomWalkParams rwp)
+        public string ToStat(Graph graph, List<int> origElectSettings, RandomWalkParams rwp, bool validMid15, bool validMid20)
         {
             if (graph == null) return "";
 
@@ -555,7 +572,10 @@ namespace core
             var ra = new RandomWalkAnalysis(rr, DistCalcMethod.OCCURENCE_CNT, 18);
             var wrongDistrictNum = ra.NumWrongDistrict(PlotCalculationMethod.MAP);
 
-            string text = $"{STAT_VERSION};{_seed};{valid15};{valid20};{fideszkdnp};{osszefogas};{jobbik};{lmp};{similarity}";
+            int vm15 = validMid15 ? 1 : 0;
+            int vm20 = validMid20 ? 1 : 0;
+
+            string text = $"{STAT_VERSION};{_seed};{valid15};{valid20};{vm15};{vm20};{fideszkdnp};{osszefogas};{jobbik};{lmp};{similarity}";
             for (int i = 0; i < 18; ++i)
             {
                 var se = results[i];
@@ -566,9 +586,9 @@ namespace core
             return text;
         }
 
-        public void SaveAsStat(string filename, Graph graph, List<int> origElectSettings, RandomWalkParams rwp)
+        public void SaveAsStat(string filename, Graph graph, List<int> origElectSettings, RandomWalkParams rwp, bool validMid15, bool validMid20)
         {
-            System.IO.File.WriteAllText(filename, ToStat(graph, origElectSettings, rwp));
+            System.IO.File.WriteAllText(filename, ToStat(graph, origElectSettings, rwp, validMid15, validMid20));
         }
 
         public string GetStatistics(Graph graph)
@@ -644,13 +664,14 @@ namespace core
 
             bgw.DoWork += (s, ee) =>
             {
-                SaveAsStat(System.IO.Path.Combine(folder, "base.stat"), originalGraph, origElectSettings, rwp);
+                SaveAsStat(System.IO.Path.Combine(folder, "base.stat"), originalGraph, origElectSettings, rwp, true, true);
 
                 Parallel.For(startSeed, end, new ParallelOptions() { MaxDegreeOfParallelism = maxParalell }, (i) =>
                 {
                     var graph = ObjectCopier.Clone(originalGraph);
-                    GenerateRandomElectoralDistrictSystem(i, graph, null).Wait();
-                    string stat = ToStat(graph, origElectSettings, rwp);
+                    var t = GenerateRandomElectoralDistrictSystem(i, graph, null);
+                    t.Wait();
+                    string stat = ToStat(graph, origElectSettings, rwp, t.Result.Item1, t.Result.Item2);
 
                     if (!perThreadStat.IsValueCreated) perThreadStat.Value = new StringBuilder();
                     perThreadStat.Value.AppendLine(stat);

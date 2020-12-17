@@ -38,7 +38,8 @@ namespace wpfinterface
             {"FideszDistrictCount", (plot, stat) => plot.PlotFideszDistrictCount(stat) },
             {"DissimilarityIndex", (plot, stat) => plot.PlotDissimilarityIndex(stat) },
             {"Entropy", (plot, stat) => plot.PlotEntropy(stat) },
-            {"AvgWrongAreaRate", (plot, stat) => plot.PlotAverageWrongPlaces(stat) }
+            {"AvgWrongAreaRate", (plot, stat) => plot.PlotAverageWrongPlaces(stat) },
+            {"ValidPercentageAfterRandom", (plot, stat) => plot.PlotValidPercentageAfterRandom(stat) }
 
          //  {"AvgWinnerRate", (plot, stat) => plot.PlotAverageWinnerRate(stat) },
            // {"WinnerWins", (plot, stat) => plot.PlotWinnerWins(stat) },
@@ -155,6 +156,12 @@ namespace wpfinterface
 
             plot1.plt.YLabel("Fidesz szavazatok %");
             plot1.plt.XLabel("Választó kerületek");
+        }
+
+        public void PlotValidPercentageAfterRandom(Stats stats)
+        {
+            var p = (double)stats.generationResults.Count(x => x.validMid15) / stats.generationResults.Count;
+            plot1.plt.PlotText(p.ToString(), 0, 0);
         }
 
         public void PlotFideszVoteRates(Stats stats)
