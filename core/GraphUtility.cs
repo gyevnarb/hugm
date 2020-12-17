@@ -71,6 +71,7 @@ namespace core
         public int budapestWinner;
         public int seed;
         public double similarity;
+        public int athelyezesCount;
     }
 
     public class Stats
@@ -101,7 +102,7 @@ namespace core
         BackgroundWorker bgw;
 
         private static float atlag = 76818; // 2011
-        private static readonly double STAT_VERSION = 0.4;
+        private static readonly double STAT_VERSION = 0.5;
 
         private int _seed;
         private Graph myGraph;
@@ -135,13 +136,13 @@ namespace core
 
         public Stats MyStats { get; set; }
 
-        public async Task GenerateRandomElectoralDistrictSystem(long seed, Graph graph, Func<AreaNode, Task> nodeUpdatedHandler)
+        public async Task<int> GenerateRandomElectoralDistrictSystem(long seed, Graph graph, Func<AreaNode, Task> nodeUpdatedHandler)
         {
             // 1. 18 Random node kivalasztasa, minden keruletbol egyet
             // 2. Novesztes egyelore nepesseg korlat betartasa nelkul
             // 3. Tul kicsiket felnoveljuk hogy elerjek a hatart
             // 4. Túl nagyokat meg lecsokkentjuk
-            if (graph == null) return;
+            if (graph == null) return -1;
             int MAX_STEP = 10000; // Ha 3. vagy 4. lepes egyenként tul lepne a max step-et akkor megallitjuk
 
             _seed = (int)(seed % int.MaxValue);
@@ -200,6 +201,8 @@ namespace core
                 }
             }
 
+            int athelyezesCount = 0;
+
             int l = 0;
             int h = 0;
             ujlista.Sort((a, b) => a.pop - b.pop);
@@ -237,6 +240,8 @@ namespace core
                             ujlista[j].pop -= n.Population;
                             n.ElectorialDistrict = ujlista[i].id;
                             done = true;
+
+                            athelyezesCount++;
 
                             if (nodeUpdatedHandler != null)
                                 await nodeUpdatedHandler?.Invoke(n);
@@ -286,6 +291,8 @@ namespace core
                             n.ElectorialDistrict = ujlista[j].id;
                             done = true;
 
+                            athelyezesCount++;
+
                             if (nodeUpdatedHandler != null)
                                 await nodeUpdatedHandler?.Invoke(n);
                         }
@@ -295,6 +302,8 @@ namespace core
                 ujlista.Sort((a, b) => b.pop - a.pop);
                 for (int k = 0; k < 18; ++k) if (ujlista[k].pop < atlag * 1.15) { h = k; break; }
             }
+
+            return athelyezesCount;
         }
 
         public async Task GenerateRandomElectoralDistrictSystem2(long seed, Graph graph, Func<AreaNode, Task> nodeUpdatedHandler)
@@ -430,7 +439,7 @@ namespace core
             foreach (var file in Directory.GetFiles(folder))
             {
                 if (!file.EndsWith(".stat")) continue;
-                var fileStream =new System.IO.StreamReader(file);
+                var fileStream = new System.IO.StreamReader(file);
                 string text;
                 while ((text = fileStream.ReadLine()) != null)
                 {
@@ -448,12 +457,14 @@ namespace core
                     bool valid20 = int.Parse(splitted[3]) == 1;
                     if (useValid && (!valid15 || !valid20)) continue;
 
-                    var fidesz = double.Parse(splitted[4]);
-                    var osszefogas = double.Parse(splitted[5]);
-                    var jobbik = double.Parse(splitted[6]);
-                    var lmp = double.Parse(splitted[7]);
+                    result.athelyezesCount = int.Parse(splitted[4]);
 
-                    result.similarity = double.Parse(splitted[8]);
+                    var fidesz = double.Parse(splitted[5]);
+                    var osszefogas = double.Parse(splitted[6]);
+                    var jobbik = double.Parse(splitted[7]);
+                    var lmp = double.Parse(splitted[8]);
+
+                    result.similarity = double.Parse(splitted[9]);
 
                     // TODO: egyenloseg?
                     if (fidesz >= osszefogas && fidesz >= jobbik && fidesz >= lmp)
@@ -465,7 +476,7 @@ namespace core
                     else if (lmp >= fidesz && lmp >= jobbik && lmp >= osszefogas)
                         result.budapestWinner = 3;
 
-                    int offset = 9, stride = 8;
+                    int offset = 10, stride = 8;
                     for (int i = 0; i < 18; ++i)
                     {
                         var eres = new ElectDistrictResult();
@@ -507,7 +518,7 @@ namespace core
             MyStats = s;
         }
 
-        public string ToStat(Graph graph, List<int> origElectSettings, RandomWalkParams rwp)
+        public string ToStat(Graph graph, List<int> origElectSettings, RandomWalkParams rwp, int athelyezesCount)
         {
             if (graph == null) return "";
 
@@ -557,7 +568,7 @@ namespace core
             var ra = new RandomWalkAnalysis(rr, DistCalcMethod.OCCURENCE_CNT, 18);
             var wrongDistrictNum = ra.NumWrongDistrict(PlotCalculationMethod.MAP);
 
-            string text = $"{STAT_VERSION};{_seed};{valid15};{valid20};{fideszkdnp};{osszefogas};{jobbik};{lmp};{similarity}";
+            string text = $"{STAT_VERSION};{_seed};{valid15};{valid20};{athelyezesCount};{fideszkdnp};{osszefogas};{jobbik};{lmp};{similarity}";
             for (int i = 0; i < 18; ++i)
             {
                 var se = results[i];
@@ -568,9 +579,9 @@ namespace core
             return text;
         }
 
-        public void SaveAsStat(string filename, Graph graph, List<int> origElectSettings, RandomWalkParams rwp)
+        public void SaveAsStat(string filename, Graph graph, List<int> origElectSettings, RandomWalkParams rwp, int athelyezesCount)
         {
-            System.IO.File.WriteAllText(filename, ToStat(graph, origElectSettings, rwp));
+            System.IO.File.WriteAllText(filename, ToStat(graph, origElectSettings, rwp, athelyezesCount));
         }
 
         public string GetStatistics(Graph graph)
@@ -646,9 +657,7 @@ namespace core
 
             if (generation_type == "random")
             {
-                bgw.DoWork += (s, ee) =>
-                {
-                    SaveAsStat(Path.Combine(folder, "base.stat"), originalGraph, origElectSettings, rwp);
+                SaveAsStat(System.IO.Path.Combine(folder, "base.stat"), originalGraph, origElectSettings, rwp, 0);
 
                     Parallel.For(startSeed, end, new ParallelOptions() { MaxDegreeOfParallelism = maxParalell }, (i) =>
                     {
@@ -679,9 +688,10 @@ namespace core
                 var statBuilder = new StringBuilder();
                 for (int i = 0; i < end; i++)
                 {
-                    var graphTask = rutil.GenerateMarkovAnalysis(originalGraph, "last", 100, 18, 0.15, i, 1, 0.01, 0.05, 2.0);
-                    graphTask.Wait();
-                    var graph = graphTask.Result;
+                    var graph = ObjectCopier.Clone(originalGraph);
+                    var t = GenerateRandomElectoralDistrictSystem(i, graph, null);
+                    t.Wait();
+                    string stat = ToStat(graph, origElectSettings, rwp, t.Result);
 
                     if (graph == null) continue;
 
