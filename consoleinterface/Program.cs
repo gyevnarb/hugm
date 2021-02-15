@@ -17,19 +17,31 @@ namespace consoleinterface
             Console.WriteLine($"The arguments passed were:\n{string.Join(',', args)}");
 
             string generation_type = "mcmc";
-            if (args.Length > 0) generation_type = args[0];
+            int num_threads = 0;
+            if (args.Length > 0) {
+                    generation_type = args[0];
+                    num_threads = int.Parse(args[1]);
+            }
 
-            RunTestGen(generation_type);
+ 
+            RunTestGen(generation_type, num_threads);
 
             return;
         }
 
-        private static void RunTestGen(string generation_type)
+        private static void RunTestGen(string generation_type, int num_threads)
         {
             var gu = new GraphUtility();
 
+            int total_runs = 0;
+            if (generation_type == "random")
+                    total_runs = 1000000;
+            else
+                    total_runs = 10000;
+
+
             var doneEvent = new ManualResetEvent(false);
-            gu.StartBatchedGeneration("out", generation_type, 1, 100, AreaUtils.Load("data/map.bin"), new RandomWalkParams()
+            gu.StartBatchedGeneration($"out_{generation_type}_{total_runs}", generation_type, 1, total_runs, AreaUtils.Load("data/map.bin"), new RandomWalkParams()
             {
                 excludeSelected = false,
                 invert = false,
@@ -38,7 +50,7 @@ namespace consoleinterface
                 party = Parties.FIDESZ,
                 partyProb = 0,
                 walkLen = 5
-            }, 4, (s, e) => Console.WriteLine(e.ProgressPercentage), (s, e) => doneEvent.Set());
+            }, num_threads, (s, e) => Console.WriteLine(e.ProgressPercentage), (s, e) => doneEvent.Set());
 
             if (generation_type != "mcmc") doneEvent.WaitOne();
             Console.WriteLine("Done");
