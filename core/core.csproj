@@ -19,6 +19,9 @@
     <None Update="data\budapest.RData">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="data\map_adjusted.bin">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="rcode\markov_analysis.R">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
