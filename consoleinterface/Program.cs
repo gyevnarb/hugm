@@ -14,17 +14,34 @@ namespace consoleinterface
         {
             CultureInfo.CurrentCulture = new CultureInfo("en-US");
 
-            RunTestGen();
+            Console.WriteLine($"The arguments passed were:\n{string.Join(',', args)}");
+
+            string generation_type = "mcmc";
+            int num_threads = 0;
+            if (args.Length > 0) {
+                    generation_type = args[0];
+                    num_threads = int.Parse(args[1]);
+            }
+
+ 
+            RunTestGen(generation_type, num_threads);
 
             return;
         }
 
-        private static void RunTestGen()
+        private static void RunTestGen(string generation_type, int num_threads)
         {
             var gu = new GraphUtility();
 
+            int total_runs = 0;
+            if (generation_type == "random")
+                    total_runs = 1000000;
+            else
+                    total_runs = 10000;
+
+
             var doneEvent = new ManualResetEvent(false);
-            gu.StartBatchedGeneration("out", 1, 1000, AreaUtils.Load("data/map.bin"), new RandomWalkParams()
+            gu.StartBatchedGeneration($"out_{generation_type}_{total_runs}", generation_type, 1, total_runs, AreaUtils.Load("data/map.bin"), new RandomWalkParams()
             {
                 excludeSelected = false,
                 invert = false,
@@ -33,9 +50,9 @@ namespace consoleinterface
                 party = Parties.FIDESZ,
                 partyProb = 0,
                 walkLen = 5
-            }, 4, (s, e) => Console.WriteLine(e.ProgressPercentage), (s, e) => doneEvent.Set());
+            }, num_threads, (s, e) => Console.WriteLine(e.ProgressPercentage), (s, e) => doneEvent.Set());
 
-            doneEvent.WaitOne();
+            if (generation_type != "mcmc") doneEvent.WaitOne();
             Console.WriteLine("Done");
         }
 
@@ -93,10 +110,6 @@ namespace consoleinterface
             var elapsedMs = watch.ElapsedMilliseconds;
             Console.WriteLine($"Code run in {elapsedMs}");
             RandomWalkAnalysis analysis = new RandomWalkAnalysis(simulation, DistCalcMethod.OCCURENCE_CNT);
-            //File.WriteAllText("dist.json", analysis.Distribution.DistributionToJSON());
-            //File.WriteAllText("MAP.json", analysis.MAPDistrict.ToJSON());
-            //File.WriteAllText("expected.json", analysis.ExpectedDistrict.ToJSON());
-            //File.WriteAllText("std.json", analysis.StandardDeviationDistrict.ToJSON());
             Console.ReadLine();
         }
     }

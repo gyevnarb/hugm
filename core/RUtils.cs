@@ -26,6 +26,7 @@ namespace core
         ///  The number of swaps each iteration is equal to Pois(lambda) + 1.
         /// </remarks>
         /// <see cref="https://cran.r-project.org/web/packages/redist/redist.pdf"/>
+        /// <param name="selection">Which iteraction of the MCMC to select for loading. Either random, first, or last</param>
         /// <param name="nsims">The number of simulations run before a save point.</param>
         /// <param name="ndists">The numbe of congressional districts. The default is 18 for Budapest.</param>
         /// <param name="popcons">The strength of the hard population constraint.</param>
@@ -39,7 +40,7 @@ namespace core
             int nloop = 1, double beta = 2500.0, double eprob = 0.01, double lambda = 0.0, string savePath = "partitions.csv")
         {
             string graphPath = savePath.Contains('/') ? savePath.Substring(0, savePath.LastIndexOf('/')) : "";
-            graphPath += "/map_rsim.bin";
+            graphPath += "map_rsim.bin";
 
             await Task.Run(() =>
             {
