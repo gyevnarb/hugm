@@ -32,6 +32,7 @@ namespace wpfinterface
         private Ellipse ConnectingElement2 = null;
         private List<string> availableDistricts = new List<string>();
         private List<string> availableElectorials = new List<string>();
+        private List<UIElement> moveSelection = new List<UIElement>();
 
         #region Colors
 
@@ -65,7 +66,33 @@ namespace wpfinterface
             Brushes.MidnightBlue
         };
 
+        private Brush[] printNodeBrushes =
+{
+            Brushes.LightGray,
+            Brushes.DarkGray,
+            Brushes.LightGray,
+            Brushes.Black,
+            Brushes.LightGray,
+            Brushes.LightGray,
+            Brushes.White,
+            Brushes.Black,
+            Brushes.White,
+            Brushes.DarkGray,
+            Brushes.White,
+            Brushes.LightGray,
+            Brushes.Black,
+            Brushes.DarkGray,
+            Brushes.Black,
+            Brushes.White,
+            Brushes.LightGray,
+            Brushes.DarkGray,
+            Brushes.White
+        };
+
+
         Brush getColor(int i) { return nodeBrushes[i]; }
+
+        Brush getPrintColor(int i ) { return printNodeBrushes[i]; }
 
         Brush setDefaultColor(Ellipse e)
         {
@@ -85,10 +112,10 @@ namespace wpfinterface
         private double AnimationSpeed = 50;
 
         private System.Timers.Timer movementTimer;
-        private double HorizontalMoveDirection = 0;
-        private double VerticalMoveDirection = 0;
+        private double HorizontalMoveDirection = 0, SelectionHDir = 0;
+        private double VerticalMoveDirection = 0, SelectionVDir = 0;
         private double CameraMoveSpeed = 500;
-        private bool W = false, A = false, S = false, D = false, MouseLeft = false;
+        private bool W = false, A = false, S = false, D = false, MouseLeft = false, alt = false, arrowUp = false, arrowLeft = false, arrowRight = false, arrowDown = false;
         private double MouseXOrig, MouseYOrig, MouseMoveSpeed = 0.1;
 
         public MainWindow()
@@ -115,6 +142,15 @@ namespace wpfinterface
                 {
                     canvasTranslate.X += HorizontalMoveDirection * CameraMoveSpeed * 1f / 60f;
                     canvasTranslate.Y += VerticalMoveDirection * CameraMoveSpeed * 1f / 60f;
+
+                    foreach (var s in moveSelection)
+                    {
+                        var node = associatedElems[canvas.Children.IndexOf(s)] as AreaNode;
+                        node.X -= SelectionHDir * 300 * 1f / 60f;
+                        node.Y -= SelectionVDir * 300 * 1f / 60f;
+                        Canvas.SetTop(s, node.Y - VotingAreaRadius);
+                        Canvas.SetLeft(s, node.X - VotingAreaRadius);
+                    }
                 });
             };
             movementTimer.AutoReset = true;
@@ -143,6 +179,31 @@ namespace wpfinterface
                     HorizontalMoveDirection += 1.0;
                     D = false;
                 }
+                if (e.Key == Key.Up && arrowUp)
+                {
+                    SelectionVDir -= 1.0;
+                    arrowUp = false;
+                }
+                if (e.Key == Key.Left && arrowLeft)
+                {
+                    SelectionHDir -= 1.0;
+                    arrowLeft = false;
+                }
+                if (e.Key == Key.Down && arrowDown)
+                {
+                    SelectionVDir += 1.0;
+                    arrowDown = false;
+                }
+                if (e.Key == Key.Right && arrowRight)
+                {
+                    SelectionHDir += 1.0;
+                    arrowRight = false;
+                }
+                if (e.SystemKey == Key.LeftAlt)
+                {
+                    alt = false;
+                }
+
 
                 if (e.Key == Key.Delete)
                 {
@@ -176,6 +237,34 @@ namespace wpfinterface
                 {
                     HorizontalMoveDirection -= 1.0;
                     D = true;
+                }
+                if (e.Key == Key.Up && !arrowUp)
+                {
+                    SelectionVDir += 1.0;
+                    arrowUp = true;
+                }
+                if (e.Key == Key.Left && !arrowLeft)
+                {
+                    SelectionHDir += 1.0;
+                    arrowLeft = true;
+                }
+                if (e.Key == Key.Down && !arrowDown)
+                {
+                    SelectionVDir -= 1.0;
+                    arrowDown = true;
+                }
+                if (e.Key == Key.Right && !arrowRight)
+                {
+                    SelectionHDir -= 1.0;
+                    arrowRight = true;
+                }
+                if (e.SystemKey == Key.LeftAlt)
+                {
+                    alt = true;
+                }
+                if (e.Key == Key.C)
+                {
+                    moveSelection.Clear();
                 }
 
                 if (e.Key == Key.U)
@@ -230,7 +319,13 @@ namespace wpfinterface
             if (canvas == null) return;
             HitTestResult hitTestResult = VisualTreeHelper.HitTest(canvas, e.GetPosition(canvas));
 
-            if (e.LeftButton == MouseButtonState.Pressed)
+            if (e.LeftButton == MouseButtonState.Pressed && alt)
+            {
+                SelectedElement = hitTestResult.VisualHit as UIElement;
+                if (SelectedElement is Ellipse)
+                    moveSelection.Add(SelectedElement);
+            }
+            else if (e.LeftButton == MouseButtonState.Pressed)
             {
                 SelectedElement = hitTestResult.VisualHit as UIElement;
                 if (SelectedElement == SelectedBorder) return;
@@ -300,6 +395,7 @@ namespace wpfinterface
 
             canvas.Children.Clear();
             associatedElems.Clear();
+            moveSelection.Clear();
 
             var img = new System.Windows.Controls.Image();
             img.Source = new BitmapImage(new Uri(Environment.CurrentDirectory + @"\assets\budapest.png"));
@@ -646,6 +742,31 @@ namespace wpfinterface
         private void ToolsRefreshHandler(object sender, RoutedEventArgs e)
         {
             ShowGraph(true);
+        }
+        private void ColouringChnagedHandler(object sender, RoutedEventArgs e)
+        {
+            if (printColoring.IsChecked)
+            {
+                foreach (var s in canvas.Children)
+                {
+                    if (s is Ellipse)
+                    {
+                        var ell = s as Ellipse;
+                        ell.Fill = getPrintColor((associatedElems[canvas.Children.IndexOf(ell)] as AreaNode).ElectorialDistrict);
+                    }
+                }
+            }
+            else
+            {
+                foreach (var s in canvas.Children)
+                {
+                    if (s is Ellipse)
+                    {
+                        var ell = s as Ellipse;
+                        ell.Fill = getColor((associatedElems[canvas.Children.IndexOf(ell)] as AreaNode).ElectorialDistrict);
+                    }
+                }
+            }
         }
 
         private void GenerationStartHandler(object sender, RoutedEventArgs e)
