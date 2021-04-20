@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "consoleinterface": {
+      "commandName": "Project",
+      "commandLineArgs": "mcmc 1"
+    }
+  }
+}
