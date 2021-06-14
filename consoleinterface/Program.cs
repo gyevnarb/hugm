@@ -52,7 +52,7 @@ namespace consoleinterface
                 walkLen = 5
             }, num_threads, (s, e) => Console.WriteLine(e.ProgressPercentage), (s, e) => doneEvent.Set());
 
-            if (generation_type != "mcmc") doneEvent.WaitOne();
+            doneEvent.WaitOne();
             Console.WriteLine("Done");
         }
 

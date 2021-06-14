@@ -793,6 +793,7 @@ namespace wpfinterface
 
             int count = int.Parse(txCount.Text);
 
+            btnStartBatch.IsEnabled = false;
             graphUtil.StartBatchedGeneration(txFolder.Text, "random", int.Parse(txSeed.Text), count, ObjectCopier.Clone(graphUtil.MyGraph), rwp, 4,
                 (s, ee) =>
                 {
@@ -804,11 +805,12 @@ namespace wpfinterface
                 {
                     progressbar.Value = 0;
                     lblLoadedGraphPath.Text = $"Finished {count} generations.";
+                    btnStartBatch.IsEnabled = true;
                 });
             lblLoadedGraphPath.Text = $"Started {count} generations.";
         }
 
-        private void Button_Click_LoadStats(object sender, RoutedEventArgs e)
+        private async void Button_Click_LoadStats(object sender, RoutedEventArgs e)
         {
             if (txStatFolder.Text == "")
             {
@@ -823,9 +825,23 @@ namespace wpfinterface
                 }
             }
 
+            if (!graphUtil.ValidGraph())
+            {
+                FileLoadHandler(this, null);
+
+                if (!graphUtil.ValidGraph())
+                {
+                    lblLoadedGraphPath.Text = "Graph is not loaded. Please load a graph through the file menu.";
+                    return;
+                }
+            }
+
             try
             {
-                graphUtil.LoadStats(txStatFolder.Text, chPopValid.IsChecked.Value);
+                var res = graphUtil.ReadStat(graphUtil.MyGraph, txStatFolder.Text, chPopValid.IsChecked.Value);
+                await res;
+                graphUtil.MyStats = res.Result;
+                //graphUtil.LoadStats(txStatFolder.Text, chPopValid.IsChecked.Value);
             }
             catch(Exception exx)
             {

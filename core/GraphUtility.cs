@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -65,6 +66,17 @@ namespace core
         public double wrongDistrictPercentage;
     }
 
+    struct StatWritingStream : IDisposable
+    {
+        public Stream compressor, compressed;
+
+        public void Dispose()
+        {
+            compressor?.Dispose();
+            compressed?.Dispose();
+        }
+    }
+
     public class GenerationResult
     {
         public List<ElectDistrictResult> result = new List<ElectDistrictResult>();
@@ -102,7 +114,7 @@ namespace core
         BackgroundWorker bgw;
 
         private static float atlag = 76818; // 2011
-        private static readonly double STAT_VERSION = 0.5;
+        private static readonly double STAT_VERSION = 0.6;
 
         private int _seed;
         private Graph myGraph;
@@ -431,6 +443,191 @@ namespace core
             }
         }
 
+        private StatWritingStream PrepareStatWriting()
+        {
+            var mem = new MemoryStream();
+            return new StatWritingStream
+            {
+                compressor = new BrotliStream(mem, CompressionLevel.Fastest),
+                compressed = mem
+            };
+        }
+
+        public string ToStatString(Graph graph, RandomWalkParams rwp, int athelyezesCount)
+        {
+            if (graph == null) return "";
+
+            // random walk
+            var rr = new RandomWalkSimulation(graph, rwp.method, rwp.walkLen, rwp.numRun, rwp.excludeSelected, rwp.invert);
+            if (rwp.method == SamplingMethod.PREFER_PARTY)
+            {
+                rr.PartyPreference = rwp.party;
+                rr.PartyProbability = rwp.partyProb;
+            }
+            rr.Simulate();
+            var ra = new RandomWalkAnalysis(rr, DistCalcMethod.OCCURENCE_CNT, 18);
+            var wrongDistrictNum = ra.NumWrongDistrict(PlotCalculationMethod.MAP);
+
+            string text = $"{STAT_VERSION};{_seed};{athelyezesCount}";
+            for (int i = 0; i < 18; ++i)
+            {
+                var vn = wrongDistrictNum[i].Item1;
+                text += $";{vn}";
+            }
+
+            foreach (AreaNode v in graph.V)
+            {
+                text += $";{v.ElectorialDistrict}";
+            }
+            text += "\n";
+            return text;
+        }
+
+        public async Task StreamStat(Stream s, string stat)
+        {
+            await s.WriteAsync(System.Text.Encoding.ASCII.GetBytes(stat));
+        }
+
+        public async Task FinishStatWriting(string filename, Stream s)
+        {
+            var file = new FileStream(filename, FileMode.Create, FileAccess.Write);
+            s.Position = 0;
+            await s.CopyToAsync(file);
+            await file.FlushAsync();
+        }
+
+        public async Task<Stats> ReadStat(Graph originalGraph, string folder, bool useValid)
+        {
+            if (!Directory.Exists(folder)) return null;
+
+            Stats s = new Stats();
+
+            foreach (var file in Directory.GetFiles(folder))
+            {
+                if (!file.EndsWith(".stat")) continue;
+
+                byte[] decompressedBytes;
+                using (var decompressorStream = new BrotliStream(new FileStream(file, FileMode.Open, FileAccess.Read), CompressionMode.Decompress))
+                {
+                    using (var decompressedStream = new MemoryStream())
+                    {
+                        await decompressorStream.CopyToAsync(decompressedStream);
+
+                        decompressedBytes = decompressedStream.ToArray();
+                    }
+                }
+                var stringStream = new StringReader(Encoding.ASCII.GetString(decompressedBytes));
+
+                string text = null;
+                while ((text = stringStream.ReadLine()) != null)
+                {
+                    if (text == "") continue;
+
+                    var result = new GenerationResult();
+                    var splitted = text.Split(';');
+
+                    var ver = splitted[0];
+                    if (double.Parse(ver) != STAT_VERSION) throw new Exception($"bad stats version, expected {STAT_VERSION}, received {ver}");
+
+                    result.seed = int.Parse(splitted[1]);
+                    result.athelyezesCount = int.Parse(splitted[2]);
+
+                    List<VoteResult> results = new List<VoteResult>(18);
+                    for (int i = 0; i < 18; ++i) results.Add(new VoteResult());
+                    VoteResult glob = new VoteResult();
+
+                    int diffs = 0;
+                    for (int i = 0; i < originalGraph.V.Count; ++i)
+                    {
+                        int district = int.Parse(splitted[21 + i]);
+                        if ((originalGraph.V[i] as AreaNode).ElectorialDistrict != district) diffs++;
+                        foreach (var a in (originalGraph.V[i] as AreaNode).Areas)
+                        {
+                            results[district - 1].Add(a.Results);
+                            glob.Add(a.Results);
+                        }
+                    }
+                    result.similarity = 1.0 - (double)diffs / (double)originalGraph.V.Count;
+
+                    for (int i = 0; i < 18; ++i)
+                    {
+                        var eres = new ElectDistrictResult();
+                        eres.wrongDistrictPercentage = double.Parse(splitted[3 + i]);
+                        eres.numVoters = new int[4] {
+                            results[i].FideszKDNP,
+                            results[i].Osszefogas,
+                            results[i].Jobbik,
+                            results[i].LMP
+                        };
+                        eres.megjelent = results[i].Megjelent;
+                        eres.osszes = results[i].Osszes;
+
+                        eres.fResults = new double[4] {  (double)eres.numVoters[0] / eres.megjelent,
+                                                         (double)eres.numVoters[1] / eres.megjelent,
+                                                         (double)eres.numVoters[2] / eres.megjelent,
+                                                         (double)eres.numVoters[3] / eres.megjelent};
+
+                        eres.winner = 0; // maximum index a winnerbe
+                        for (int j = 0; j < eres.fResults.Length; ++j)
+                        {
+                            if (eres.fResults[j] > eres.fResults[eres.winner])
+                            {
+                                eres.winner = j;
+                            }
+                        }
+                        result.result.Add(eres);
+                    }
+
+                    bool valid15 = true;
+                    bool valid20 = true;
+                    foreach (var se in results)
+                    {
+                        if (se.Osszes > atlag * 1.15 || se.Osszes < atlag * 0.85)
+                            valid15 = false;
+                        if (se.Osszes > atlag * 1.2 || se.Osszes < atlag * 0.8)
+                            valid20 = false;
+                    }
+
+                    // TODO: interface to decide 15 20 or none
+                    if (useValid && (!valid15 || !valid20)) continue;                    
+
+                    float fidesz = results.Count(x => x.Gyoztes == "FideszKDNP");
+                    float osszefogas = results.Count(x => x.Gyoztes == "Osszefogas");
+                    float jobbik = results.Count(x => x.Gyoztes == "Jobbik");
+                    float lmp = results.Count(x => x.Gyoztes == "LMP");
+
+                    // TODO: egyenloseg?
+                    if (fidesz >= osszefogas && fidesz >= jobbik && fidesz >= lmp)
+                        result.budapestWinner = 0;
+                    else if (osszefogas >= fidesz && osszefogas >= jobbik && osszefogas >= lmp)
+                        result.budapestWinner = 1;
+                    else if (jobbik >= fidesz && jobbik >= osszefogas && jobbik >= lmp)
+                        result.budapestWinner = 2;
+                    else if (lmp >= fidesz && lmp >= jobbik && lmp >= osszefogas)
+                        result.budapestWinner = 3;
+
+                    if (file.Contains("base.stat"))
+                    {
+                        s.baseResult = result;
+                    }
+                    else
+                    {
+                        s.generationResults.Add(result);
+                    }
+                }
+            }
+            return s;
+        }
+
+        public async Task SaveAsStat(string filename, Graph g, RandomWalkParams rwp, int athelyezesCount)
+        {
+            using (var s = PrepareStatWriting())
+            {
+                await StreamStat(s.compressor, ToStatString(g, rwp, athelyezesCount));
+                await FinishStatWriting(filename, s.compressed);
+            }
+        }
+
         public void LoadStats(string folder, bool useValid)
         {
             if (!Directory.Exists(folder)) return;
@@ -581,7 +778,7 @@ namespace core
 
         public void SaveAsStat(string filename, Graph graph, List<int> origElectSettings, RandomWalkParams rwp, int athelyezesCount)
         {
-            System.IO.File.WriteAllText(filename, ToStat(graph, origElectSettings, rwp, athelyezesCount));
+            //System.IO.File.WriteAllText(filename, ToStat(graph, origElectSettings, rwp, athelyezesCount));
         }
 
         public string GetStatistics(Graph graph)
@@ -641,67 +838,60 @@ namespace core
             bgw.WorkerReportsProgress = true;
             bgw.ProgressChanged += workHandler;
             bgw.RunWorkerCompleted += completeHandler;
-
-            var now = DateTime.Now;
-            if (folder.Length == 0) folder = $"{now.Year}_{now.Month}_{now.Day}_{now.Minute}_{now.Second}";
-            Directory.CreateDirectory(folder);
-
-            List<int> origElectSettings = new List<int>();
-            foreach (AreaNode v in originalGraph.V)
-                origElectSettings.Add(v.ElectorialDistrict);
-
-            int end = startSeed + count;
-            int cc = 0;
-
-            ThreadLocal<StringBuilder> perThreadStat = new ThreadLocal<StringBuilder>(true);
-
-            SaveAsStat(System.IO.Path.Combine(folder, "base.stat"), originalGraph, origElectSettings, rwp, 0);
-
-            if (generation_type == "random")
+            bgw.DoWork += (s, ee) =>
             {
+                var now = DateTime.Now;
+                if (folder.Length == 0) folder = $"{now.Year}_{now.Month}_{now.Day}_{now.Minute}_{now.Second}";
+                Directory.CreateDirectory(folder);
 
-                Parallel.For(startSeed, end, new ParallelOptions() { MaxDegreeOfParallelism = maxParalell }, (i) =>
+                int end = startSeed + count;
+                int cc = 0;
+
+                ThreadLocal<StatWritingStream> perThreadStat = new ThreadLocal<StatWritingStream>(PrepareStatWriting, true);
+
+                SaveAsStat(Path.Combine(folder, "base.stat"), originalGraph, rwp, 0).Wait();
+
+                if (generation_type == "random")
                 {
-                    var graph = ObjectCopier.Clone(originalGraph);
-                    var t = GenerateRandomElectoralDistrictSystem(i, graph, null);
-                    t.Wait();
-
-                    string stat = ToStat(graph, origElectSettings, rwp, t.Result);
-
-                    if (!perThreadStat.IsValueCreated) perThreadStat.Value = new StringBuilder();
-                    perThreadStat.Value.AppendLine(stat);
-
-                    Interlocked.Increment(ref cc);
-                    if (cc % 1 == 0)
+                    Parallel.For(startSeed, end, new ParallelOptions() { MaxDegreeOfParallelism = maxParalell }, async (i) =>
                     {
-                        bgw.ReportProgress((int)((double)(cc) / (double)(count) * 100), new BatchedGenerationProgress() { done = cc, all = count });
-                    }
-                });
+                        var graph = ObjectCopier.Clone(originalGraph);
+                        var t = GenerateRandomElectoralDistrictSystem(i, graph, null);
+                        await t;
 
-                File.WriteAllText(Path.Combine(folder, "generated.stat"),
-                    perThreadStat.Values.Select(x => x.ToString()).Aggregate((partialPhrase, word) => $"{partialPhrase} {word}"));
-                bgw.RunWorkerAsync();
-            }
-            else if (generation_type == "mcmc")
-            {
-                var statBuilder = new StringBuilder();
-                for (int i = startSeed; i < end; i++)
-                {
-                    var graphTask = rutil.GenerateMarkovAnalysis(originalGraph, "last", 100, 18, 0.15, i, 1, 0.0, 0.05, 2.0);
-                    graphTask.Wait();
-                    var graph = graphTask.Result;
+                        await StreamStat(perThreadStat.Value.compressor, ToStatString(graph, rwp, t.Result));
 
-                    if (graph == null) continue;
-
-                    _seed = i;
-                    string stat = ToStat(graph, origElectSettings, rwp, 0);
-                    statBuilder.AppendLine(stat);
-                    Console.WriteLine($"{i + 1}/{end}");
+                        Interlocked.Increment(ref cc);
+                        if (cc % 1 == 0)
+                        {
+                            bgw.ReportProgress((int)((double)(cc) / (double)(count) * 100), new BatchedGenerationProgress() { done = cc, all = count });
+                        }
+                    });
                 }
-                File.WriteAllText(Path.Combine(folder, "generated.stat"), statBuilder.ToString());
-                bgw.Dispose();
-            }
+                else if (generation_type == "mcmc")
+                {
+                    for (int i = startSeed; i < end; i++)
+                    {
+                        var graphTask = rutil.GenerateMarkovAnalysis(originalGraph, "last", 100, 18, 0.15, i, 1, 0.0, 0.05, 2.0);
+                        graphTask.Wait();
+                        var graph = graphTask.Result;
+                        if (graph == null) continue;
 
+                        _seed = i; // TODO: ez miert kell?
+
+                        StreamStat(perThreadStat.Value.compressor, ToStatString(graph, rwp, 0)).Wait();
+
+                        bgw.ReportProgress((int)((double)(i + 1) / (double)(end) * 100), new BatchedGenerationProgress() { done = i+1, all = end });
+                    }
+                }
+
+                Parallel.ForEach(perThreadStat.Values, async (v, state, i) =>
+                {
+                    await FinishStatWriting(Path.Combine(folder, $"generated{i}.stat"), v.compressed);
+                    v.Dispose();
+                });
+            };
+            bgw.RunWorkerAsync();
         }
     }
 }

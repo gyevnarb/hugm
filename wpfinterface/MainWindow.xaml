@@ -138,7 +138,7 @@
                                     <TextBox x:Name="txFolder" Width="99" Margin="5,0,0,0" TextAlignment="Center" VerticalContentAlignment="Center" />
                                 </StackPanel>
                                 <DockPanel DockPanel.Dock="Right" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Height="Auto" >
-                                    <Button Click="GenerationStartHandler" Width="50">Start</Button>
+                                    <Button x:Name="btnStartBatch" Click="GenerationStartHandler" Width="50">Start</Button>
                                     <ProgressBar x:Name="progressbar" Margin="5,0" />
                                 </DockPanel>
                             </StackPanel>
