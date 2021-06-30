@@ -220,13 +220,19 @@ namespace wpfinterface
 
             var hs = CalculateIndexOfDissimilarity(stats.baseResult);
 
+            bool found = false;
             for (int i = 0; i < yaxis.Length; ++i)
             {
                 if (hs > yaxis[i])
                 {
                     plot1.plt.PlotPoint(i + 1, hs, color: System.Drawing.Color.Red, markerSize: 8);
+                    found = true;
                     break;
                 }
+            }
+            if (!found)
+            {
+                plot1.plt.PlotPoint(yaxis.Length + 1, hs, color: System.Drawing.Color.Red, markerSize: 8);
             }
 
             plot1.plt.YLabel("Index of Dissimilarity");
@@ -285,13 +291,19 @@ namespace wpfinterface
 
             var hs = stats.baseResult.result.Average(x => x.wrongDistrictPercentage);
 
+            bool found = false;
             for (int i = 0; i < yaxis.Length; ++i)
             {
                 if (hs > yaxis[i])
                 {
                     plot1.plt.PlotPoint(i + 1, hs, color: System.Drawing.Color.Red, markerSize: 8);
+                    found = true;
                     break;
                 }
+            }
+            if (!found)
+            {
+                plot1.plt.PlotPoint(yaxis.Length + 1, hs, color: System.Drawing.Color.Red, markerSize: 8);
             }
 
             plot1.plt.XLabel("Generálások");
