@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using core;
+using core.graph;
 using core.map;
 
 namespace wpfinterface
@@ -95,6 +98,46 @@ namespace wpfinterface
             var ss = filters[filter](this, stat, pred);
             if (ss.generationResults.Count == 0) return;
             plots[plot](this, ss);
+        }
+
+        public async Task PlotLongRePop(string filter, Predicate<double> pred, GraphUtility graphUtil, Graph graph, string statsFolder, double from, double to, double step, string faction, bool useValid)
+        {
+            List<double> dataFideszMod = new List<double>();
+            List<double> dataOsszefogasMod = new List<double>();
+            List<double> dataFideszOrig = new List<double>();
+            List<double> dataOsszefogasOrig = new List<double>();
+
+            for (double f = from; f <= to; f += step)
+            {
+                var g = ObjectCopier.Clone(graph);
+                graphUtil.RePop(g, faction, f);
+                var res = graphUtil.ReadStat(g, statsFolder, useValid);
+                await res;
+                var stats = res.Result;
+
+                stats = filters[filter](this, stats, pred);
+                if (stats.generationResults.Count == 0)
+                    continue;
+
+                dataFideszMod.Add(stats.generationResults.Select(x => x.result.Count(y => y.fResults.ToList().FindIndex(z => z == y.fResults.Max()) == 0)).Average());
+                dataOsszefogasMod.Add(stats.generationResults.Select(x => x.result.Count(y => y.fResults.ToList().FindIndex(z => z == y.fResults.Max()) == 1)).Average());
+                dataFideszOrig.Add(stats.baseResult.result.Count(y => y.fResults.ToList().FindIndex(z => z == y.fResults.Max()) == 0));
+                dataOsszefogasOrig.Add(stats.baseResult.result.Count(y => y.fResults.ToList().FindIndex(z => z == y.fResults.Max()) == 1));
+            }
+
+            var xaxis = new List<double>();
+            for (double s = from; s <= to; s += step)
+            {
+                xaxis.Add(s);
+            }
+
+            plot1.plt.PlotScatter(xaxis.ToArray(), dataFideszMod.ToArray(), color: Color.Blue, lineWidth: 3);
+            plot1.plt.PlotScatter(xaxis.ToArray(), dataOsszefogasMod.ToArray(), color: Color.Red, lineWidth: 3);
+            plot1.plt.PlotScatter(xaxis.ToArray(), dataOsszefogasOrig.ToArray(), color: Color.Orange, lineWidth: 3);
+            plot1.plt.PlotScatter(xaxis.ToArray(), dataFideszOrig.ToArray(), color: Color.LightBlue, lineWidth: 3);
+
+            plot1.plt.YLabel("Atlagos fidesz altal nyert keruletek");
+            plot1.plt.XLabel("Repop %");
         }
 
         private double CalculateStandardDeviation(IEnumerable<double> values)

@@ -128,6 +128,11 @@ namespace wpfinterface
 
             CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("en-US");
 
+            plotFilterCombo.ItemsSource = Plotter.Filters;
+            plotFilterCombo.SelectedIndex = 0;
+            plotPredCombo.ItemsSource = new List<string>() { "<=", ">=" };
+            plotPredCombo.SelectedIndex = 0;
+
             InitKeyHandlers();
         }
 
@@ -693,6 +698,62 @@ namespace wpfinterface
             }
         }
 
+        private async void RunLongPopulationRedistributionHandler(object sender, RoutedEventArgs e)
+        {
+            if (repopCombo.Text == "NONE")
+            {
+                return;
+            }
+
+            if (!graphUtil.ValidGraph())
+            {
+                FileLoadHandler(this, null);
+
+                if (!graphUtil.ValidGraph())
+                {
+                    lblLoadedGraphPath.Text = "Graph is not loaded. Please load a graph through the file menu.";
+                    return;
+                }
+            }
+
+            if (txStatFolder.Text == "")
+            {
+                using (var dialog = new System.Windows.Forms.FolderBrowserDialog())
+                {
+                    dialog.SelectedPath = Environment.CurrentDirectory;
+                    dialog.ShowNewFolderButton = true;
+                    if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                    {
+                        txStatFolder.Text = dialog.SelectedPath;
+                    }
+                }
+            }
+
+            if (!Double.TryParse(txPlotThreshold.Text, out var threshold)) threshold = 0;
+            Predicate<double> pred = null;
+            if (plotPredCombo.SelectedIndex == 0)
+            {
+                pred = x => x <= threshold;
+            }
+            else
+            {
+                pred = x => x >= threshold;
+            }
+
+            var settings = new LongRePopSettings();
+            settings.ShowDialog();
+            if (settings.ex != null)
+            {
+                lblLoadedGraphPath.Text = settings.ex;
+                return;
+            }
+
+            var plt = new Plotter();
+            await plt.PlotLongRePop(plotFilterCombo.Text, pred, graphUtil, graphUtil.MyGraph, txStatFolder.Text, settings.from, settings.to, settings.step, repopCombo.Text, chPopValid.IsChecked.Value);
+            plt.Title = "Population redistribution";
+            plt.Show();
+        }
+
         private double GetRepopValue()
         {
             var r = int.Parse(txRepop.Text);
@@ -893,7 +954,6 @@ namespace wpfinterface
                 lblLoadedGraphPath.Text = exx.Message;
                 return;
             }
-
             
             if (graphUtil.MyStats == null)
             {
@@ -902,16 +962,9 @@ namespace wpfinterface
             }
 
             plotCombo.IsEnabled = true;
-            plotFilterCombo.IsEnabled = true;
-            txPlotThreshold.IsEnabled = true;
-            plotPredCombo.IsEnabled = true;
             plotBtn.IsEnabled = true;
             plotCombo.ItemsSource = Plotter.Plots;
             plotCombo.SelectedIndex = 0;
-            plotFilterCombo.ItemsSource = Plotter.Filters;
-            plotFilterCombo.SelectedIndex = 0;
-            plotPredCombo.ItemsSource = new List<string>() { "<=", ">=" };
-            plotPredCombo.SelectedIndex = 0;
         }
 
         private void btnRunRandomWalk_Click(object sender, RoutedEventArgs e)
