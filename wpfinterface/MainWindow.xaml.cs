@@ -664,6 +664,42 @@ namespace wpfinterface
             ShowGraph();
         }
 
+        private void RunPopulationRedistributionHandler(object sender, RoutedEventArgs e)
+        {
+            // Repop
+            if (repopCombo.Text == "NONE")
+            {
+                return;
+            }
+
+            if (!graphUtil.ValidGraph())
+            {
+                FileLoadHandler(this, null);
+
+                if (!graphUtil.ValidGraph())
+                {
+                    lblLoadedGraphPath.Text = "Graph is not loaded. Please load a graph through the file menu.";
+                    return;
+                }
+            }
+
+            try
+            {
+                graphUtil.RePop(graphUtil.MyGraph, repopCombo.Text, GetRepopValue());
+            }
+            catch (Exception ex)
+            {
+                lblLoadedGraphPath.Text = ex.Message;
+            }
+        }
+
+        private double GetRepopValue()
+        {
+            var r = int.Parse(txRepop.Text);
+            if (r < 0 || r > 100) throw new ArgumentException("Repop number must be 0-100");
+            return r / 100.0;
+        }
+
         private async void RunRandomDistrictGrowthHandler(object sender, RoutedEventArgs e)
         {
             if (!graphUtil.ValidGraph())
@@ -838,7 +874,16 @@ namespace wpfinterface
 
             try
             {
-                var res = graphUtil.ReadStat(graphUtil.MyGraph, txStatFolder.Text, chPopValid.IsChecked.Value);
+                var graph = graphUtil.MyGraph;
+
+                // Repop
+                if (repopCombo.Text != "NONE")
+                {
+                    graph = ObjectCopier.Clone(graphUtil.MyGraph);
+                    graphUtil.RePop(graph, repopCombo.Text, GetRepopValue());
+                }
+
+                var res = graphUtil.ReadStat(graph, txStatFolder.Text, chPopValid.IsChecked.Value);
                 await res;
                 graphUtil.MyStats = res.Result;
                 //graphUtil.LoadStats(txStatFolder.Text, chPopValid.IsChecked.Value);

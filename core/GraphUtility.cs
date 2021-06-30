@@ -781,6 +781,17 @@ namespace core
             //System.IO.File.WriteAllText(filename, ToStat(graph, origElectSettings, rwp, athelyezesCount));
         }
 
+        public void RePop(Graph graph, string text, double v)
+        {
+            foreach (AreaNode n in graph.V)
+            {
+                foreach (VotingArea a in n.Areas)
+                {
+                    a.Results.RePop(text, v);
+                }
+            }
+        }
+
         public string GetStatistics(Graph graph)
         {
             Dictionary<int, VoteResult> results = new Dictionary<int, VoteResult>();

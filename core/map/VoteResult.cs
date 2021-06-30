@@ -97,5 +97,60 @@ namespace core.map
         {
             return PartiesVotes().OrderBy(kv => kv.Key).First();
         }
+
+        internal void RePop(string text, double v)
+        {
+            switch (text)
+            {
+                case "FIDESZ":
+                    {
+                        int repop = (int)(FideszKDNP * v);
+                        int gain = repop / 3;
+                        int correction = 0;
+                        if (gain * 3 != repop) correction = repop - gain * 3;
+                        FideszKDNP -= repop;
+                        Osszefogas += gain;
+                        LMP += gain + correction;
+                        Jobbik += gain;
+                        break;
+                    }
+                case "OSSZEFOGAS":
+                    {
+                        int repop = (int)(Osszefogas * v);
+                        int gain = repop / 3;
+                        int correction = 0;
+                        if (gain * 3 != repop) correction = repop - gain * 3;
+                        Osszefogas -= repop;
+                        FideszKDNP += gain;
+                        LMP += gain + correction;
+                        Jobbik += gain;
+                        break;
+                    }
+                case "JOBBIK":
+                    {
+                        int repop = (int)(Jobbik * v);
+                        int gain = repop / 3;
+                        int correction = 0;
+                        if (gain * 3 != repop) correction = repop - gain * 3;
+                        Jobbik -= repop;
+                        Osszefogas += gain;
+                        LMP += gain + correction;
+                        FideszKDNP += gain;
+                        break;
+                    }
+                case "LMP":
+                    {
+                        int repop = (int)(LMP * v);
+                        int gain = repop / 3;
+                        int correction = 0;
+                        if (gain * 3 != repop) correction = repop - gain * 3;
+                        LMP -= repop;
+                        Osszefogas += gain;
+                        FideszKDNP += gain + correction;
+                        Jobbik += gain;
+                        break;
+                    }
+            }
+        }
     }
 }
