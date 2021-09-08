@@ -140,7 +140,7 @@ namespace core
                 i++;
             }
             AreaUtils.Save(savePath, g);
-            Console.WriteLine("Created new electoral assignment under file map_new.bin");
+            Console.WriteLine($"Created new electoral assignment under file {savePath}");
             return g;
         }
 

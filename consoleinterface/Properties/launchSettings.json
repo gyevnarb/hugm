@@ -2,7 +2,7 @@
   "profiles": {
     "consoleinterface": {
       "commandName": "Project",
-      "commandLineArgs": "mcmc 1"
+      "commandLineArgs": "mcmc 1 1"
     }
   }
 }
